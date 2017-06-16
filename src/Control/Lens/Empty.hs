@@ -63,9 +63,11 @@ class AsEmpty a where
   -- >>> isn't _Empty [1,2,3]
   -- True
   _Empty :: Prism' a ()
+#ifndef HLINT
   default _Empty :: (Monoid a, Eq a) => Prism' a ()
   _Empty = only mempty
   {-# INLINE _Empty #-}
+#endif
 
 #if __GLASGOW_HASKELL__ >= 710
 pattern Empty <- (has _Empty -> True) where

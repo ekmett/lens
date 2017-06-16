@@ -100,10 +100,12 @@ class Field1 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   -- '_1' :: 'Lens' (a,b,c,d,e,f,g,h,i) (a',b,c,d,e,f,g,h,i) a a'
   -- @
   _1 :: Lens s t a b
+#ifndef HLINT
   default _1 :: (Generic s, Generic t, GIxed N0 (Rep s) (Rep t) a b)
              => Lens s t a b
   _1 = ix proxyN0
   {-# INLINE _1 #-}
+#endif
 
 instance Field1 (Identity a) (Identity b) a b where
   _1 f (Identity a) = Identity <$> f a
@@ -209,10 +211,12 @@ class Field2 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   -- 'Control.Lens.Fold.foldMapOf' ('Data.Traversable.traverse' '.' '_2') :: ('Data.Traversable.Traversable' t, 'Data.Monoid.Monoid' m) => (s -> m) -> t (b, s) -> m
   -- @
   _2 :: Lens s t a b
+#ifndef HLINT
   default _2 :: (Generic s, Generic t, GIxed N1 (Rep s) (Rep t) a b)
              => Lens s t a b
   _2 = ix proxyN1
   {-# INLINE _2 #-}
+#endif
 
 instance Field2 (Product f g a) (Product f g' a) (g a) (g' a) where
   _2 f (Pair a b) = Pair a <$> f b
@@ -300,10 +304,12 @@ instance Field2 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s) (a,b',c,d,e,f,g,h,i,j,k
 class Field3 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   -- | Access the 3rd field of a tuple.
   _3 :: Lens s t a b
+#ifndef HLINT
   default _3 :: (Generic s, Generic t, GIxed N2 (Rep s) (Rep t) a b)
              => Lens s t a b
   _3 = ix proxyN2
   {-# INLINE _3 #-}
+#endif
 
 instance Field3 (a,b,c) (a,b,c') c c' where
   _3 k ~(a,b,c) = k c <&> \c' -> (a,b,c')
@@ -377,10 +383,12 @@ instance Field3 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s) (a,b,c',d,e,f,g,h,i,j,k
 class Field4 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   -- | Access the 4th field of a tuple.
   _4 :: Lens s t a b
+#ifndef HLINT
   default _4 :: (Generic s, Generic t, GIxed N3 (Rep s) (Rep t) a b)
              => Lens s t a b
   _4 = ix proxyN3
   {-# INLINE _4 #-}
+#endif
 
 instance Field4 (a,b,c,d) (a,b,c,d') d d' where
   _4 k ~(a,b,c,d) = k d <&> \d' -> (a,b,c,d')
@@ -450,10 +458,12 @@ instance Field4 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s) (a,b,c,d',e,f,g,h,i,j,k
 class Field5 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   -- | Access the 5th field of a tuple.
   _5 :: Lens s t a b
+#ifndef HLINT
   default _5 :: (Generic s, Generic t, GIxed N4 (Rep s) (Rep t) a b)
              => Lens s t a b
   _5 = ix proxyN4
   {-# INLINE _5 #-}
+#endif
 
 instance Field5 (a,b,c,d,e) (a,b,c,d,e') e e' where
   _5 k ~(a,b,c,d,e) = k e <&> \e' -> (a,b,c,d,e')
@@ -519,10 +529,12 @@ instance Field5 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s) (a,b,c,d,e',f,g,h,i,j,k
 class Field6 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   -- | Access the 6th field of a tuple.
   _6 :: Lens s t a b
+#ifndef HLINT
   default _6 :: (Generic s, Generic t, GIxed N5 (Rep s) (Rep t) a b)
              => Lens s t a b
   _6 = ix proxyN5
   {-# INLINE _6 #-}
+#endif
 
 instance Field6 (a,b,c,d,e,f) (a,b,c,d,e,f') f f' where
   _6 k ~(a,b,c,d,e,f) = k f <&> \f' -> (a,b,c,d,e,f')
@@ -584,10 +596,12 @@ instance Field6 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s) (a,b,c,d,e,f',g,h,i,j,k
 class Field7 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   -- | Access the 7th field of a tuple.
   _7 :: Lens s t a b
+#ifndef HLINT
   default _7 :: (Generic s, Generic t, GIxed N6 (Rep s) (Rep t) a b)
              => Lens s t a b
   _7 = ix proxyN6
   {-# INLINE _7 #-}
+#endif
 
 instance Field7 (a,b,c,d,e,f,g) (a,b,c,d,e,f,g') g g' where
   _7 k ~(a,b,c,d,e,f,g) = k g <&> \g' -> (a,b,c,d,e,f,g')
@@ -645,10 +659,12 @@ instance Field7 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s) (a,b,c,d,e,f,g',h,i,j,k
 class Field8 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   -- | Access the 8th field of a tuple.
   _8 :: Lens s t a b
+#ifndef HLINT
   default _8 :: (Generic s, Generic t, GIxed N7 (Rep s) (Rep t) a b)
              => Lens s t a b
   _8 = ix proxyN7
   {-# INLINE _8 #-}
+#endif
 
 instance Field8 (a,b,c,d,e,f,g,h) (a,b,c,d,e,f,g,h') h h' where
   _8 k ~(a,b,c,d,e,f,g,h) = k h <&> \h' -> (a,b,c,d,e,f,g,h')
@@ -702,10 +718,12 @@ instance Field8 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s) (a,b,c,d,e,f,g,h',i,j,k
 class Field9 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   -- | Access the 9th field of a tuple.
   _9 :: Lens s t a b
+#ifndef HLINT
   default _9 :: (Generic s, Generic t, GIxed N8 (Rep s) (Rep t) a b)
              => Lens s t a b
   _9 = ix proxyN8
   {-# INLINE _9 #-}
+#endif
 
 instance Field9 (a,b,c,d,e,f,g,h,i) (a,b,c,d,e,f,g,h,i') i i' where
   _9 k ~(a,b,c,d,e,f,g,h,i) = k i <&> \i' -> (a,b,c,d,e,f,g,h,i')
@@ -755,10 +773,12 @@ instance Field9 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s) (a,b,c,d,e,f,g,h,i',j,k
 class Field10 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   -- | Access the 10th field of a tuple.
   _10 :: Lens s t a b
+#ifndef HLINT
   default _10 :: (Generic s, Generic t, GIxed N9 (Rep s) (Rep t) a b)
              => Lens s t a b
   _10 = ix proxyN9
   {-# INLINE _10 #-}
+#endif
 
 instance Field10 (a,b,c,d,e,f,g,h,i,j) (a,b,c,d,e,f,g,h,i,j') j j' where
   _10 k ~(a,b,c,d,e,f,g,h,i,j) = k j <&> \j' -> (a,b,c,d,e,f,g,h,i,j')
@@ -804,10 +824,12 @@ instance Field10 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s) (a,b,c,d,e,f,g,h,i,j',
 class Field11 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   -- | Access the 11th field of a tuple.
   _11 :: Lens s t a b
+#ifndef HLINT
   default _11 :: (Generic s, Generic t, GIxed N10 (Rep s) (Rep t) a b)
              => Lens s t a b
   _11 = ix proxyN10
   {-# INLINE _11 #-}
+#endif
 
 instance Field11 (a,b,c,d,e,f,g,h,i,j,kk) (a,b,c,d,e,f,g,h,i,j,kk') kk kk' where
   _11 k ~(a,b,c,d,e,f,g,h,i,j,kk) = k kk <&> \kk' -> (a,b,c,d,e,f,g,h,i,j,kk')
@@ -849,10 +871,12 @@ instance Field11 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s) (a,b,c,d,e,f,g,h,i,j,k
 class Field12 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   -- | Access the 12th field of a tuple.
   _12 :: Lens s t a b
+#ifndef HLINT
   default _12 :: (Generic s, Generic t, GIxed N11 (Rep s) (Rep t) a b)
              => Lens s t a b
   _12 = ix proxyN11
   {-# INLINE _12 #-}
+#endif
 
 instance Field12 (a,b,c,d,e,f,g,h,i,j,kk,l) (a,b,c,d,e,f,g,h,i,j,kk,l') l l' where
   _12 k ~(a,b,c,d,e,f,g,h,i,j,kk,l) = k l <&> \l' -> (a,b,c,d,e,f,g,h,i,j,kk,l')
@@ -890,10 +914,12 @@ instance Field12 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s) (a,b,c,d,e,f,g,h,i,j,k
 class Field13 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   -- | Access the 13th field of a tuple.
   _13 :: Lens s t a b
+#ifndef HLINT
   default _13 :: (Generic s, Generic t, GIxed N12 (Rep s) (Rep t) a b)
              => Lens s t a b
   _13 = ix proxyN12
   {-# INLINE _13 #-}
+#endif
 
 instance Field13 (a,b,c,d,e,f,g,h,i,j,kk,l,m) (a,b,c,d,e,f,g,h,i,j,kk,l,m') m m' where
   _13 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m) = k m <&> \m' -> (a,b,c,d,e,f,g,h,i,j,kk,l,m')
@@ -927,10 +953,12 @@ instance Field13 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s) (a,b,c,d,e,f,g,h,i,j,k
 class Field14 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   -- | Access the 14th field of a tuple.
   _14 :: Lens s t a b
+#ifndef HLINT
   default _14 :: (Generic s, Generic t, GIxed N13 (Rep s) (Rep t) a b)
              => Lens s t a b
   _14 = ix proxyN13
   {-# INLINE _14 #-}
+#endif
 
 instance Field14 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n) (a,b,c,d,e,f,g,h,i,j,kk,l,m,n') n n' where
   _14 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n) = k n <&> \n' -> (a,b,c,d,e,f,g,h,i,j,kk,l,m,n')
@@ -960,10 +988,12 @@ instance Field14 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s) (a,b,c,d,e,f,g,h,i,j,k
 class Field15 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   -- | Access the 15th field of a tuple.
   _15 :: Lens s t a b
+#ifndef HLINT
   default _15 :: (Generic s, Generic t, GIxed N14 (Rep s) (Rep t) a b)
              => Lens s t a b
   _15 = ix proxyN14
   {-# INLINE _15 #-}
+#endif
 
 instance Field15 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o) (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o') o o' where
   _15 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o) = k o <&> \o' -> (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o')
@@ -989,10 +1019,12 @@ instance Field15 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s) (a,b,c,d,e,f,g,h,i,j,k
 class Field16 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   -- | Access the 16th field of a tuple.
   _16 :: Lens s t a b
+#ifndef HLINT
   default _16 :: (Generic s, Generic t, GIxed N15 (Rep s) (Rep t) a b)
              => Lens s t a b
   _16 = ix proxyN15
   {-# INLINE _16 #-}
+#endif
 
 instance Field16 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p) (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p') p p' where
   _16 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p) = k p <&> \p' -> (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p')
@@ -1014,10 +1046,12 @@ instance Field16 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s) (a,b,c,d,e,f,g,h,i,j,k
 class Field17 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   -- | Access the 17th field of a tuple.
   _17 :: Lens s t a b
+#ifndef HLINT
   default _17 :: (Generic s, Generic t, GIxed N16 (Rep s) (Rep t) a b)
              => Lens s t a b
   _17 = ix proxyN16
   {-# INLINE _17 #-}
+#endif
 
 instance Field17 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q) (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q') q q' where
   _17 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q) = k q <&> \q' -> (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q')
@@ -1035,10 +1069,12 @@ instance Field17 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s) (a,b,c,d,e,f,g,h,i,j,k
 class Field18 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   -- | Access the 18th field of a tuple.
   _18 :: Lens s t a b
+#ifndef HLINT
   default _18 :: (Generic s, Generic t, GIxed N17 (Rep s) (Rep t) a b)
              => Lens s t a b
   _18 = ix proxyN17
   {-# INLINE _18 #-}
+#endif
 
 instance Field18 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r) (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r') r r' where
   _18 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r) = k r <&> \r' -> (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r')
@@ -1052,10 +1088,12 @@ instance Field18 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s) (a,b,c,d,e,f,g,h,i,j,k
 class Field19 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   -- | Access the 19th field of a tuple.
   _19 :: Lens s t a b
+#ifndef HLINT
   default _19 :: (Generic s, Generic t, GIxed N18 (Rep s) (Rep t) a b)
              => Lens s t a b
   _19 = ix proxyN18
   {-# INLINE _19 #-}
+#endif
 
 instance Field19 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s) (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s') s s' where
   _19 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s) = k s <&> \s' -> (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s')

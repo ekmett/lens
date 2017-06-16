@@ -83,9 +83,11 @@ import Control.Applicative
 -- ("HELLO","WORLD")
 class Each s t a b | s -> a, t -> b, s b -> t, t a -> s where
   each :: Traversal s t a b
+#ifndef HLINT
   default each :: (Traversable g, s ~ g a, t ~ g b) => Traversal s t a b
   each = traverse
   {-# INLINE each #-}
+#endif
 
 -- | @'each' :: 'Traversal' (a,a) (b,b) a b@
 instance (a~a', b~b') => Each (a,a') (b,b') a b where

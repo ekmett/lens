@@ -201,9 +201,11 @@ class Ixed m where
   -- >>> Seq.fromList [] ^? ix 2
   -- Nothing
   ix :: Index m -> Traversal' m (IxValue m)
+#ifndef HLINT
   default ix :: (Applicative f, At m) => Index m -> LensLike' f m (IxValue m)
   ix = ixAt
   {-# INLINE ix #-}
+#endif
 
 -- | An indexed version of 'ix'.
 --
