@@ -7,6 +7,10 @@
 # endif
 #endif
 
+#ifdef HLINT
+{-# ANN module "HLint: ignore Use camelCase" #-}
+#endif
+
 #ifndef MIN_VERSION_template_haskell
 #define MIN_VERSION_template_haskell(x,y,z) (defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 706)
 #endif

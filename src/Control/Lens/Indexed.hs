@@ -241,11 +241,9 @@ index j f = Indexed $ \i a -> if j == i then indexed f i a else pure a
 class Functor f => FunctorWithIndex i f | f -> i where
   -- | Map with access to the index.
   imap :: (i -> a -> b) -> f a -> f b
-#ifndef HLINT
   default imap :: TraversableWithIndex i f => (i -> a -> b) -> f a -> f b
   imap = iover itraversed
   {-# INLINE imap #-}
-#endif
 
   -- | The 'IndexedSetter' for a 'FunctorWithIndex'.
   --

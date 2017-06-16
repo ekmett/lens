@@ -189,12 +189,10 @@ class Wrapped s where
   -- If your type has a 'Generic' instance, '_Wrapped'' will default to '_GWrapped'',
   -- and you can choose to not override it with your own definition.
   _Wrapped' :: Iso' s (Unwrapped s)
-#ifndef HLINT
   default _Wrapped' :: (Generic s, D1 d (C1 c (S1 s' (Rec0 a))) ~ Rep s, Unwrapped s ~ GUnwrapped (Rep s))
                     => Iso' s (Unwrapped s)
   _Wrapped' = _GWrapped'
   {-# INLINE _Wrapped' #-}
-#endif
 
 -- | Implement the '_Wrapped' operation for a type using its 'Generic' instance.
 _GWrapped' :: (Generic s, D1 d (C1 c (S1 s' (Rec0 a))) ~ Rep s, Unwrapped s ~ GUnwrapped (Rep s))
