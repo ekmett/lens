@@ -148,11 +148,6 @@ flag dump-splices
   default: False
   manual: True
 
--- You can disable the hlint test suite with -f-test-hlint
-flag test-hlint
-  default: True
-  manual: True
-
 -- You can disable the doctests test suite with -f-test-doctests
 flag test-doctests
   default: True
@@ -425,20 +420,6 @@ test-suite doctests
       text,
       unordered-containers,
       vector
-
-test-suite hlint
-  type: exitcode-stdio-1.0
-  main-is: hlint.hs
-  ghc-options: -w -threaded -rtsopts -with-rtsopts=-N
-  hs-source-dirs: tests
-
-  if !flag(test-hlint)
-    buildable: False
-  else
-    build-depends:
-      base,
-      -- Bounds are in place due to https://github.com/ekmett/lens/issues/723
-      hlint >= 1.9.27 && < 2 || >= 2.0.1
 
 -- Basic benchmarks for the uniplate-style combinators
 benchmark plated
