@@ -24,26 +24,34 @@ before_cache:
   - rm -fv $HOME/.cabal/packages/hackage.haskell.org/01-index.tar
   - rm -fv $HOME/.cabal/packages/hackage.haskell.org/01-index.tar.idx
 
+addons:
+  apt:
+    packages: &apt_packages
+      - ghc-ppa-tools
+      - alex-3.1.7
+      - happy-1.19.5
+      - hlint
+
 matrix:
   include:
     - compiler: "ghc-8.2.1"
     # env: TEST=--disable-tests BENCH=--disable-benchmarks
-      addons: {apt: {packages: [ghc-ppa-tools,cabal-install-2.0,ghc-8.2.1,alex-3.1.7,happy-1.19.5], sources: [hvr-ghc]}}
+      addons: {apt: {packages: [*apt_packages,cabal-install-2.0,ghc-8.2.1], sources: [hvr-ghc]}}
     - compiler: "ghc-8.0.2"
     # env: TEST=--disable-tests BENCH=--disable-benchmarks
-      addons: {apt: {packages: [ghc-ppa-tools,cabal-install-2.0,ghc-8.0.2,alex-3.1.7,happy-1.19.5], sources: [hvr-ghc]}}
+      addons: {apt: {packages: [*apt_packages,cabal-install-2.0,ghc-8.0.2], sources: [hvr-ghc]}}
     - compiler: "ghc-7.10.3"
     # env: TEST=--disable-tests BENCH=--disable-benchmarks
-      addons: {apt: {packages: [ghc-ppa-tools,cabal-install-2.0,ghc-7.10.3,alex-3.1.7,happy-1.19.5], sources: [hvr-ghc]}}
+      addons: {apt: {packages: [*apt_packages,cabal-install-2.0,ghc-7.10.3], sources: [hvr-ghc]}}
     - compiler: "ghc-7.8.4"
     # env: TEST=--disable-tests BENCH=--disable-benchmarks
-      addons: {apt: {packages: [ghc-ppa-tools,cabal-install-2.0,ghc-7.8.4,alex-3.1.7,happy-1.19.5], sources: [hvr-ghc]}}
+      addons: {apt: {packages: [*apt_packages,cabal-install-2.0,ghc-7.8.4], sources: [hvr-ghc]}}
     - compiler: "ghc-7.6.3"
     # env: TEST=--disable-tests BENCH=--disable-benchmarks
-      addons: {apt: {packages: [ghc-ppa-tools,cabal-install-2.0,ghc-7.6.3,alex-3.1.7,happy-1.19.5], sources: [hvr-ghc]}}
+      addons: {apt: {packages: [*apt_packages,cabal-install-2.0,ghc-7.6.3], sources: [hvr-ghc]}}
     - compiler: "ghc-7.4.2"
     # env: TEST=--disable-tests BENCH=--disable-benchmarks
-      addons: {apt: {packages: [ghc-ppa-tools,cabal-install-2.0,ghc-7.4.2,alex-3.1.7,happy-1.19.5], sources: [hvr-ghc]}}
+      addons: {apt: {packages: [*apt_packages,cabal-install-2.0,ghc-7.4.2], sources: [hvr-ghc]}}
 
 before_install:
  - HC=${CC}
@@ -72,23 +80,10 @@ install:
 script:
  - if [ -f configure.ac ]; then autoreconf -i; fi
  - rm -rf .ghc.environment.* dist/
- #- cabal sdist # test that a source-distribution can be generated
- #- cd dist/
- #- SRCTAR=(${PKGNAME}-*.tar.gz)
- #- SRC_BASENAME="${SRCTAR/%.tar.gz}"
- #- tar -xvf "./$SRC_BASENAME.tar.gz"
- #- cd "$SRC_BASENAME/"
-## from here on, CWD is inside the extracted source-tarball
- #- rm -fv cabal.project.local
- # this builds all libraries and executables (without tests/benchmarks)
- #- rm -f cabal.project.freeze
- #- cabal new-build -w ${HC} --disable-tests --disable-benchmarks
- # this builds all libraries and executables (including tests/benchmarks)
- # - rm -rf ./dist-newstyle
-
  # build tests and benchmarks, run tests
  - cabal new-build -w ${HC} ${TEST} ${BENCH}
  - if [ "x$TEST" = "x--enable-tests" ]; then cabal new-test -w ${HC} ${TEST} ${BENCH}; fi
+ - hlint src --cpp-define=HLINT --cpp-ansi
 
 notifications:
   irc:
