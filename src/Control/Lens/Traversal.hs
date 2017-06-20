@@ -144,6 +144,7 @@ import Control.Lens.Type
 import Control.Monad
 import Control.Monad.Trans.State.Lazy
 import Data.Bitraversable
+import Data.CallStack
 #if __GLASGOW_HASKELL__ < 710
 import Data.Foldable (Foldable)
 #endif
@@ -656,7 +657,7 @@ holesOf l s = unTagged
 -- 'singular' :: 'IndexedTraversal' i s t a a -> 'IndexedLens' i s t a a
 -- 'singular' :: 'IndexedFold' i s a          -> 'IndexedGetter' i s a
 -- @
-singular :: (Conjoined p, Functor f)
+singular :: (HasCallStack, Conjoined p, Functor f)
          => Traversing p f s t a a
          -> Over p f s t a a
 singular l = conjoined
@@ -682,7 +683,7 @@ singular l = conjoined
 -- 'unsafeSingular' :: 'IndexedTraversal' i s t a b -> 'IndexedLens' i s t a b
 -- 'unsafeSingular' :: 'IndexedFold' i s a          -> 'IndexedGetter' i s a
 -- @
-unsafeSingular :: (Conjoined p, Functor f)
+unsafeSingular :: (HasCallStack, Conjoined p, Functor f)
                => Traversing p f s t a b
                -> Over p f s t a b
 unsafeSingular l = conjoined

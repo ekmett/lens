@@ -34,6 +34,7 @@ module Numeric.Lens
   ) where
 
 import Control.Lens
+import Data.CallStack
 import Data.Char (chr, ord, isAsciiLower, isAsciiUpper, isDigit)
 import Data.Maybe (fromMaybe)
 import Numeric (readInt, showIntAtBase)
@@ -67,7 +68,7 @@ pattern Integral a <- (preview integral -> Just a) where
 --
 -- >>> 1767707668033969 ^. re (base 36)
 -- "helloworld"
-base :: Integral a => Int -> Prism' String a
+base :: (HasCallStack, Integral a) => Int -> Prism' String a
 base b
   | b < 2 || b > 36 = error ("base: Invalid base " ++ show b)
   | otherwise       = prism intShow intRead
@@ -81,14 +82,14 @@ base b
 {-# INLINE base #-}
 
 -- | Like 'Data.Char.intToDigit', but handles up to base-36
-intToDigit' :: Int -> Char
+intToDigit' :: HasCallStack => Int -> Char
 intToDigit' i
   | i >= 0  && i < 10 = chr (ord '0' + i)
   | i >= 10 && i < 36 = chr (ord 'a' + i - 10)
   | otherwise = error ("intToDigit': Invalid int " ++ show i)
 
 -- | Like 'Data.Char.digitToInt', but handles up to base-36
-digitToInt' :: Char -> Int
+digitToInt' :: HasCallStack => Char -> Int
 digitToInt' c = fromMaybe (error ("digitToInt': Invalid digit " ++ show c))
                           (digitToIntMay c)
 

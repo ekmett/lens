@@ -158,6 +158,7 @@ import Control.Lens.Type
 import Control.Monad as Monad
 import Control.Monad.Reader
 import Control.Monad.State
+import Data.CallStack
 import Data.Foldable
 import Data.Functor.Apply
 import Data.Functor.Compose
@@ -1213,7 +1214,7 @@ s ^? l = getFirst (foldMapOf l (First #. Just) s)
 -- ('^?!') :: s -> 'Iso'' s a       -> a
 -- ('^?!') :: s -> 'Traversal'' s a -> a
 -- @
-(^?!) :: s -> Getting (Endo a) s a -> a
+(^?!) :: HasCallStack => s -> Getting (Endo a) s a -> a
 s ^?! l = foldrOf l const (error "(^?!): empty Fold") s
 {-# INLINE (^?!) #-}
 
@@ -1653,7 +1654,7 @@ lookupOf l k = foldrOf l (\(k',v) next -> if k == k' then Just v else next) Noth
 -- 'foldr1Of' :: 'Lens'' s a      -> (a -> a -> a) -> s -> a
 -- 'foldr1Of' :: 'Traversal'' s a -> (a -> a -> a) -> s -> a
 -- @
-foldr1Of :: Getting (Endo (Maybe a)) s a -> (a -> a -> a) -> s -> a
+foldr1Of :: HasCallStack => Getting (Endo (Maybe a)) s a -> (a -> a -> a) -> s -> a
 foldr1Of l f xs = fromMaybe (error "foldr1Of: empty structure")
                             (foldrOf l mf Nothing xs) where
   mf x my = Just $ case my of
@@ -1679,7 +1680,7 @@ foldr1Of l f xs = fromMaybe (error "foldr1Of: empty structure")
 -- 'foldl1Of' :: 'Lens'' s a      -> (a -> a -> a) -> s -> a
 -- 'foldl1Of' :: 'Traversal'' s a -> (a -> a -> a) -> s -> a
 -- @
-foldl1Of :: Getting (Dual (Endo (Maybe a))) s a -> (a -> a -> a) -> s -> a
+foldl1Of :: HasCallStack => Getting (Dual (Endo (Maybe a))) s a -> (a -> a -> a) -> s -> a
 foldl1Of l f xs = fromMaybe (error "foldl1Of: empty structure") (foldlOf l mf Nothing xs) where
   mf mx y = Just $ case mx of
     Nothing -> y
@@ -1737,7 +1738,7 @@ foldlOf' l f z0 xs = foldrOf l f' (Endo id) xs `appEndo` z0
 -- 'foldr1Of'' :: 'Lens'' s a      -> (a -> a -> a) -> s -> a
 -- 'foldr1Of'' :: 'Traversal'' s a -> (a -> a -> a) -> s -> a
 -- @
-foldr1Of' :: Getting (Dual (Endo (Endo (Maybe a)))) s a -> (a -> a -> a) -> s -> a
+foldr1Of' :: HasCallStack => Getting (Dual (Endo (Endo (Maybe a)))) s a -> (a -> a -> a) -> s -> a
 foldr1Of' l f xs = fromMaybe (error "foldr1Of': empty structure") (foldrOf' l mf Nothing xs) where
   mf x Nothing = Just $! x
   mf x (Just y) = Just $! f x y
@@ -1758,7 +1759,7 @@ foldr1Of' l f xs = fromMaybe (error "foldr1Of': empty structure") (foldrOf' l mf
 -- 'foldl1Of'' :: 'Lens'' s a      -> (a -> a -> a) -> s -> a
 -- 'foldl1Of'' :: 'Traversal'' s a -> (a -> a -> a) -> s -> a
 -- @
-foldl1Of' :: Getting (Endo (Endo (Maybe a))) s a -> (a -> a -> a) -> s -> a
+foldl1Of' :: HasCallStack => Getting (Endo (Endo (Maybe a))) s a -> (a -> a -> a) -> s -> a
 foldl1Of' l f xs = fromMaybe (error "foldl1Of': empty structure") (foldlOf' l mf Nothing xs) where
   mf Nothing y = Just $! y
   mf (Just x) y = Just $! f x y
@@ -2495,7 +2496,7 @@ s ^@? l = ifoldrOf l (\i x _ -> Just (i,x)) Nothing s
 -- ('^@?!') :: s -> 'IndexedLens'' i s a      -> (i, a)
 -- ('^@?!') :: s -> 'IndexedTraversal'' i s a -> (i, a)
 -- @
-(^@?!) :: s -> IndexedGetting i (Endo (i, a)) s a -> (i, a)
+(^@?!) :: HasCallStack => s -> IndexedGetting i (Endo (i, a)) s a -> (i, a)
 s ^@?! l = ifoldrOf l (\i x _ -> (i,x)) (error "(^@?!): empty Fold") s
 {-# INLINE (^@?!) #-}
 
