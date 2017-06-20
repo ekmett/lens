@@ -20,6 +20,8 @@ module Control.Lens.Internal.FieldTH
   , DefName(..)
   , makeFieldOptics
   , makeFieldOpticsForDec
+  , makeFieldOpticsForDec'
+  , HasFieldClasses
   ) where
 
 import Control.Lens.At
@@ -33,6 +35,7 @@ import Control.Lens.Tuple
 import Control.Lens.Traversal
 import Control.Applicative
 import Control.Monad
+import Control.Monad.State
 import Language.Haskell.TH.Lens
 import Language.Haskell.TH
 import qualified Language.Haskell.TH.Datatype as D
@@ -47,7 +50,6 @@ import qualified Data.Map as Map
 import qualified Data.Traversable as T
 import Prelude
 
-
 ------------------------------------------------------------------------
 -- Field generation entry point
 ------------------------------------------------------------------------
@@ -56,28 +58,30 @@ import Prelude
 -- | Compute the field optics for the type identified by the given type name.
 -- Lenses will be computed when possible, Traversals otherwise.
 makeFieldOptics :: LensRules -> Name -> DecsQ
-makeFieldOptics rules = makeFieldOpticsForDec' rules <=< D.reifyDatatype
-
+makeFieldOptics rules = (`evalStateT` Set.empty) . makeFieldOpticsForDatatype rules <=< D.reifyDatatype
 
 makeFieldOpticsForDec :: LensRules -> Dec -> DecsQ
-makeFieldOpticsForDec rules = makeFieldOpticsForDec' rules <=< D.normalizeDec
+makeFieldOpticsForDec rules = (`evalStateT` Set.empty) . makeFieldOpticsForDec' rules
 
+makeFieldOpticsForDec' :: LensRules -> Dec -> HasFieldClasses [Dec]
+makeFieldOpticsForDec' rules = makeFieldOpticsForDatatype rules <=< lift . D.normalizeDec
 
--- | Compute the field optics for a deconstructed Dec
+-- | Compute the field optics for a deconstructed datatype Dec
 -- When possible build an Iso otherwise build one optic per field.
-makeFieldOpticsForDec' :: LensRules -> D.DatatypeInfo -> DecsQ
-makeFieldOpticsForDec' rules info =
-  do fieldCons <- traverse normalizeConstructor cons
-     let allFields  = toListOf (folded . _2 . folded . _1 . folded) fieldCons
-     let defCons    = over normFieldLabels (expandName allFields) fieldCons
-         allDefs    = setOf (normFieldLabels . folded) defCons
-     perDef <- T.sequenceA (fromSet (buildScaffold rules s defCons) allDefs)
+makeFieldOpticsForDatatype :: LensRules -> D.DatatypeInfo -> HasFieldClasses [Dec]
+makeFieldOpticsForDatatype rules info =
+  do perDef <- lift $ do
+       fieldCons <- traverse normalizeConstructor cons
+       let allFields  = toListOf (folded . _2 . folded . _1 . folded) fieldCons
+       let defCons    = over normFieldLabels (expandName allFields) fieldCons
+           allDefs    = setOf (normFieldLabels . folded) defCons
+       T.sequenceA (fromSet (buildScaffold rules s defCons) allDefs)
 
      let defs = Map.toList perDef
      case _classyLenses rules tyName of
        Just (className, methodName) ->
          makeClassyDriver rules className methodName s defs
-       Nothing -> do decss  <- traverse (makeFieldOptic rules) defs
+       Nothing -> do decss <- traverse (makeFieldOptic rules) defs
                      return (concat decss)
 
   where
@@ -236,16 +240,22 @@ buildStab s categorizedFields =
 makeFieldOptic ::
   LensRules ->
   (DefName, (OpticType, OpticStab, [(Name, Int, [Int])])) ->
-  DecsQ
-makeFieldOptic rules (defName, (opticType, defType, cons)) =
-  do cls <- mkCls
-     T.sequenceA (cls ++ sig ++ def)
+  HasFieldClasses [Dec]
+makeFieldOptic rules (defName, (opticType, defType, cons)) = do
+  locals <- get
+  addName
+  lift $ do cls <- mkCls locals
+            T.sequenceA (cls ++ sig ++ def)
   where
-  mkCls = case defName of
-          MethodName c n | _generateClasses rules ->
-            do classExists <- isJust <$> lookupTypeName (show c)
-               return (if classExists then [] else [makeFieldClass defType c n])
-          _ -> return []
+  mkCls locals = case defName of
+                 MethodName c n | _generateClasses rules ->
+                  do classExists <- isJust <$> lookupTypeName (show c)
+                     return (if classExists || Set.member c locals then [] else [makeFieldClass defType c n])
+                 _ -> return []
+
+  addName = case defName of
+            MethodName c _ -> addFieldClassName c
+            _              -> return ()
 
   sig = case defName of
           _ | not (_generateSigs rules) -> []
@@ -260,7 +270,6 @@ makeFieldOptic rules (defName, (opticType, defType, cons)) =
 
   clauses = makeFieldClauses rules opticType cons
 
-
 ------------------------------------------------------------------------
 -- Classy class generator
 ------------------------------------------------------------------------
@@ -272,11 +281,11 @@ makeClassyDriver ::
   Name ->
   Type {- ^ Outer 's' type -} ->
   [(DefName, (OpticType, OpticStab, [(Name, Int, [Int])]))] ->
-  DecsQ
+  HasFieldClasses [Dec]
 makeClassyDriver rules className methodName s defs = T.sequenceA (cls ++ inst)
 
   where
-  cls | _generateClasses rules = [makeClassyClass className methodName s defs]
+  cls | _generateClasses rules = [lift $ makeClassyClass className methodName s defs]
       | otherwise = []
 
   inst = [makeClassyInstance rules className methodName s defs]
@@ -319,13 +328,13 @@ makeClassyInstance ::
   Name ->
   Type {- ^ Outer 's' type -} ->
   [(DefName, (OpticType, OpticStab, [(Name, Int, [Int])]))] ->
-  DecQ
+  HasFieldClasses Dec
 makeClassyInstance rules className methodName s defs = do
   methodss <- traverse (makeFieldOptic rules') defs
 
-  instanceD (cxt[]) (return instanceHead)
-    $ valD (varP methodName) (normalB (varE idValName)) []
-    : map return (concat methodss)
+  lift $ instanceD (cxt[]) (return instanceHead)
+           $ valD (varP methodName) (normalB (varE idValName)) []
+           : map return (concat methodss)
 
   where
   instanceHead = className `conAppsT` (s : map VarT vars)
@@ -539,12 +548,20 @@ data LensRules = LensRules
        -- type name to class name and top method
   }
 
-
 -- | Name to give to generated field optics.
 data DefName
   = TopName Name -- ^ Simple top-level definiton name
   | MethodName Name Name -- ^ makeFields-style class name and method name
   deriving (Show, Eq, Ord)
+
+-- | Tracks the field class 'Name's that have been created so far. We consult
+-- these so that we may avoid creating duplicate classes.
+
+-- See #643 for more information.
+type HasFieldClasses = StateT (Set Name) Q
+
+addFieldClassName :: Name -> HasFieldClasses ()
+addFieldClassName n = modify $ Set.insert n
 
 ------------------------------------------------------------------------
 -- Miscellaneous utility functions

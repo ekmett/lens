@@ -58,7 +58,7 @@ checkA1 :: Lens' (Hadron a b) a
 checkA1 = a1
 
 checkA2 :: Lens' (Hadron a b) a
-checkA2 = a2 
+checkA2 = a2
 
 checkC :: Lens (Hadron a b) (Hadron a b') b b'
 checkC = c
@@ -237,7 +237,7 @@ checkThing3 :: Lens' (AbideConfiguration a) a
 checkThing3 = thing
 
 dudeDrink :: String
-dudeDrink      = (Dude 9 "El Duderino" () "white russian")      ^. thing 
+dudeDrink      = (Dude 9 "El Duderino" () "white russian")      ^. thing
 lebowskiCarpet :: Maybe String
 lebowskiCarpet = (Lebowski "Mr. Lebowski" 0 "" (Just "carpet")) ^. thing
 abideAnnoyance :: String
@@ -348,6 +348,17 @@ checkB0' = b0
 checkC0' :: Traversal' (DeclaredFields f a) String
 checkC0' = c0
 #endif
+
+declareFields [d|
+    data Aardvark = Aardvark { aardvarkAlbatross :: Int }
+    data Baboon   = Baboon   { baboonAlbatross   :: Int }
+  |]
+
+checkAardvark :: Lens' Aardvark Int
+checkAardvark = albatross
+
+checkBaboon :: Lens' Baboon Int
+checkBaboon = albatross
 
 data Rank2Tests
   = C1 { _r2length :: forall a. [a] -> Int
