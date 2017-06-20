@@ -1,4 +1,6 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE Rank2Types #-}
 #if __GLASGOW_HASKELL__ >= 710
 {-# LANGUAGE PatternSynonyms #-}
