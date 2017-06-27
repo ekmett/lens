@@ -182,24 +182,9 @@ createClass f r =
 lensField :: Lens' LensRules FieldNamer
 lensField f r = fmap (\x -> r { _fieldToDef = x}) (f (_fieldToDef r))
 
--- | The rule to create function names of lenses for data fields.
---
--- Although it's sometimes useful, you won't need the first two
--- arguments most of the time.
-type FieldNamer = Name -- ^ Name of the data type that lenses are being generated for.
-                  -> [Name] -- ^ Names of all fields (including the field being named) in the data type.
-                  -> Name -- ^ Name of the field being named.
-                  -> [DefName] -- ^ Name(s) of the lens functions. If empty, no lens is created for that field.
-
 -- | 'Lens'' to access the option for naming "classy" lenses.
 lensClass :: Lens' LensRules ClassyNamer
 lensClass f r = fmap (\x -> r { _classyLenses = x }) (f (_classyLenses r))
-
--- | The optional rule to create a class and method around a
--- monomorphic data type. If this naming convention is provided, it
--- generates a "classy" lens.
-type ClassyNamer = Name -- ^ Name of the data type that lenses are being generated for.
-                   -> Maybe (Name, Name) -- ^ Names of the class and the main method it generates, respectively.
 
 -- | Rules for making fairly simple partial lenses, ignoring the special cases
 -- for isomorphisms and traversals, and not making any classes.

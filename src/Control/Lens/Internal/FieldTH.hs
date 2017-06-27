@@ -17,7 +17,9 @@
 
 module Control.Lens.Internal.FieldTH
   ( LensRules(..)
+  , FieldNamer
   , DefName(..)
+  , ClassyNamer
   , makeFieldOptics
   , makeFieldOpticsForDec
   , makeFieldOpticsForDec'
@@ -542,17 +544,32 @@ data LensRules = LensRules
   , _allowIsos       :: Bool
   , _allowUpdates    :: Bool -- ^ Allow Lens/Traversal (otherwise Getter/Fold)
   , _lazyPatterns    :: Bool
-  , _fieldToDef      :: Name -> [Name] -> Name -> [DefName]
+  , _fieldToDef      :: FieldNamer
        -- ^ Type Name -> Field Names -> Target Field Name -> Definition Names
-  , _classyLenses    :: Name -> Maybe (Name,Name)
+  , _classyLenses    :: ClassyNamer
        -- type name to class name and top method
   }
+
+-- | The rule to create function names of lenses for data fields.
+--
+-- Although it's sometimes useful, you won't need the first two
+-- arguments most of the time.
+type FieldNamer = Name -- ^ Name of the data type that lenses are being generated for.
+                  -> [Name] -- ^ Names of all fields (including the field being named) in the data type.
+                  -> Name -- ^ Name of the field being named.
+                  -> [DefName] -- ^ Name(s) of the lens functions. If empty, no lens is created for that field.
 
 -- | Name to give to generated field optics.
 data DefName
   = TopName Name -- ^ Simple top-level definiton name
   | MethodName Name Name -- ^ makeFields-style class name and method name
   deriving (Show, Eq, Ord)
+
+-- | The optional rule to create a class and method around a
+-- monomorphic data type. If this naming convention is provided, it
+-- generates a "classy" lens.
+type ClassyNamer = Name -- ^ Name of the data type that lenses are being generated for.
+                   -> Maybe (Name, Name) -- ^ Names of the class and the main method it generates, respectively.
 
 -- | Tracks the field class 'Name's that have been created so far. We consult
 -- these so that we may avoid creating duplicate classes.
