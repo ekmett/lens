@@ -464,8 +464,6 @@ nconTypes f x = fmap (\y -> x {_nconTypes = y}) (f (_nconTypes x))
 
 
 -- | Normalize a single 'Con' to its constructor name and field types.
--- Because GADT syntax allows multiple constructors to be defined at
--- the same time, this function can return multiple normalized results.
 normalizeCon :: D.ConstructorInfo -> NCon
 normalizeCon info = NCon (D.constructorName info)
                          (D.tvName <$> D.constructorVars info)

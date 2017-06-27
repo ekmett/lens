@@ -102,8 +102,6 @@ makeFieldOpticsForDatatype rules info =
 -- | Normalized the Con type into a uniform positional representation,
 -- eliminating the variance between records, infix constructors, and normal
 -- constructors.
---
--- For 'GadtC' and 'RecGadtC', the leftmost name is chosen.
 normalizeConstructor ::
   D.ConstructorInfo ->
   Q (Name, [(Maybe Name, Type)]) -- ^ constructor name, field name, field type
