@@ -142,6 +142,7 @@ module Control.Lens.Operators
   , (<>~)
   , (<>=)
   , (.@~)
+  , (.@=)
   , (%@~)
   , (%@=)
   ) where
