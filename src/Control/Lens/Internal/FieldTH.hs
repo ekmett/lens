@@ -107,13 +107,24 @@ normalizeConstructor ::
   Q (Name, [(Maybe Name, Type)]) -- ^ constructor name, field name, field type
 
 normalizeConstructor con =
-  return (D.constructorName con, zip fieldNames (D.constructorFields con))
+  return (D.constructorName con,
+          zipWith checkForExistentials fieldNames (D.constructorFields con))
   where
     fieldNames =
       case D.constructorVariant con of
         D.RecordConstructor xs -> fmap Just xs
         D.NormalConstructor    -> repeat Nothing
         D.InfixConstructor     -> repeat Nothing
+
+    -- Fields mentioning existentially quantified types are not
+    -- elligible for TH generated optics.
+    checkForExistentials _ fieldtype
+      | any (\tv -> D.tvName tv `Set.member` used) unallowable
+      = (Nothing, fieldtype)
+      where
+        used        = setOf typeVars fieldtype
+        unallowable = D.constructorVars con
+    checkForExistentials fieldname fieldtype = (fieldname, fieldtype)
 
 data OpticType = GetterType | LensType | IsoType
 
