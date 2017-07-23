@@ -1,3 +1,0 @@
-[submodule "doctest"]
-	path = doctest
-	url = https://github.com/sol/doctest
