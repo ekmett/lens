@@ -61,12 +61,8 @@ before_install:
  - mkdir ~/.hlint
  - curl -L https://github.com/ndmitchell/hlint/releases/download/v$HLINTVER/hlint-$HLINTVER-x86_64-linux.tar.gz | tar -xz --strip-components=1 -C ~/.hlint
  - PATH=/opt/ghc/bin:/opt/ghc-ppa-tools/bin:~/.hlint:~/.cabal/bin:/opt/ghc/$GHCVER/bin:/opt/cabal/$CABALVER/bin:/opt/happy/$HAPPYVER/bin:/opt/alex/$ALEXVER/bin:$PATH
- - PKGNAME='lens'
 
 install:
-# Use a faster version of doctest that fixes https://github.com/sol/doctest/issues/164
- - git submodule update --init --recursive
-
  - cabal --version
  - echo "$(${HC} --version) [$(${HC} --print-project-git-commit-id 2> /dev/null || echo '?')]"
  - BENCH=${BENCH---enable-benchmarks}
