@@ -426,8 +426,29 @@ takingWhile p l pafb = fmap runMagma . traverse (cosieve pafb) . runTakingWhile 
 --
 -- Note: Many uses of this combinator will yield something that meets the types, but not the laws of a valid
 -- 'Traversal' or 'IndexedTraversal'. The 'Traversal' and 'IndexedTraversal' laws are only satisfied if the
--- new values you assign also pass the predicate! Otherwise subsequent traversals will visit fewer elements
--- and 'Traversal' fusion is not sound.
+-- new values you assign to the first target also does not pass the predicate! Otherwise subsequent traversals
+-- will visit fewer elements and 'Traversal' fusion is not sound.
+--
+-- So for any traversal @t@ and predicate @p@, @`droppingWhile` p t@ may not be lawful, but
+-- @(`Control.Lens.Traversal.dropping` 1 . `droppingWhile` p) t@ is. For example:
+--
+-- >>> let l  :: Traversal' [Int] Int; l  = droppingWhile (<= 1) traverse
+-- >>> let l' :: Traversal' [Int] Int; l' = dropping 1 l
+--
+-- @l@ is not a lawful setter because @`Control.Lens.Setter.over` l f .
+-- `Control.Lens.Setter.over` l g ≢ `Control.Lens.Setter.over` l (f . g)@:
+--
+-- >>> [1,2,3] & l .~ 0 & l .~ 4
+-- [1,0,0]
+-- >>> [1,2,3] & l .~ 4
+-- [1,4,4]
+--
+-- @l'@ on the other hand behaves lawfully:
+--
+-- >>> [1,2,3] & l' .~ 0 & l' .~ 4
+-- [1,2,4]
+-- >>> [1,2,3] & l' .~ 4
+-- [1,2,4]
 droppingWhile :: (Conjoined p, Profunctor q, Applicative f)
               => (a -> Bool)
               -> Optical p q (Compose (State Bool) f) s t a a
@@ -2566,7 +2587,7 @@ findIndicesOf l p = toListOf (l . filtered p . asIndex)
 -- >>> [0,0,0,5,5,5]^..traversed.ifiltered (\i a -> i <= a)
 -- [0,5,5,5]
 --
--- Compose with 'filtered' to filter another 'IndexedLens', 'IndexedIso', 'IndexedGetter', 'IndexedFold' (or 'IndexedTraversal') with
+-- Compose with 'ifiltered' to filter another 'IndexedLens', 'IndexedIso', 'IndexedGetter', 'IndexedFold' (or 'IndexedTraversal') with
 -- access to both the value and the index.
 --
 -- Note: As with 'filtered', this is /not/ a legal 'IndexedTraversal', unless you are very careful not to invalidate the predicate on the target!
@@ -2583,6 +2604,10 @@ ifiltered p f = Indexed $ \i a -> if p i a then indexed f i a else pure a
 -- 'itakingWhile' :: (i -> a -> 'Bool') -> 'IndexedLens'' i s a         -> 'IndexedFold' i s a
 -- 'itakingWhile' :: (i -> a -> 'Bool') -> 'IndexedGetter' i s a        -> 'IndexedFold' i s a
 -- @
+--
+-- Note: Applying 'itakingWhile' to an 'IndexedLens' or 'IndexedTraversal' will still allow you to use it as a
+-- pseudo-'IndexedTraversal', but if you change the value of any target to one where the predicate returns
+-- 'False', then you will break the 'Traversal' laws and 'Traversal' fusion will no longer be sound.
 itakingWhile :: (Indexable i p, Profunctor q, Contravariant f, Applicative f)
          => (i -> a -> Bool)
          -> Optical' (Indexed i) q (Const (Endo (f s))) s a
@@ -2600,9 +2625,10 @@ itakingWhile p l f = (flip appEndo noEffect .# getConst) `rmap` l g where
 -- 'idroppingWhile' :: (i -> a -> 'Bool') -> 'IndexedGetter' i s a        -> 'IndexedFold' i s a
 -- @
 --
--- Applying 'idroppingWhile' to an 'IndexedLens' or 'IndexedTraversal' will still allow you to use it as a
--- pseudo-'IndexedTraversal', but if you change the value of the targets to ones where the predicate returns
--- 'True', then you will break the 'Traversal' laws and 'Traversal' fusion will no longer be sound.
+-- Note: As with `droppingWhile` applying 'idroppingWhile' to an 'IndexedLens' or 'IndexedTraversal' will still
+-- allow you to use it as a pseudo-'IndexedTraversal', but if you change the value of the first target to one
+-- where the predicate returns 'True', then you will break the 'Traversal' laws and 'Traversal' fusion will
+-- no longer be sound.
 idroppingWhile :: (Indexable i p, Profunctor q, Applicative f)
               => (i -> a -> Bool)
               -> Optical (Indexed i) q (Compose (State Bool) f) s t a a
