@@ -430,8 +430,8 @@ takingWhile p l pafb = fmap runMagma . traverse (cosieve pafb) . runTakingWhile 
 -- So for any traversal @t@ and predicate @p@, @`droppingWhile` p t@ may not be lawful, but
 -- @(`Control.Lens.Traversal.dropping` 1 . `droppingWhile` p) t@ is. For example:
 --
--- >>> let l  = droppingWhile (<= 1) traverse
--- >>> let l' = dropping 1 l
+-- >>> let l  :: Traversal' [Int] Int; l  = droppingWhile (<= 1) traverse
+-- >>> let l' :: Traversal' [Int] Int; l' = dropping 1 l
 --
 -- @l@ is not a lawful setter because @`Control.Lens.Setter.over` l f .
 -- `Control.Lens.Setter.over` l g ≢ `Control.Lens.Setter.over` l (f . g)@:
