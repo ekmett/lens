@@ -1,7 +1,28 @@
 4.15.4
 ----
+* `makeFields` and `declareFields` are now smarter with respect to type
+  families. Because GHC does not allow mentioning type families in instance
+  heads, the Template Haskell machinery works around this restriction by
+  instead generating instances of the form:
+
+  ```haskell
+  type family Fam a
+  data Rec a = Rec { _recFam :: Fam a }
+  makeFields ''Rec
+
+  ===>
+
+  instance (b ~ Fam a) => HasFam (Rec a) b where ...
+  ```
+
+  This requires enabling the `UndecidableInstances` extension, so this trick is
+  only employed when a field's type contains a type family application.
 * `declareFields` now avoids creating duplicate field classes that are shared
   among multiple datatypes within the same invocation.
+* The Template Haskell machinery will no longer generate optics for fields
+  whose types mention existentially quantified type variables.
+* Add `HasCallStack` constraints to partial operations
+* Reexport `(.@~)` and `(.@=)` from `Control.Lens.Operators`
 
 4.15.3
 ----
