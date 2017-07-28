@@ -6,6 +6,7 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE GADTs #-}
+{-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE CPP #-}
 -----------------------------------------------------------------------------
 -- |
@@ -213,6 +214,24 @@ checkMansion' = mansion
 
 checkThing2 :: Lens' (Lebowski a) (Maybe a)
 checkThing2 = thing
+
+type family Fam a
+type instance Fam Int = String
+
+data FamRec a = FamRec
+  { _famRecThing :: Fam a
+  , _famRecUniqueToFamRec :: Fam a
+  }
+makeFields ''FamRec
+
+checkFamRecThing :: Lens' (FamRec a) (Fam a)
+checkFamRecThing = thing
+
+checkFamRecUniqueToFamRec :: Lens' (FamRec a) (Fam a)
+checkFamRecUniqueToFamRec = uniqueToFamRec
+
+checkFamRecView :: FamRec Int -> String
+checkFamRecView = view thing
 
 data AbideConfiguration a = AbideConfiguration
     { _acLocation       :: String
