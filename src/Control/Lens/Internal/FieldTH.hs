@@ -369,10 +369,31 @@ makeFieldClass defType className methodName =
   s = mkName "s"
   a = mkName "a"
 
+-- | Build an instance for a field. If the field’s type contains any type
+-- families, will produce an equality constraint to avoid a type family
+-- application in the instance head.
 makeFieldInstance :: OpticStab -> Name -> [DecQ] -> DecQ
-makeFieldInstance defType className =
-  instanceD (cxt [])
-    (return (className `conAppsT` [stabToS defType, stabToA defType]))
+makeFieldInstance defType className decs =
+  containsTypeFamilies a >>= pickInstanceDec
+  where
+  s = stabToS defType
+  a = stabToA defType
+
+  containsTypeFamilies = go <=< D.resolveTypeSynonyms
+    where
+    go (ConT nm) = has _FamilyI <$> reify nm
+    go ty = or <$> traverse go (ty ^.. plate)
+
+  pickInstanceDec hasFamilies
+    | hasFamilies = do
+        placeholder <- VarT <$> newName "a"
+        mkInstanceDec
+          [return (D.equalPred placeholder a)]
+          [s, placeholder]
+    | otherwise = mkInstanceDec [] [s, a]
+
+  mkInstanceDec context headTys =
+    instanceD (cxt context) (return (className `conAppsT` headTys)) decs
 
 ------------------------------------------------------------------------
 -- Optic clause generators
