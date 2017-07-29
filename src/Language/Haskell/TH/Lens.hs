@@ -1,6 +1,10 @@
 {-# LANGUAGE CPP #-}
-#if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 704
+#if defined(__GLASGOW_HASKELL__)
+# if MIN_VERSION_template_haskell(2,12,0)
+{-# LANGUAGE Safe #-}
+# else
 {-# LANGUAGE Trustworthy #-}
+# endif
 #endif
 {-# LANGUAGE Rank2Types #-}
 

@@ -1,7 +1,11 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE PatternGuards #-}
 #ifdef TRUSTWORTHY
+# if MIN_VERSION_template_haskell(2,12,0)
+{-# LANGUAGE Safe #-}
+# else
 {-# LANGUAGE Trustworthy #-}
+# endif
 #endif
 
 #ifndef MIN_VERSION_base
