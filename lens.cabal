@@ -395,7 +395,9 @@ test-suite doctests
   main-is:           doctests.hs
   ghc-options:       -Wall -threaded
   hs-source-dirs:    tests
-  x-doctest-options: --fast
+  if impl(ghc < 8.2)
+    -- The impl is a workaround for https://github.com/ekmett/lens/issues/756
+    x-doctest-options: --fast
 
   if flag(trustworthy) && impl(ghc>=7.2)
     other-extensions: Trustworthy
