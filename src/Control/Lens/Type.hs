@@ -301,7 +301,7 @@ type Setter s t a b = forall f. Settable f => (a -> f b) -> s -> f t
 -- @
 --
 -- @
--- type 'Setter'' = 'Setter''
+-- type 'Setter'' = 'Simple' 'Setter'
 -- @
 type Setter' s a = Setter s s a a
 
