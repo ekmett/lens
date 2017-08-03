@@ -23,7 +23,7 @@
   whose types mention existentially quantified type variables.
 * Add `HasCallStack` constraints to partial operations
 * Reexport `(.@~)` and `(.@=)` from `Control.Lens.Operators`
-* Support `doctest-0.12`
+* Support `doctest-0.13`
 
 4.15.3
 ----
