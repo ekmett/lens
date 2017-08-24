@@ -1,7 +1,7 @@
 Lens: Lenses, Folds, and Traversals
 ==================================
 
-[![Hackage](https://img.shields.io/hackage/v/lens.svg)](https://hackage.haskell.org/package/lens) [![Build Status](https://secure.travis-ci.org/ekmett/lens.svg)](http://travis-ci.org/ekmett/lens)
+[![Hackage](https://img.shields.io/hackage/v/lens.svg)](https://hackage.haskell.org/package/lens) [![Build Status](https://secure.travis-ci.org/ekmett/lens.svg)](http://travis-ci.org/ekmett/lens) [![Hackage Deps](https://img.shields.io/hackage-deps/v/lens.svg)](http://packdeps.haskellers.com/reverse/lens)
 
 This package provides families of [lenses](https://github.com/ekmett/lens/blob/master/src/Control/Lens/Type.hs), [isomorphisms](https://github.com/ekmett/lens/blob/master/src/Control/Lens/Iso.hs), [folds](https://github.com/ekmett/lens/blob/master/src/Control/Lens/Fold.hs), [traversals](https://github.com/ekmett/lens/blob/master/src/Control/Lens/Traversal.hs), [getters](https://github.com/ekmett/lens/blob/master/src/Control/Lens/Getter.hs) and [setters](https://github.com/ekmett/lens/blob/master/src/Control/Lens/Setter.hs).
 
