@@ -18,8 +18,7 @@ module Control.Lens.Combinators
     ) where
 
 import Control.Lens hiding
-  ( -- output from scripts/operators
-    (<|)
+  ( (<|)
   , (|>)
   , (^..)
   , (^?)
@@ -91,6 +90,8 @@ import Control.Lens hiding
   , (%%@=)
   , (<%@=)
   , (<<%@=)
+  , (.@=)
+  , (.@~)
   , (^#)
   , ( #~ )
   , ( #%~ )
@@ -109,6 +110,8 @@ import Control.Lens hiding
   , (?~)
   , (<.~)
   , (<?~)
+  , (<<?~)
+  , (<<?=)
   , (+~)
   , (*~)
   , (-~)
@@ -137,4 +140,6 @@ import Control.Lens hiding
   , (<>=)
   , (%@~)
   , (%@=)
+  , (:>)
+  , (:<)
   )
