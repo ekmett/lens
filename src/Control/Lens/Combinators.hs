@@ -1,3 +1,4 @@
+{-# Language CPP #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Combinators
@@ -140,6 +141,8 @@ import Control.Lens hiding
   , (<>=)
   , (%@~)
   , (%@=)
+#if __GLASGOW_HASKELL__ >= 710
   , (:>)
   , (:<)
+#endif
   )
