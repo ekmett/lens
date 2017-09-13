@@ -1274,7 +1274,7 @@ infixl 5 `failing`
 deepOf :: (Conjoined p, Applicative f) => LensLike f s t s t -> Traversing p f s t a b -> Over p f s t a b
 deepOf r l = failing l (r . deepOf r l)
 
--- | "Fuse" a 'Traversal' by reassociating all of the '\<*\>' operations to the
+-- | "Fuse" a 'Traversal' by reassociating all of the '<*>' operations to the
 -- left and fusing all of the 'fmap' calls into one. This is particularly
 -- useful when constructing a 'Traversal' using operations from GHC.Generics.
 --
