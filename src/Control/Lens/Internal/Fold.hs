@@ -53,8 +53,8 @@ import qualified Data.List.NonEmpty as NonEmpty
 -- | A 'Monoid' for a 'Contravariant' 'Applicative'.
 newtype Folding f a = Folding { getFolding :: f a }
 
-instance (Contravariant f, Apply f) => Semigroup (Folding f a) where
-  Folding fr <> Folding fs = Folding (fr .> fs)
+instance (Contravariant f, Applicative f) => Semigroup (Folding f a) where
+  Folding fr <> Folding fs = Folding (fr *> fs)
   {-# INLINE (<>) #-}
 
 instance (Contravariant f, Applicative f) => Monoid (Folding f a) where
@@ -76,7 +76,7 @@ instance Apply f => Semigroup (Traversed a f) where
   Traversed ma <> Traversed mb = Traversed (ma .> mb)
   {-# INLINE (<>) #-}
 
-instance Applicative f => Monoid (Traversed a f) where
+instance (Apply f, Applicative f) => Monoid (Traversed a f) where
   mempty = Traversed (pure (error "Traversed: value used"))
   {-# INLINE mempty #-}
   Traversed ma `mappend` Traversed mb = Traversed (ma *> mb)
@@ -95,7 +95,7 @@ instance Apply m => Semigroup (Sequenced a m) where
   Sequenced ma <> Sequenced mb = Sequenced (ma .> mb)
   {-# INLINE (<>) #-}
 
-instance Monad m => Monoid (Sequenced a m) where
+instance (Apply m, Applicative m, Monad m) => Monoid (Sequenced a m) where
   mempty = Sequenced (return (error "Sequenced: value used"))
   {-# INLINE mempty #-}
   Sequenced ma `mappend` Sequenced mb = Sequenced (ma >> mb)

@@ -291,7 +291,7 @@ instance (Apply m, Semigroup r) => Semigroup (Effect m r a) where
   Effect ma <> Effect mb = Effect (liftF2 (<>) ma mb)
   {-# INLINE (<>) #-}
 
-instance (Monad m, Monoid r) => Monoid (Effect m r a) where
+instance (Apply m, Monad m, Monoid r) => Monoid (Effect m r a) where
   mempty = Effect (return mempty)
   {-# INLINE mempty #-}
   Effect ma `mappend` Effect mb = Effect (liftM2 mappend ma mb)
