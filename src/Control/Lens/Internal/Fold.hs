@@ -21,6 +21,7 @@ module Control.Lens.Internal.Fold
   -- * Monoids for folding
     Folding(..)
   , Traversed(..)
+  , TraversedF(..)
   , Sequenced(..)
   , Max(..), getMax
   , Min(..), getMin
@@ -72,14 +73,31 @@ instance (Contravariant f, Applicative f) => Monoid (Folding f a) where
 -- The argument 'a' of the result should not be used!
 newtype Traversed a f = Traversed { getTraversed :: f a }
 
-instance Apply f => Semigroup (Traversed a f) where
-  Traversed ma <> Traversed mb = Traversed (ma .> mb)
+instance Applicative f => Semigroup (Traversed a f) where
+  Traversed ma <> Traversed mb = Traversed (ma *> mb)
   {-# INLINE (<>) #-}
 
-instance (Apply f, Applicative f) => Monoid (Traversed a f) where
+instance Applicative f => Monoid (Traversed a f) where
   mempty = Traversed (pure (error "Traversed: value used"))
   {-# INLINE mempty #-}
   Traversed ma `mappend` Traversed mb = Traversed (ma *> mb)
+  {-# INLINE mappend #-}
+
+------------------------------------------------------------------------------
+-- TraversedF
+------------------------------------------------------------------------------
+
+-- | Used internally by 'Control.Lens.Fold.traverse1Of_' and the like.
+newtype TraversedF a f = TraversedF { getTraversedF :: f a }
+
+instance Apply f => Semigroup (TraversedF a f) where
+  TraversedF ma <> TraversedF mb = TraversedF (ma .> mb)
+  {-# INLINE (<>) #-}
+
+instance (Apply f, Applicative f) => Monoid (TraversedF a f) where
+  mempty = TraversedF (pure (error "TraversedF: value used"))
+  {-# INLINE mempty #-}
+  TraversedF ma `mappend` TraversedF mb = TraversedF (ma *> mb)
   {-# INLINE mappend #-}
 
 ------------------------------------------------------------------------------
@@ -91,11 +109,11 @@ instance (Apply f, Applicative f) => Monoid (Traversed a f) where
 -- The argument 'a' of the result should not be used!
 newtype Sequenced a m = Sequenced { getSequenced :: m a }
 
-instance Apply m => Semigroup (Sequenced a m) where
-  Sequenced ma <> Sequenced mb = Sequenced (ma .> mb)
+instance Monad m => Semigroup (Sequenced a m) where
+  Sequenced ma <> Sequenced mb = Sequenced (ma >> mb)
   {-# INLINE (<>) #-}
 
-instance (Apply m, Applicative m, Monad m) => Monoid (Sequenced a m) where
+instance Monad m => Monoid (Sequenced a m) where
   mempty = Sequenced (return (error "Sequenced: value used"))
   {-# INLINE mempty #-}
   Sequenced ma `mappend` Sequenced mb = Sequenced (ma >> mb)

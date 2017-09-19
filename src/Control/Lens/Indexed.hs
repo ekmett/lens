@@ -103,7 +103,6 @@ import Control.Lens.Type
 import Data.Array (Array)
 import qualified Data.Array as Array
 import Data.Foldable
-import Data.Functor.Bind (Apply)
 import Data.Functor.Compose
 import Data.Functor.Contravariant
 import Data.Functor.Product
@@ -380,7 +379,7 @@ none f = not . Data.Foldable.any f
 -- @
 -- 'traverse_' l = 'itraverse' '.' 'const'
 -- @
-itraverse_ :: (FoldableWithIndex i t, Apply f, Applicative f) => (i -> a -> f b) -> t a -> f ()
+itraverse_ :: (FoldableWithIndex i t, Applicative f) => (i -> a -> f b) -> t a -> f ()
 itraverse_ f = void . getTraversed #. ifoldMap (\i -> Traversed #. f i)
 {-# INLINE itraverse_ #-}
 
@@ -395,7 +394,7 @@ itraverse_ f = void . getTraversed #. ifoldMap (\i -> Traversed #. f i)
 -- @
 -- 'for_' a ≡ 'ifor_' a '.' 'const'
 -- @
-ifor_ :: (FoldableWithIndex i t, Apply f, Applicative f) => t a -> (i -> a -> f b) -> f ()
+ifor_ :: (FoldableWithIndex i t, Applicative f) => t a -> (i -> a -> f b) -> f ()
 ifor_ = flip itraverse_
 {-# INLINE ifor_ #-}
 
@@ -407,7 +406,7 @@ ifor_ = flip itraverse_
 -- @
 -- 'mapM_' ≡ 'imapM' '.' 'const'
 -- @
-imapM_ :: (FoldableWithIndex i t, Apply m, Applicative m, Monad m) => (i -> a -> m b) -> t a -> m ()
+imapM_ :: (FoldableWithIndex i t, Monad m) => (i -> a -> m b) -> t a -> m ()
 imapM_ f = liftM skip . getSequenced #. ifoldMap (\i -> Sequenced #. f i)
 {-# INLINE imapM_ #-}
 
@@ -423,7 +422,7 @@ imapM_ f = liftM skip . getSequenced #. ifoldMap (\i -> Sequenced #. f i)
 -- @
 -- 'Control.Lens.Fold.forMOf_' l a ≡ 'iforMOf' l a '.' 'const'
 -- @
-iforM_ :: (FoldableWithIndex i t, Apply m, Monad m) => t a -> (i -> a -> m b) -> m ()
+iforM_ :: (FoldableWithIndex i t, Monad m) => t a -> (i -> a -> m b) -> m ()
 iforM_ = flip imapM_
 {-# INLINE iforM_ #-}
 
