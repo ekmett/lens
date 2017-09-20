@@ -287,11 +287,11 @@ instance Contravariant (Effect m r) where
   contramap _ (Effect m) = Effect m
   {-# INLINE contramap #-}
 
-instance (Apply m, Semigroup r) => Semigroup (Effect m r a) where
-  Effect ma <> Effect mb = Effect (liftF2 (<>) ma mb)
+instance (Monad m, Semigroup r) => Semigroup (Effect m r a) where
+  Effect ma <> Effect mb = Effect (liftM2 (<>) ma mb)
   {-# INLINE (<>) #-}
 
-instance (Apply m, Monad m, Monoid r) => Monoid (Effect m r a) where
+instance (Monad m, Monoid r) => Monoid (Effect m r a) where
   mempty = Effect (return mempty)
   {-# INLINE mempty #-}
   Effect ma `mappend` Effect mb = Effect (liftM2 mappend ma mb)
