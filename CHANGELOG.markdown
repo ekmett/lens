@@ -1,3 +1,9 @@
+next
+----
+* New lenses `head1` and `last1`, to access the first/last elements of
+  a `Traversable1` container.
+
+
 4.15.4
 ----
 * `makeFields` and `declareFields` are now smarter with respect to type
