@@ -83,6 +83,7 @@ module Control.Lens.Fold
   , andOf, orOf
   , productOf, sumOf
   , traverseOf_, forOf_, sequenceAOf_
+  , traverse1Of_, for1Of_, sequence1Of_
   , mapMOf_, forMOf_, sequenceOf_
   , asumOf, msumOf
   , concatMapOf, concatOf
@@ -193,6 +194,7 @@ import Data.List.NonEmpty (NonEmpty(..))
 -- >>> import Control.Exception (evaluate)
 -- >>> import Data.Maybe (fromMaybe)
 -- >>> import System.Timeout (timeout)
+-- >>> import qualified Data.Map as Map
 -- >>> let f :: Expr -> Expr; f = Debug.SimpleReflect.Vars.f
 -- >>> let g :: Expr -> Expr; g = Debug.SimpleReflect.Vars.g
 -- >>> let timingOut :: NFData a => a -> IO a; timingOut = fmap (fromMaybe (error "timeout")) . timeout (5*10^6) . evaluate . force
@@ -950,6 +952,48 @@ forOf_ = flip . traverseOf_
 sequenceAOf_ :: Functor f => Getting (Traversed a f) s (f a) -> s -> f ()
 sequenceAOf_ l = void . getTraversed #. foldMapOf l Traversed
 {-# INLINE sequenceAOf_ #-}
+
+-- | Traverse over all of the targets of a 'Fold1', computing an 'Apply' based answer.
+--
+-- As long as you have 'Applicative' or 'Functor' effect you are better using 'traverseOf_'.
+-- The 'traverse1Of_' is useful only when you have genuine 'Apply' effect.
+--
+-- >>> traverse1Of_ both1 (\ks -> Map.fromList [ (k, ()) | k <- ks ]) ("abc", "bcd")
+-- fromList [('b',()),('c',())]
+--
+-- @
+-- 'traverse1Of_' :: 'Apply' f => 'Fold1' s a -> (a -> f r) -> s -> f ()
+-- @
+--
+-- @since 4.16
+traverse1Of_ :: Functor f => Getting (TraversedF r f) s a -> (a -> f r) -> s -> f ()
+traverse1Of_ l f = void . getTraversedF #. foldMapOf l (TraversedF #. f)
+{-# INLINE traverse1Of_ #-}
+
+-- | See 'forOf_' and 'traverse1Of_'.
+--
+-- >>> for1Of_ both1 ("abc", "bcd") (\ks -> Map.fromList [ (k, ()) | k <- ks ])
+-- fromList [('b',()),('c',())]
+--
+-- @
+-- 'for1Of_' :: 'Apply' f => 'Fold1' s a -> s -> (a -> f r) -> f ()
+-- @
+--
+-- @since 4.16
+for1Of_ :: Functor f => Getting (TraversedF r f) s a -> s -> (a -> f r) -> f ()
+for1Of_ = flip . traverse1Of_
+{-# INLINE for1Of_ #-}
+
+-- | See 'sequenceAOf_' and 'traverse1Of_'.
+--
+-- @
+-- 'sequence1Of_' :: 'Apply' f => 'Fold1' s (f a) -> s -> f ()
+-- @
+--
+-- @since 4.16
+sequence1Of_ :: Functor f => Getting (TraversedF a f) s (f a) -> s -> f ()
+sequence1Of_ l = void . getTraversedF #. foldMapOf l TraversedF
+{-# INLINE sequence1Of_ #-}
 
 -- | Map each target of a 'Fold' on a structure to a monadic action, evaluate these actions from left to right, and ignore the results.
 --

@@ -21,6 +21,7 @@ module Control.Lens.Internal.Fold
   -- * Monoids for folding
     Folding(..)
   , Traversed(..)
+  , TraversedF(..)
   , Sequenced(..)
   , Max(..), getMax
   , Min(..), getMin
@@ -53,8 +54,8 @@ import qualified Data.List.NonEmpty as NonEmpty
 -- | A 'Monoid' for a 'Contravariant' 'Applicative'.
 newtype Folding f a = Folding { getFolding :: f a }
 
-instance (Contravariant f, Apply f) => Semigroup (Folding f a) where
-  Folding fr <> Folding fs = Folding (fr .> fs)
+instance (Contravariant f, Applicative f) => Semigroup (Folding f a) where
+  Folding fr <> Folding fs = Folding (fr *> fs)
   {-# INLINE (<>) #-}
 
 instance (Contravariant f, Applicative f) => Monoid (Folding f a) where
@@ -72,8 +73,9 @@ instance (Contravariant f, Applicative f) => Monoid (Folding f a) where
 -- The argument 'a' of the result should not be used!
 newtype Traversed a f = Traversed { getTraversed :: f a }
 
-instance Apply f => Semigroup (Traversed a f) where
-  Traversed ma <> Traversed mb = Traversed (ma .> mb)
+-- See 4.16 Changelog entry for the explanation of "why not Apply f =>"?
+instance Applicative f => Semigroup (Traversed a f) where
+  Traversed ma <> Traversed mb = Traversed (ma *> mb)
   {-# INLINE (<>) #-}
 
 instance Applicative f => Monoid (Traversed a f) where
@@ -83,16 +85,37 @@ instance Applicative f => Monoid (Traversed a f) where
   {-# INLINE mappend #-}
 
 ------------------------------------------------------------------------------
+-- TraversedF
+------------------------------------------------------------------------------
+
+-- | Used internally by 'Control.Lens.Fold.traverse1Of_' and the like.
+--
+-- @since 4.16
+newtype TraversedF a f = TraversedF { getTraversedF :: f a }
+
+instance Apply f => Semigroup (TraversedF a f) where
+  TraversedF ma <> TraversedF mb = TraversedF (ma .> mb)
+  {-# INLINE (<>) #-}
+
+instance (Apply f, Applicative f) => Monoid (TraversedF a f) where
+  mempty = TraversedF (pure (error "TraversedF: value used"))
+  {-# INLINE mempty #-}
+  TraversedF ma `mappend` TraversedF mb = TraversedF (ma *> mb)
+  {-# INLINE mappend #-}
+
+------------------------------------------------------------------------------
 -- Sequenced
 ------------------------------------------------------------------------------
 
 -- | Used internally by 'Control.Lens.Traversal.mapM_' and the like.
 --
 -- The argument 'a' of the result should not be used!
+--
+-- See 4.16 Changelog entry for the explanation of "why not Apply f =>"?
 newtype Sequenced a m = Sequenced { getSequenced :: m a }
 
-instance Apply m => Semigroup (Sequenced a m) where
-  Sequenced ma <> Sequenced mb = Sequenced (ma .> mb)
+instance Monad m => Semigroup (Sequenced a m) where
+  Sequenced ma <> Sequenced mb = Sequenced (ma >> mb)
   {-# INLINE (<>) #-}
 
 instance Monad m => Monoid (Sequenced a m) where
