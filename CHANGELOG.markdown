@@ -1,3 +1,26 @@
+4.16
+----
+
+* `Semigroup` instances of `Traversed` and `Sequenced` are more constrainted:
+  from `Apply` to `Applicative` and `Monad` respectively.
+  In the next GHC-8.4, `Semigroup` will be a superclass of `Monoid`,
+  therefore we'd need to have `Apply` constraint in the `Monoid` instances.
+  We opted to weaken our ability to use `Apply` than to lose compability
+  with third party packages that don't supply instances for `Apply`
+
+  In practice this changes the (specialised) type signature of `traverseOf_`
+  ```diff+
+  - traverseOf_ :: Apply f       => Fold1 s a -> (a -> f r) -> s -> f ()
+  + traverseOf_ :: Applicative f => Fold1 s a -> (a -> f r) -> s -> f ()
+  ```
+  and similarly for `forOf_` and `sequenceOf_`.
+
+  New combinators: `traverse1Of_`, `for1Of_` and `sequence1Of_` are added
+  for `Apply` only effects.
+
+  Similar instance context change is is made for `Folding` and `Effect`,
+  but these changes aren't publicly visible.
+
 4.15.4
 ----
 * `makeFields` and `declareFields` are now smarter with respect to type

@@ -73,6 +73,7 @@ instance (Contravariant f, Applicative f) => Monoid (Folding f a) where
 -- The argument 'a' of the result should not be used!
 newtype Traversed a f = Traversed { getTraversed :: f a }
 
+-- See 4.16 Changelog entry for the explanation of "why not Apply f =>"?
 instance Applicative f => Semigroup (Traversed a f) where
   Traversed ma <> Traversed mb = Traversed (ma *> mb)
   {-# INLINE (<>) #-}
@@ -88,6 +89,8 @@ instance Applicative f => Monoid (Traversed a f) where
 ------------------------------------------------------------------------------
 
 -- | Used internally by 'Control.Lens.Fold.traverse1Of_' and the like.
+--
+-- @since 4.16
 newtype TraversedF a f = TraversedF { getTraversedF :: f a }
 
 instance Apply f => Semigroup (TraversedF a f) where
@@ -107,6 +110,8 @@ instance (Apply f, Applicative f) => Monoid (TraversedF a f) where
 -- | Used internally by 'Control.Lens.Traversal.mapM_' and the like.
 --
 -- The argument 'a' of the result should not be used!
+--
+-- See 4.16 Changelog entry for the explanation of "why not Apply f =>"?
 newtype Sequenced a m = Sequenced { getSequenced :: m a }
 
 instance Monad m => Semigroup (Sequenced a m) where

@@ -964,6 +964,8 @@ sequenceAOf_ l = void . getTraversed #. foldMapOf l Traversed
 -- @
 -- 'traverse1Of_' :: 'Apply' f => 'Fold1' s a -> (a -> f r) -> s -> f ()
 -- @
+--
+-- @since 4.16
 traverse1Of_ :: Functor f => Getting (TraversedF r f) s a -> (a -> f r) -> s -> f ()
 traverse1Of_ l f = void . getTraversedF #. foldMapOf l (TraversedF #. f)
 {-# INLINE traverse1Of_ #-}
@@ -976,6 +978,8 @@ traverse1Of_ l f = void . getTraversedF #. foldMapOf l (TraversedF #. f)
 -- @
 -- 'for1Of_' :: 'Apply' f => 'Fold1' s a -> s -> (a -> f r) -> f ()
 -- @
+--
+-- @since 4.16
 for1Of_ :: Functor f => Getting (TraversedF r f) s a -> s -> (a -> f r) -> f ()
 for1Of_ = flip . traverse1Of_
 {-# INLINE for1Of_ #-}
@@ -985,6 +989,8 @@ for1Of_ = flip . traverse1Of_
 -- @
 -- 'sequence1Of_' :: 'Apply' f => 'Fold1' s (f a) -> s -> f ()
 -- @
+--
+-- @since 4.16
 sequence1Of_ :: Functor f => Getting (TraversedF a f) s (f a) -> s -> f ()
 sequence1Of_ l = void . getTraversedF #. foldMapOf l TraversedF
 {-# INLINE sequence1Of_ #-}
