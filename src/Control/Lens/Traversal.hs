@@ -230,11 +230,11 @@ type AnIndexedTraversal1' i s a = AnIndexedTraversal1 i s s a a
 --
 --  * a 'Traversal' if @f@ is 'Applicative',
 --
---  * a 'Getter' if @f@ is only a 'Functor' and 'Contravariant',
+--  * a 'Getter' if @f@ is only a 'Functor' and 'Data.Functor.Contravariant.Contravariant',
 --
 --  * a 'Lens' if @f@ is only a 'Functor',
 --
---  * a 'Fold' if @f@ is 'Functor', 'Contravariant' and 'Applicative'.
+--  * a 'Fold' if @f@ is 'Applicative' and 'Data.Functor.Contravariant.Contravariant'.
 type Traversing p f s t a b = Over p (BazaarT p f a b) s t a b
 
 type Traversing1 p f s t a b = Over p (BazaarT1 p f a b) s t a b
