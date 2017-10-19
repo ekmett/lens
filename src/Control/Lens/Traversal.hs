@@ -606,7 +606,7 @@ iunsafePartsOf' l = conjoined
 -- Given a context you can use 'Control.Comonad.Store.Class.pos' to see the values, 'Control.Comonad.Store.Class.peek' at what the structure would be like with an edited result, or simply 'extract' the original structure.
 --
 -- @
--- propChildren l x = childrenOf l x '==' 'map' 'Control.Comonad.Store.Class.pos' ('holesOf' l x)
+-- propChildren l x = 'toListOf' l x '==' 'map' 'Control.Comonad.Store.Class.pos' ('holesOf' l x)
 -- propId l x = 'all' ('==' x) ['extract' w | w <- 'holesOf' l x]
 -- @
 --
