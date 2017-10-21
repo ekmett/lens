@@ -88,4 +88,3 @@ pattern Naturals :: [Natural] -> Natural
 pattern Naturals xs <- (view _Naturals -> xs) where
   Naturals xs = review _Naturals xs
 #endif
-

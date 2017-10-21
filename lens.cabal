@@ -219,6 +219,9 @@ library
   if impl(ghc < 8.0)
     build-depends: generic-deriving >= 1.10 && < 2
 
+  if impl(ghc < 7.9)
+    build-depends: nats >= 0.1 && < 1.2
+
   exposed-modules:
     Control.Exception.Lens
     Control.Lens
