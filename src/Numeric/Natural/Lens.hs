@@ -34,11 +34,15 @@ import Numeric.Natural
 --
 -- @N = N*N@
 _Pair :: Iso' Natural (Natural, Natural)
-_Pair = iso (hither 0) yon where
-  hither !m p = case quotRem p 2 of
-    (q,0) -> hither (m+1) q
-    (q,1) -> (m,q)
-  yon (m,n) = 2^m*(2*n+1)
+_Pair = iso hither (uncurry yon) where
+  yon 0 0 = 0
+  yon m n = case quotRem m 2 of
+    (q,r) -> r + 2 * yon n q -- rotation
+
+  hither 0 = (0,0)
+  hither n = case quotRem n 2 of
+   (p,r) -> case hither p of
+     (x,y) -> (r+2*y,x) -- rotation
 
 -- | The natural numbers are isomorphic to disjoint sums of natural numbers embedded as
 -- evens or odds.
@@ -63,9 +67,7 @@ _Naturals = iso hither yon where
 #if __GLASGOW_HASKELL__ >= 710
 
 -- |
--- @
--- Pair m n = 2^m*(2*n+1)
--- @
+-- interleaves the bits of two natural numbers
 pattern Pair :: Natural -> Natural -> Natural
 pattern Pair x y <- (view _Pair -> (x,y)) where
   Pair x y = review _Pair (x,y)
