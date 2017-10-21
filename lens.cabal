@@ -301,6 +301,7 @@ library
     System.IO.Error.Lens
     Language.Haskell.TH.Lens
     Numeric.Lens
+    Numeric.Natural.Lens
 
   other-modules:
     Paths_lens
