@@ -1,6 +1,6 @@
 {-# language CPP #-}
 {-# language RankNTypes #-}
-{-# language BangPatterns #-}
+{-# language PatternGuards #-}
 #if __GLASGOW_HASKELL__ >= 710
 {-# language ViewPatterns #-}
 {-# language PatternSynonyms #-}
