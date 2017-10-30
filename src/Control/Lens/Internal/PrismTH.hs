@@ -322,7 +322,7 @@ makeReviewer conName fields =
 -- ) :: s -> Either s a
 makeSimpleRemitter :: Name -> Int -> ExpQ
 makeSimpleRemitter conName fields =
-  do x  <- newName "xb"
+  do x  <- newName "x"
      xs <- newNames "y" fields
      let matches =
            [ match (conP conName (map varP xs))
@@ -341,7 +341,7 @@ makeSimpleRemitter conName fields =
 -- ) :: s -> Either t a
 makeFullRemitter :: [NCon] -> Name -> ExpQ
 makeFullRemitter cons target =
-  do x <- newName "xc"
+  do x <- newName "x"
      lam1E (varP x) (caseE (varE x) (map mkMatch cons))
   where
   mkMatch (NCon conName _ _ n) =
