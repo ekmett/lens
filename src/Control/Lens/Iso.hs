@@ -104,6 +104,8 @@ import Control.Monad.Writer.Lazy as Lazy
 import Control.Monad.Writer.Strict as Strict
 import Control.Monad.RWS.Lazy as Lazy
 import Control.Monad.RWS.Strict as Strict
+import Control.Monad.ST.Lazy as Lazy
+import Control.Monad.ST as Strict
 import Data.Bifunctor
 import Data.ByteString as StrictB hiding (reverse)
 import Data.ByteString.Lazy as LazyB hiding (reverse)
@@ -449,6 +451,10 @@ instance Strict (Lazy.WriterT w m a) (Strict.WriterT w m a) where
 
 instance Strict (Lazy.RWST r w s m a) (Strict.RWST r w s m a) where
   strict = iso (Strict.RWST . Lazy.runRWST) (Lazy.RWST . Strict.runRWST)
+  {-# INLINE strict #-}
+
+instance Strict (Lazy.ST s a) (Strict.ST s a) where
+  strict = iso Lazy.lazyToStrictST Lazy.strictToLazyST
   {-# INLINE strict #-}
 
 -- | An 'Iso' between the strict variant of a structure and its lazy
