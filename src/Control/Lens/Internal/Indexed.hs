@@ -50,10 +50,12 @@ import Data.Distributive
 import Data.Functor.Bind
 import Data.Functor.Contravariant
 import Data.Int
+import Data.Monoid
 import Data.Profunctor.Closed
 import Data.Profunctor
 import Data.Profunctor.Rep
 import Data.Profunctor.Sieve
+import qualified Data.Semigroup as Semi
 import Data.Traversable
 import Prelude hiding ((.),id)
 #ifndef SAFE
@@ -275,6 +277,28 @@ instance Contravariant f => Contravariant (Indexing f) where
   contramap f (Indexing m) = Indexing $ \i -> case m i of
     (j, ff) -> (j, contramap f ff)
   {-# INLINE contramap #-}
+
+instance Semi.Semigroup (f a) => Semi.Semigroup (Indexing f a) where
+    Indexing mx <> Indexing my = Indexing $ \i -> case mx i of
+      (j, x) -> case my j of
+         ~(k, y) -> (k, x Semi.<> y)
+    {-# INLINE (<>) #-}
+
+-- |
+--
+-- >>> "cat" ^@.. (folded <> folded)
+-- [(0,'c'),(1,'a'),(2,'t'),(0,'c'),(1,'a'),(2,'t')]
+--
+-- >>> "cat" ^@.. indexing (folded <> folded)
+-- [(0,'c'),(1,'a'),(2,'t'),(3,'c'),(4,'a'),(5,'t')]
+instance Monoid (f a) => Monoid (Indexing f a) where
+    mempty = Indexing $ \i -> (i, mempty)
+    {-# INLINE mempty #-}
+
+    mappend (Indexing mx) (Indexing my) = Indexing $ \i -> case mx i of
+      (j, x) -> case my j of
+         ~(k, y) -> (k, mappend x y)
+    {-# INLINE mappend #-}
 
 -- | Transform a 'Control.Lens.Traversal.Traversal' into an 'Control.Lens.Traversal.IndexedTraversal' or
 -- a 'Control.Lens.Fold.Fold' into an 'Control.Lens.Fold.IndexedFold', etc.
