@@ -34,6 +34,7 @@ module Control.Lens.Unsound
   ( 
     lensProduct
   , prismSum
+  , traversalMappend
   ) where
 
 import Control.Applicative
@@ -91,3 +92,13 @@ prismSum k =
   where
     f a@(Right _) _ = a
     f (Left _)    b = b 
+
+-- | A generalization of `mappend`ing folds: A union of disjoint traversals.
+--
+-- Traversing the same entry twice is discouraged.
+--
+-- Are you looking for 'Control.Lens.Traversal.failing'?
+--
+traversalUnion :: ATraversal' s a -> ATraversal' s a -> Traversal' s a
+traversalUnion t1 t2 =
+    lensProduct (partsOf t1) (partsOf t2) . both . each
