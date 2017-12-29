@@ -229,9 +229,11 @@ module Language.Haskell.TH.Lens
 #endif
   -- ** FunDep Prisms TODO make a lens
   , _FunDep
+#if !(MIN_VERSION_template_haskell(2,13,0))
   -- ** FamFlavour Prisms
   , _TypeFam
   , _DataFam
+#endif
   -- ** FixityDirection Prisms
   , _InfixL
   , _InfixR
@@ -274,6 +276,9 @@ module Language.Haskell.TH.Lens
 #endif
 #if MIN_VERSION_template_haskell(2,11,0)
   , _UnboundVarE
+#endif
+#if MIN_VERSION_template_haskell(2,13,0)
+  , _LabelE
 #endif
   -- ** Body Prisms
   , _GuardedB
@@ -1689,6 +1694,7 @@ _FunDep
       reviewer (x, y) = FunDep x y
       remitter (FunDep x y) = (x, y)
 
+#if !(MIN_VERSION_template_haskell(2,13,0))
 _TypeFam :: Prism' FamFlavour ()
 _TypeFam
   = prism' reviewer remitter
@@ -1704,6 +1710,7 @@ _DataFam
       reviewer () = DataFam
       remitter DataFam = Just ()
       remitter _ = Nothing
+#endif
 
 #if MIN_VERSION_template_haskell(2,9,0)
 tySynEqnPatterns :: Lens' TySynEqn [Type]
@@ -1958,6 +1965,16 @@ _UnboundVarE
   where
       reviewer = UnboundVarE
       remitter (UnboundVarE x) = Just x
+      remitter _ = Nothing
+#endif
+
+#if MIN_VERSION_template_haskell(2,13,0)
+_LabelE :: Prism' Exp String
+_LabelE
+  = prism' reviewer remitter
+  where
+      reviewer = LabelE
+      remitter (LabelE x) = Just x
       remitter _ = Nothing
 #endif
 
