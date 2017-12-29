@@ -78,6 +78,9 @@ before_install:
   - unset CC
   - export HAPPYVER=1.19.5
   - export ALEXVER=3.1.7
+  - export HLINTVER=2.0.9
+  - mkdir ~/.hlint
+  - curl -L https://github.com/ndmitchell/hlint/releases/download/v$HLINTVER/hlint-$HLINTVER-x86_64-linux.tar.gz | tar -xz --strip-components=1 -C ~/.hlint
   - "PATH=~/.cabal/bin:/opt/ghc/bin:/opt/ghc-ppa-tools/bin:/opt/happy/$HAPPYVER/bin:/opt/alex/$ALEXVER/bin:$PATH"
 
 install:
@@ -150,6 +153,9 @@ script:
   # haddock
   - rm -rf ./dist-newstyle
   - if $HADDOCK; then cabal new-haddock -w ${HC} --disable-tests --disable-benchmarks all; else echo "Skipping haddock generation";fi
+
+  # hlint
+  - hlint src --cpp-define=HLINT --cpp-ansi
 
 # REGENDATA ["-o",".travis.yml","--irc-channel=irc.freenode.org#haskell-lens","lens.cabal"]
 # EOF
