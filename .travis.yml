@@ -81,7 +81,7 @@ before_install:
   - export HLINTVER=2.0.9
   - mkdir ~/.hlint
   - curl -L https://github.com/ndmitchell/hlint/releases/download/v$HLINTVER/hlint-$HLINTVER-x86_64-linux.tar.gz | tar -xz --strip-components=1 -C ~/.hlint
-  - "PATH=~/.cabal/bin:/opt/ghc/bin:/opt/ghc-ppa-tools/bin:/opt/happy/$HAPPYVER/bin:/opt/alex/$ALEXVER/bin:$PATH"
+  - "PATH=~/.cabal/bin:~/.hlint:/opt/ghc/bin:/opt/ghc-ppa-tools/bin:/opt/happy/$HAPPYVER/bin:/opt/alex/$ALEXVER/bin:$PATH"
 
 install:
   - cabal --version
