@@ -155,7 +155,7 @@ script:
   - if $HADDOCK; then cabal new-haddock -w ${HC} --disable-tests --disable-benchmarks all; else echo "Skipping haddock generation";fi
 
   # hlint
-  - hlint src --cpp-define=HLINT --cpp-ansi
+  - (cd lens-* && hlint src --cpp-define=HLINT --cpp-ansi)
 
 # REGENDATA ["-o",".travis.yml","--irc-channel=irc.freenode.org#haskell-lens","lens.cabal"]
 # EOF
