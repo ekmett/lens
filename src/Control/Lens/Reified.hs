@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -37,7 +38,9 @@ import Data.Profunctor.Closed
 import Data.Profunctor
 import Data.Profunctor.Rep
 import Data.Profunctor.Sieve
+#if !(MIN_VERSION_base(4,11,0))
 import Data.Semigroup
+#endif
 
 -- $setup
 -- >>> import Control.Lens
