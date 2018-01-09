@@ -1,3 +1,7 @@
+4.11.1
+------
+* Update version bounds.
+
 4.0
 ---
 
