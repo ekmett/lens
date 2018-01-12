@@ -26,7 +26,7 @@ library
   build-depends:
     base         >= 4.5 && < 5,
     lens         >= 4   && < 5,
-    QuickCheck   >= 2.4 && < 2.11,
+    QuickCheck   >= 2.4 && < 2.12,
     transformers >= 0.2 && < 0.6
 
   exposed-modules:
