@@ -39,7 +39,6 @@ addons:
     packages: &apt_packages
       - ghc-ppa-tools
       - freeglut3-dev
-      - hlint
       - alex-3.1.7
       - happy-1.19.5
 
@@ -80,9 +79,12 @@ before_install:
   - unset CC
   - export HAPPYVER=1.19.5
   - export ALEXVER=3.1.7
+  - export HLINTVER=2.0.9
+  - mkdir ~/.hlint
+  - curl -L https://github.com/ndmitchell/hlint/releases/download/v$HLINTVER/hlint-$HLINTVER-x86_64-linux.tar.gz | tar -xz --strip-components=1 -C ~/.hlint
   - ROOTDIR=$(pwd)
   - mkdir -p $HOME/.local/bin
-  - "PATH=/opt/ghc/bin:/opt/ghc-ppa-tools/bin:$HOME/local/bin:/opt/happy/$HAPPYVER/bin:/opt/alex/$ALEXVER/bin:$PATH"
+  - "PATH=~/.hlint:/opt/ghc/bin:/opt/ghc-ppa-tools/bin:$HOME/local/bin:/opt/happy/$HAPPYVER/bin:/opt/alex/$ALEXVER/bin:$PATH"
   - HCNUMVER=$(( $(${HC} --numeric-version|sed -E 's/([0-9]+)\.([0-9]+)\.([0-9]+).*/\1 * 10000 + \2 * 100 + \3/') ))
   - echo $HCNUMVER
 
