@@ -1,12 +1,11 @@
 4.16
 ----
-
-* `Semigroup` instances of `Traversed` and `Sequenced` are more constrainted:
-  from `Apply` to `Applicative` and `Monad` respectively.
-  In the next GHC-8.4, `Semigroup` will be a superclass of `Monoid`,
-  therefore we'd need to have `Apply` constraint in the `Monoid` instances.
-  We opted to weaken our ability to use `Apply` than to lose compability
-  with third party packages that don't supply instances for `Apply`
+* The `Semigroup` instances for `Traversed` and `Sequenced` are now more
+  constrained (going from `Apply` to `Applicative` and `Monad`, respectively).
+  In GHC 8.4, `Semigroup` is a superclass of `Monoid`, therefore we'd need to
+  have `Apply` constraint in the `Monoid` instances. We opted to weaken our
+  ability to use `Apply` than to lose compatibility with third-party packages
+  that don't supply instances for `Apply`.
 
   In practice this changes the (specialised) type signature of `traverseOf_`
   ```diff+
@@ -15,11 +14,22 @@
   ```
   and similarly for `forOf_` and `sequenceOf_`.
 
-  New combinators: `traverse1Of_`, `for1Of_` and `sequence1Of_` are added
-  for `Apply` only effects.
+  As part of this change, new combinators `traverse1Of_`, `for1Of_` and
+  `sequence1Of_` were added for `Apply`-only effects.
 
-  Similar instance context change is is made for `Folding` and `Effect`,
+  Similar instance context changes were made for `Folding` and `Effect`,
   but these changes aren't publicly visible.
+
+* Add `Control.Lens.Unsound`, which exports unsound functionality for forming
+  products of lenses and sums of prisms.
+
+* Add `Numeric.Natural.Lens`, which export convenient isomorphisms for
+  natural numbers.
+
+* Add `Strict` instances for strict and lazy `ST`.
+
+* Adapt `Language.Haskell.TH.Lens` for `template-haskell-2.13` (bundled
+  with GHC 8.4).
 
 4.15.4
 ----
