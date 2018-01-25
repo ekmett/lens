@@ -31,6 +31,8 @@
 * Adapt `Language.Haskell.TH.Lens` for `template-haskell-2.13` (bundled
   with GHC 8.4).
 
+* Add `Semigroup` and `Monoid` instances for `Indexing`.
+
 4.15.4
 ----
 * `makeFields` and `declareFields` are now smarter with respect to type
