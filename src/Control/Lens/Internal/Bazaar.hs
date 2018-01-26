@@ -96,7 +96,7 @@ instance Conjoined p => IndexedComonad (Bazaar p) where
   {-# INLINE iduplicate #-}
 
 instance Corepresentable p => Sellable p (Bazaar p) where
-  sell = cotabulate $ \ w -> Bazaar $ tabulate $ \k -> pure (cosieve k w)
+  sell = cotabulate $ \ w -> Bazaar (`cosieve` w)
   {-# INLINE sell #-}
 
 instance Profunctor p => Bizarre p (Bazaar p) where
@@ -108,7 +108,7 @@ instance Functor (Bazaar p a b) where
   {-# INLINE fmap #-}
 
 instance Apply (Bazaar p a b) where
-  Bazaar mf <.> Bazaar ma = Bazaar $ \ pafb -> mf pafb <*> ma pafb
+  (<.>) = (<*>)
   {-# INLINE (<.>) #-}
 
 instance Applicative (Bazaar p a b) where
@@ -171,11 +171,11 @@ instance Functor (BazaarT p g a b) where
   {-# INLINE fmap #-}
 
 instance Apply (BazaarT p g a b) where
-  BazaarT mf <.> BazaarT ma = BazaarT $ \ pafb -> mf pafb <*> ma pafb
+  (<.>) = (<*>)
   {-# INLINE (<.>) #-}
 
 instance Applicative (BazaarT p g a b) where
-  pure a = BazaarT $ tabulate $ \_ -> pure (pure a)
+  pure a = BazaarT $ \_ -> pure a
   {-# INLINE pure #-}
   BazaarT mf <*> BazaarT ma = BazaarT $ \ pafb -> mf pafb <*> ma pafb
   {-# INLINE (<*>) #-}
@@ -252,7 +252,7 @@ instance Conjoined p => IndexedComonad (Bazaar1 p) where
   {-# INLINE iduplicate #-}
 
 instance Corepresentable p => Sellable p (Bazaar1 p) where
-  sell = cotabulate $ \ w -> Bazaar1 $ tabulate $ \k -> pure (cosieve k w)
+  sell = cotabulate $ \ w -> Bazaar1 (`cosieve` w)
   {-# INLINE sell #-}
 
 instance Profunctor p => Bizarre1 p (Bazaar1 p) where
@@ -274,7 +274,7 @@ instance (a ~ b, Conjoined p) => Comonad (Bazaar1 p a b) where
   {-# INLINE duplicate #-}
 
 instance (a ~ b, Conjoined p) => ComonadApply (Bazaar1 p a b) where
-  Bazaar1 mf <@> Bazaar1 ma = Bazaar1 $ \ pafb -> mf pafb <.> ma pafb
+  (<@>) = (<.>)
   {-# INLINE (<@>) #-}
 
 ------------------------------------------------------------------------------
@@ -331,7 +331,7 @@ instance (a ~ b, Conjoined p) => Comonad (BazaarT1 p g a b) where
   {-# INLINE duplicate #-}
 
 instance (a ~ b, Conjoined p) => ComonadApply (BazaarT1 p g a b) where
-  BazaarT1 mf <@> BazaarT1 ma = BazaarT1 $ \ pafb -> mf pafb <.> ma pafb
+  (<@>) = (<.>)
   {-# INLINE (<@>) #-}
 
 instance (Profunctor p, Contravariant g) => Contravariant (BazaarT1 p g a b) where
