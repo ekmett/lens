@@ -1,5 +1,5 @@
-4.16
-----
+4.16 [2018.01.28]
+-----------------
 * The `Semigroup` instances for `Traversed` and `Sequenced` are now more
   constrained (going from `Apply` to `Applicative` and `Monad`, respectively).
   In GHC 8.4, `Semigroup` is a superclass of `Monoid`, therefore we'd need to
