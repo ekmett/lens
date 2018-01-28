@@ -5,7 +5,6 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE InstanceSigs #-}
 #ifdef TRUSTWORTHY
 {-# LANGUAGE Trustworthy #-}
 #endif
@@ -129,14 +128,12 @@ instance Cons [a] [b] a b where
 
 instance Cons (ZipList a) (ZipList b) a b where
 #if __GLASGOW_HASKELL__ >= 708
-  _Cons :: Prism (ZipList a) (ZipList b) (a, ZipList a) (b, ZipList b)
   _Cons = withPrism listCons $ \listReview listPreview -> 
     prism (coerce listReview) (coerce listPreview) where
 
     listCons :: Prism [a] [b] (a, [a]) (b, [b])
     listCons = _Cons
 #else
-  _Cons :: Prism (ZipList a) (ZipList b) (a, ZipList a) (b, ZipList b)
   _Cons = prism to from where
 
     to :: (b, ZipList b) -> ZipList b
@@ -376,14 +373,12 @@ instance Snoc [a] [b] a b where
 
 instance Snoc (ZipList a) (ZipList b) a b where
 #if __GLASGOW_HASKELL__ >= 708
-  _Snoc :: Prism (ZipList a) (ZipList b) (ZipList a, a) (ZipList b, b)
   _Snoc = withPrism listSnoc $ \listReview listPreview -> 
     prism (coerce listReview) (coerce listPreview) where
 
     listSnoc :: Prism [a] [b] ([a], a) ([b], b)
     listSnoc = _Snoc
 #else
-  _Snoc :: Prism (ZipList a) (ZipList b) (ZipList a, a) (ZipList b, b)
   _Snoc = prism to from where
 
     to :: (ZipList b, b) -> ZipList b
