@@ -4,6 +4,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 #ifdef TRUSTWORTHY
 {-# LANGUAGE Trustworthy #-}
 #endif
@@ -50,6 +51,7 @@ import Control.Lens.Prism
 import Control.Lens.Review
 import Control.Lens.Tuple
 import Control.Lens.Type
+import Control.Lens.Internal.Coerce
 import qualified Data.ByteString      as StrictB
 import qualified Data.ByteString.Lazy as LazyB
 import           Data.Monoid
@@ -66,6 +68,7 @@ import qualified Data.Vector.Primitive as Prim
 import           Data.Vector.Unboxed (Unbox)
 import qualified Data.Vector.Unboxed as Unbox
 import           Data.Word
+import           Control.Applicative (ZipList(..))
 import           Prelude
 
 #ifdef HLINT
@@ -119,6 +122,15 @@ instance Cons [a] [b] a b where
   _Cons = prism (uncurry (:)) $ \ aas -> case aas of
     (a:as) -> Right (a, as)
     []     -> Left  []
+  {-# INLINE _Cons #-}
+
+instance Cons (ZipList a) (ZipList b) a b where
+  _Cons = withPrism listCons $ \listReview listPreview -> 
+    prism (coerce' listReview) (coerce' listPreview) where
+
+    listCons :: Prism [a] [b] (a, [a]) (b, [b])
+    listCons = _Cons
+
   {-# INLINE _Cons #-}
 
 instance Cons (Seq a) (Seq b) a b where
@@ -344,6 +356,15 @@ instance Snoc [a] [b] a b where
   _Snoc = prism (\(as,a) -> as Prelude.++ [a]) $ \aas -> if Prelude.null aas
     then Left []
     else Right (Prelude.init aas, Prelude.last aas)
+  {-# INLINE _Snoc #-}
+
+instance Snoc (ZipList a) (ZipList b) a b where
+  _Snoc = withPrism listSnoc $ \listReview listPreview -> 
+    prism (coerce' listReview) (coerce' listPreview) where
+
+    listSnoc :: Prism [a] [b] ([a], a) ([b], b)
+    listSnoc = _Snoc
+
   {-# INLINE _Snoc #-}
 
 instance Snoc (Seq a) (Seq b) a b where

@@ -1,3 +1,7 @@
+next
+----
+* Added `Cons` and `Snoc` instances for `Control.Applicative.ZipList`
+
 4.16 [2018.01.28]
 -----------------
 * The `Semigroup` instances for `Traversed` and `Sequenced` are now more
