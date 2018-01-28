@@ -51,6 +51,7 @@ import Control.Lens.Prism
 import Control.Lens.Review
 import Control.Lens.Tuple
 import Control.Lens.Type
+import Control.Lens.Internal.Coerce
 import qualified Data.ByteString      as StrictB
 import qualified Data.ByteString.Lazy as LazyB
 import           Data.Monoid
@@ -67,9 +68,6 @@ import qualified Data.Vector.Primitive as Prim
 import           Data.Vector.Unboxed (Unbox)
 import qualified Data.Vector.Unboxed as Unbox
 import           Data.Word
-#if __GLASGOW_HASKELL__ >= 708
-import           Data.Coerce
-#endif
 import           Control.Applicative (ZipList(..))
 import           Prelude
 
@@ -127,22 +125,11 @@ instance Cons [a] [b] a b where
   {-# INLINE _Cons #-}
 
 instance Cons (ZipList a) (ZipList b) a b where
-#if __GLASGOW_HASKELL__ >= 708
   _Cons = withPrism listCons $ \listReview listPreview -> 
-    prism (coerce listReview) (coerce listPreview) where
+    prism (coerce' listReview) (coerce' listPreview) where
 
     listCons :: Prism [a] [b] (a, [a]) (b, [b])
     listCons = _Cons
-#else
-  _Cons = prism to from where
-
-    to :: (b, ZipList b) -> ZipList b
-    to (b, ZipList bs) = ZipList (b:bs)
-
-    from :: ZipList a -> Either (ZipList b) (a, ZipList a)
-    from (ZipList [])     = Left (ZipList [])
-    from (ZipList (a:as)) = Right (a, ZipList as)
-#endif
 
   {-# INLINE _Cons #-}
 
@@ -372,23 +359,11 @@ instance Snoc [a] [b] a b where
   {-# INLINE _Snoc #-}
 
 instance Snoc (ZipList a) (ZipList b) a b where
-#if __GLASGOW_HASKELL__ >= 708
   _Snoc = withPrism listSnoc $ \listReview listPreview -> 
-    prism (coerce listReview) (coerce listPreview) where
+    prism (coerce' listReview) (coerce' listPreview) where
 
     listSnoc :: Prism [a] [b] ([a], a) ([b], b)
     listSnoc = _Snoc
-#else
-  _Snoc = prism to from where
-
-    to :: (ZipList b, b) -> ZipList b
-    to (ZipList as, a) = ZipList (as Prelude.++ [a])
-
-    from :: ZipList a -> Either (ZipList b) (ZipList a, a)
-    from (ZipList aas) = if Prelude.null aas
-      then Left  (ZipList [])
-      else Right (ZipList (Prelude.init aas), Prelude.last aas)
-#endif
 
   {-# INLINE _Snoc #-}
 
