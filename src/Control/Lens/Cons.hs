@@ -68,7 +68,7 @@ import qualified Data.Vector.Primitive as Prim
 import           Data.Vector.Unboxed (Unbox)
 import qualified Data.Vector.Unboxed as Unbox
 import           Data.Word
-#if __GLASGOW_HASKELL__ >= 800
+#if __GLASGOW_HASKELL__ >= 708
 import           Data.Coerce
 #endif
 import           Control.Applicative (ZipList(..))
