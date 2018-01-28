@@ -33,6 +33,8 @@
 
 * Add `Semigroup` and `Monoid` instances for `Indexing`.
 
+* Added `Cons` and `Snoc` instances for `Control.Applicative.ZipList`
+
 4.15.4
 ----
 * `makeFields` and `declareFields` are now smarter with respect to type

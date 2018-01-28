@@ -128,7 +128,7 @@ instance Cons [a] [b] a b where
   {-# INLINE _Cons #-}
 
 instance Cons (ZipList a) (ZipList b) a b where
-#if __GLASGOW_HASKELL__ >= 800
+#if __GLASGOW_HASKELL__ >= 708
   _Cons :: Prism (ZipList a) (ZipList b) (a, ZipList a) (b, ZipList b)
   _Cons = withPrism listCons $ \listReview listPreview -> 
     prism (coerce listReview) (coerce listPreview) where
@@ -375,7 +375,7 @@ instance Snoc [a] [b] a b where
   {-# INLINE _Snoc #-}
 
 instance Snoc (ZipList a) (ZipList b) a b where
-#if __GLASGOW_HASKELL__ >= 800
+#if __GLASGOW_HASKELL__ >= 708
   _Snoc :: Prism (ZipList a) (ZipList b) (ZipList a, a) (ZipList b, b)
   _Snoc = withPrism listSnoc $ \listReview listPreview -> 
     prism (coerce listReview) (coerce listPreview) where
