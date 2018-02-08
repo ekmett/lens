@@ -196,7 +196,8 @@ mapped = sets fmap
 -- | This 'setter' can be used to modify all of the values in a 'Monad'.
 --
 -- You sometimes have to use this rather than 'mapped' -- due to
--- temporary insanity 'Functor' is not a superclass of 'Monad'.
+-- temporary insanity 'Functor' was not a superclass of 'Monad' until
+-- GHC 7.10.
 --
 -- @
 -- 'liftM' ≡ 'over' 'lifted'
