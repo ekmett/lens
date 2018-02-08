@@ -26,7 +26,7 @@ module Control.Lens.Cons
   (
   -- * Cons
     Cons(..)
-  , (<|)
+  , (<|), (<|~), (<<|~), (<|=), (<<|=)
   , cons
   , uncons
   , _head, _tail
@@ -35,7 +35,7 @@ module Control.Lens.Cons
 #endif
   -- * Snoc
   , Snoc(..)
-  , (|>)
+  , (|>), (|>~), (<|>~), (|>=), (<|>=)
   , snoc
   , unsnoc
   , _init, _last
@@ -46,12 +46,15 @@ module Control.Lens.Cons
   ) where
 
 import Control.Lens.Equality (simply)
+import Control.Lens.Setter
 import Control.Lens.Fold
 import Control.Lens.Prism
 import Control.Lens.Review
 import Control.Lens.Tuple
 import Control.Lens.Type
 import Control.Lens.Internal.Coerce
+import qualified Control.Monad.State.Class as State
+import           Control.Monad.State.Class (MonadState)
 import qualified Data.ByteString      as StrictB
 import qualified Data.ByteString.Lazy as LazyB
 import           Data.Monoid
@@ -78,6 +81,7 @@ import           Prelude
 -- $setup
 -- >>> :set -XNoOverloadedStrings
 -- >>> import Control.Lens
+-- >>> import Control.Monad.State
 -- >>> import Debug.SimpleReflect.Expr
 -- >>> import Debug.SimpleReflect.Vars as Vars hiding (f,g)
 -- >>> let f :: Expr -> Expr; f = Debug.SimpleReflect.Vars.f
@@ -85,6 +89,8 @@ import           Prelude
 
 infixr 5 <|, `cons`
 infixl 5 |>, `snoc`
+infixr 4 <|~, <<|~, <|=, <<|=
+infixr 4 |>~, <|>~, |>=, <|>=
 
 #if __GLASGOW_HASKELL__ >= 710
 
@@ -125,7 +131,7 @@ instance Cons [a] [b] a b where
   {-# INLINE _Cons #-}
 
 instance Cons (ZipList a) (ZipList b) a b where
-  _Cons = withPrism listCons $ \listReview listPreview -> 
+  _Cons = withPrism listCons $ \listReview listPreview ->
     prism (coerce' listReview) (coerce' listPreview) where
 
     listCons :: Prism [a] [b] (a, [a]) (b, [b])
@@ -218,6 +224,61 @@ instance (Unbox a, Unbox b) => Cons (Unbox.Vector a) (Unbox.Vector b) a b where
 cons :: Cons s s a a => a -> s -> s
 cons = curry (simply review _Cons)
 {-# INLINE cons #-}
+
+-- | 'cons' an element onto a container-valued 'Lens', 'Iso', 'Setter', or 'Traversal'
+--
+-- >>> ([a], b) & _1 <|~ c
+-- ([c,a],b)
+--
+-- >>> ([a], [b]) & both <|~ c
+-- ([c,a],[c,b])
+--
+-- >>> (Seq.fromList [a], b) & _1 <|~ c
+-- (fromList [c,a],b)
+--
+-- >>> (Seq.fromList [a], Seq.fromList [b]) & both <|~ c
+-- (fromList [c,a],fromList [c,b])
+(<|~) :: Cons b b a a => ASetter s t b b -> a -> s -> t
+l <|~ a = over l (cons a)
+
+-- | 'cons' an element with pass-through.
+--
+-- This is mostly present for consistency, but may be useful for for chaining assignments.
+--
+-- If you do not need a copy of the intermediate result, then using @l '<|~' a@ directly is a good idea.
+--
+-- >>> (Seq.fromList [a], b) & _1 <<|~ c
+-- (c,(fromList [c,a],b))
+(<<|~) :: Cons b b a a => ASetter s t b b -> a -> s -> (a, t)
+l <<|~ a = \s -> (a, over l (cons a) s)
+
+
+-- | Modify the target(s) a container-valued 'Lens', 'Iso', 'Setter', or 'Traversal' by 'cons'ing a value
+--
+-- >>> execState (_1 <|= c) ([a], b)
+-- ([c,a],b)
+--
+-- >>> execState (both <|= c) ([a], [b])
+-- ([c,a],[c,b])
+--
+-- >>> execState (_1 <|= c) (Seq.fromList [a], b)
+-- (fromList [c,a],b)
+--
+-- >>> execState (both <|= c) (Seq.fromList [a], Seq.fromList [b])
+-- (fromList [c,a],fromList [c,b])
+(<|=) :: MonadState s m => Cons b b a a => ASetter' s b -> a -> m ()
+l <|= a = State.modify (l <|~ a)
+
+-- | 'cons' an element in a monadic state with pass-through.
+--
+-- This is useful for chaining assignment without round-tripping through your 'Monad' stack.
+--
+-- If you do not need a copy of the intermediate result, then using @l '<|=' a@ directly will avoid unused binding warnings
+(<<|=) :: MonadState s m => Cons b b a a => ASetter' s b -> a -> m a
+l <<|= a = do
+  State.modify (l <|~ a)
+  return a
+
 
 -- | Attempt to extract the left-most element from a container, and a version of the container without that element.
 --
@@ -359,7 +420,7 @@ instance Snoc [a] [b] a b where
   {-# INLINE _Snoc #-}
 
 instance Snoc (ZipList a) (ZipList b) a b where
-  _Snoc = withPrism listSnoc $ \listReview listPreview -> 
+  _Snoc = withPrism listSnoc $ \listReview listPreview ->
     prism (coerce' listReview) (coerce' listPreview) where
 
     listSnoc :: Prism [a] [b] ([a], a) ([b], b)
@@ -531,6 +592,60 @@ _last = _Snoc._2
 snoc  :: Snoc s s a a => s -> a -> s
 snoc = curry (simply review _Snoc)
 {-# INLINE snoc #-}
+
+-- | 'snoc' an element onto a container-valued 'Lens', 'Iso', 'Setter', or 'Traversal'
+--
+-- >>> ([a], b) & _1 |>~ c
+-- ([a,c],b)
+--
+-- >>> ([a], [b]) & both |>~ c
+-- ([a,c],[b,c])
+--
+-- >>> (Seq.fromList [a], b) & _1 |>~ c
+-- (fromList [a,c],b)
+--
+-- >>> (LazyT.pack "hello", LazyT.pack "world") & both |>~ '!'
+-- ("hello!","world!")
+(|>~) :: Snoc b b a a => ASetter s t b b -> a -> s -> t
+l |>~ a = over l (`snoc` a)
+
+-- | 'snoc' onto a lens with pass-through
+--
+-- This is mostly present for consistency, but may be useful for for chaining assignments.
+--
+-- If you do not need a copy of the intermediate result, then using @l '<|>~' a@ directly is a good idea.
+--
+-- >>> (Seq.fromList [a], b) & _1 <|>~ c
+-- (c,(fromList [a,c],b))
+(<|>~) :: Snoc b b a a => ASetter s t b b -> a -> s -> (a, t)
+l <|>~ a = \s -> (a, over l (`snoc` a) s)
+
+-- | Modify the target(s) of a container-valued 'Lens', 'Iso', 'Setter', or 'Traversal' in a monadic
+-- state by 'snoc'ing a value onto the end
+--
+-- >>> execState (do _1 |>= c; _2 |>= d) ([a], [b])
+-- ([a,c],[b,d])
+--
+-- >>> execState (both |>= c) ([a], [b])
+-- ([a,c],[b,c])
+--
+-- >>> execState (both |>= '!') ("hello", "world")
+-- ("hello!","world!")
+(|>=) :: (Snoc b b a a, MonadState s m) => ASetter s s b b -> a -> m ()
+l |>= a = State.modify (l |>~ a)
+
+-- | 'snoc' onto a lens in a monadic state with pass-through
+--
+-- This is mostly present for consistency, but may be useful for for chaining assignments.
+--
+-- This is useful for chaining assignment without round-tripping through your 'Monad' stack.
+--
+-- If you do not need a copy of the intermediate result, then using @l '|>=' a@ directly will avoid unused binding warnings
+(<|>=) :: (Snoc b b a a, MonadState s m) => ASetter s s b b -> a -> m a
+l <|>= a = do
+  State.modify (l |>~ a)
+  return a
+
 
 -- | Attempt to extract the right-most element from a container, and a version of the container without that element.
 --
