@@ -47,6 +47,10 @@ module Control.Lens.At
   , Ixed(ix)
   , ixAt
   , iix
+  -- * Rixed
+  , Rixed (..)
+  , rixRep
+  , riix
   -- * Contains
   , Contains(contains)
   , icontains
@@ -58,6 +62,7 @@ import Control.Lens.Lens
 import Control.Lens.Setter
 import Control.Lens.Type
 import Control.Lens.Indexed
+import Data.Functor.Rep as Rep (Representable (..))
 import Data.Array.IArray as Array
 import Data.Array.Unboxed
 import Data.ByteString as StrictB
@@ -123,6 +128,7 @@ type instance Index LazyB.ByteString = Int64
 -- $setup
 -- >>> :set -XNoOverloadedStrings
 -- >>> import Control.Lens
+-- >>> import Data.Char
 -- >>> import Debug.SimpleReflect.Expr
 -- >>> import Debug.SimpleReflect.Vars as Vars hiding (f,g)
 -- >>> let f  :: Expr -> Expr; f = Debug.SimpleReflect.Vars.f
@@ -405,6 +411,57 @@ instance Ixed LazyB.ByteString where
   {-# INLINE ix #-}
 
 
+-- | 'Rixed' provides a simple 'Lens' ('Ixed' provides a 'Traversal').
+--
+-- /Note:/ 'Ixed' doesn't have a law that 'ix' is an /affine/ (at most one
+-- element) 'Traversal', though in practice that's true for most instances
+-- ('Map', 'Seq' etc.).
+--
+-- An instance of 'Rix' should satisfy
+--
+-- @
+-- 'ix' ≡ 'rix'
+-- @
+--
+-- All 'Representable' functors are 'Rixed' (see 'rixRep').
+--
+class Ixed m => Rixed m where
+  -- |
+  -- >>> Data.Char.toUpper ^. rix 'a'
+  -- 'A'
+  --
+  -- >>> (Data.Char.toUpper & rix '-' .~ '?') '-'
+  -- '?'
+  --
+  -- >>> (Data.Char.toUpper & rix '-' .~ '?') 'b'
+  -- 'B'
+  --
+  rix :: Index m -> Lens' m (IxValue m)
+  default rix :: (Functor f, Representable r, Eq (Rep r), Index m ~ Rep r, m ~ r (IxValue m))
+              => Index m -> LensLike' f m (IxValue m)
+  rix = rixRep
+
+-- | An indexed version of 'rix'.
+--
+-- >>> Data.Char.toUpper ^@. riix 'd'
+-- ('d','D')
+riix :: Rixed m => Index m -> IndexedLens' (Index m) m (IxValue m)
+riix i f = rix i (indexed f i)
+
+instance Eq e => Rixed (e -> a) where
+  rix e p f = p (f e) <&> \a e' -> if e == e' then a else f e'
+  {-# INLINE rix #-}
+
+instance Rixed (Identity a) where
+  rix () f (Identity a) = Identity <$> f a
+  {-# INLINE rix #-}
+
+-- | A definition of 'rix' for 'Representable' functors.
+-- This is the default if you don't specify a definition for 'rix'.
+rixRep :: (Representable f, Eq (Rep f)) => Rep f -> Lens' (f a) a
+rixRep i p xs = p (Rep.index xs i) <&> \a -> Rep.tabulate
+    (\j -> if i == j then a else Rep.index xs j)
+{-# INLINE rixRep #-}
 
 -- | 'At' provides a 'Lens' that can be used to read,
 -- write or delete the value associated with a key in a 'Map'-like

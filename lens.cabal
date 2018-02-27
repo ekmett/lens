@@ -184,6 +184,7 @@ flag j
 
 library
   build-depends:
+    adjunctions               >= 4.2      && < 5,
     array                     >= 0.3.0.2  && < 0.6,
     base                      >= 4.5      && < 5,
     base-orphans              >= 0.5.2    && < 1,
