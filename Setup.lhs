@@ -18,7 +18,7 @@ import System.FilePath ( (</>) )
 
 #if MIN_VERSION_cabal_doctest(1,0,0)
 
-import Distribution.Extra.Doctest ( generateBuildModule )
+import Distribution.Extra.Doctest ( doctestsUserHooks )
 
 #else
 
@@ -31,8 +31,8 @@ import Distribution.Extra.Doctest ( generateBuildModule )
 import Warning ()
 #endif
 
-generateBuildModule :: a -> b -> c -> d -> IO ()
-generateBuildModule _ _ _ _ = return ()
+doctestsUserHooks :: String -> UserHooks
+doctestsUserHooks _ = simpleUserHooks
 
 #endif
 
@@ -44,13 +44,12 @@ haddockOutputDir flags pkg = destDir where
   destDir = baseDir </> "doc" </> "html" </> display (packageName pkg)
 
 main :: IO ()
-main = defaultMainWithHooks simpleUserHooks
-  { buildHook = \pkg lbi hooks flags -> do
-     generateBuildModule "doctests" flags pkg lbi
-     buildHook simpleUserHooks pkg lbi hooks flags
-  , postHaddock = \args flags pkg lbi -> do
+main = defaultMainWithHooks duh
+  { postHaddock = \args flags pkg lbi -> do
      copyFiles normal (haddockOutputDir flags pkg) [("images","Hierarchy.png")]
-     postHaddock simpleUserHooks args flags pkg lbi
+     postHaddock duh args flags pkg lbi
   }
+  where
+    duh = doctestsUserHooks "doctests"
 
 \end{code}
