@@ -1,5 +1,6 @@
 next
 ----
+* Re-export `(<&>)` from `Data.Functor` on `base-4.11` and later.
 * Added `Cons` and `Snoc` instances for `Control.Applicative.ZipList`
 
 4.16 [2018.01.28]

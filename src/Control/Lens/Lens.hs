@@ -142,8 +142,11 @@ import Data.Profunctor.Sieve
 import Data.Profunctor.Unsafe
 import Data.Void
 import Prelude
-#if __GLASGOW_HASKELL__ >= 710
+#if MIN_VERSION_base(4,8,0)
 import Data.Function ((&))
+#endif
+#if MIN_VERSION_base(4,11,0)
+import Data.Functor ((<&>))
 #endif
 
 #ifdef HLINT
@@ -169,7 +172,7 @@ infixr 4 %%@~, <%@~, <<%@~, %%~, <+~, <*~, <-~, <//~, <^~, <^^~, <**~, <&&~, <||
 infix  4 %%@=, <%@=, <<%@=, %%=, <+=, <*=, <-=, <//=, <^=, <^^=, <**=, <&&=, <||=, <<>=, <%=, <<%=, <<.=, <<?=, <#=, #=, #%=, <#%=, #%%=
        , <<+=, <<-=, <<*=, <<//=, <<^=, <<^^=, <<**=, <<||=, <<&&=, <<<>=
 infixr 2 <<~
-infixl 1 <&>, ??, &~
+infixl 1 ??, &~
 
 -------------------------------------------------------------------------------
 -- Lenses
@@ -326,7 +329,7 @@ l %%= f = do
 -------------------------------------------------------------------------------
 
 
-#if __GLASGOW_HASKELL__ < 710
+#if !(MIN_VERSION_base(4,8,0))
 -- | Passes the result of the left side to the function on the right side (forward pipe operator).
 --
 -- This is the flipped version of ('$'), which is more common in languages like F# as (@|>@) where it is needed
@@ -354,6 +357,7 @@ a & f = f a
 infixl 1 &
 #endif
 
+#if !(MIN_VERSION_base(4,11,0))
 -- | Infix flipped 'fmap'.
 --
 -- @
@@ -362,6 +366,8 @@ infixl 1 &
 (<&>) :: Functor f => f a -> (a -> b) -> f b
 as <&> f = f <$> as
 {-# INLINE (<&>) #-}
+infixl 1 <&>
+#endif
 
 -- | This is convenient to 'flip' argument order of composite functions defined as:
 --
