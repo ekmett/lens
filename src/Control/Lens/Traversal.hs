@@ -151,7 +151,6 @@ import Data.Foldable (Foldable)
 #endif
 import Data.Functor.Compose
 import Data.Functor.Day.Curried
-import Data.Functor.Identity
 import Data.Functor.Yoneda
 import Data.Int
 import Data.IntMap as IntMap
@@ -167,7 +166,6 @@ import Data.Profunctor.Unsafe
 import Data.Reflection
 import Data.Semigroup.Traversable
 import Data.Semigroup.Bitraversable
-import Data.Tagged
 import Data.Traversable
 import Data.Tuple (swap)
 import GHC.Magic (inline)
@@ -506,7 +504,7 @@ iloci f w = getCompose (runBazaar w (Compose #. Indexed (\i -> fmap (indexed sel
 {-# INLINE iloci #-}
 
 -------------------------------------------------------------------------------
--- Parts and Holes
+-- Parts
 -------------------------------------------------------------------------------
 
 -- | 'partsOf' turns a 'Traversal' into a 'Lens' that resembles an early version of the 'Data.Data.Lens.uniplate' (or 'Data.Data.Lens.biplate') type.
@@ -602,123 +600,6 @@ iunsafePartsOf' l = conjoined
   (\f s -> let b = inline l sell s; (is, as) = unzip (pins b) in unsafeOuts b <$> indexed f (is :: [i]) as)
 {-# INLINE iunsafePartsOf' #-}
 
--- | @ Dayly @ is a DList-like type for reassociating 'Applicative'
--- operations. It's similar to
--- @"Data.Functor.Day.Curried".'Data.Functor.Day.Curried.Curried'@, but
--- backwards and lazier.
-newtype Dayly f a = Dayly {runDayly :: forall b c. (a -> b -> c) -> f b -> f c}
-
-instance Functor (Dayly f) where
-  fmap f (Dayly g) = Dayly $ \h xs -> g (h . f) xs
-
-instance Functor f => Applicative (Dayly f) where
-  pure x = Dayly $ \g xs -> fmap (g x) xs
-
-#if MIN_VERSION_base(4,10,0)
-  liftA2 f xs ys = Dayly $
-    \g ps -> runDayly xs (\a ~(m,n) -> g (f a m) n) (runDayly ys (,) ps)
-#endif
-
-  fs <*> ys = Dayly $
-    \g ps -> runDayly fs (\f ~(m,n) -> g (f m) n) (runDayly ys (,) ps)
-
-{-
--- We don't use this. See liftDaylySingleListed.
-liftDayly :: Applicative f => f a -> Dayly f a
-liftDayly xs = Dayly $ \f ys -> liftA2 f xs ys
--}
-
-lowerDayly :: Applicative f => Dayly f a -> f a
-lowerDayly gr = runDayly gr const (pure ())
-
--- | A list-like type representing a particular (indexed) traversal.
-data Listed p a t where
-  EndL :: t -> Listed p a t
-  ConsL :: p a (r -> t) -> Corep p a -> Listed p a r -> Listed p a t
-
-runListed :: Corepresentable p => Listed p a t -> t
-runListed (EndL t) = t
-runListed (ConsL g rep more) = cosieve g rep (runListed more)
-
-instance Profunctor p => Functor (Listed p a) where
-  fmap f (EndL t) = EndL (f t)
-  fmap f (ConsL g rep ys) = ConsL (rmap (f .) g) rep ys
-
-instance Profunctor p => Applicative (Listed p a) where
-  pure = EndL
-
-#if MIN_VERSION_base(4,10,0)
-  liftA2 f (EndL x) ys = f x <$> ys
-  liftA2 f (ConsL g rep l) ys =
-    ConsL (rmap (\h (r,b) -> f (h r) b) g) rep (liftA2 (,) l ys)
-#endif
-
-  EndL f <*> ys = f <$> ys
-  ConsL g rep l <*> ys =
-    ConsL (rmap (\h (r,b) -> h r b) g) rep (liftA2 (,) l ys)
-
-{-
---We don't use this. See liftDaylySingleListed.
-singleListed :: (Corepresentable p, Category p) => p a (Listed p a a)
-singleListed = cotabulate (\rep -> ConsL (rmap const id) rep (EndL ()))
--}
-
--- | liftDaylySingleListed is an optimized version of liftDayly . singleListed
-liftDaylySingleListed :: forall p a. (Corepresentable p, Category p)
-  => p a (Dayly (Listed p a) a)
-liftDaylySingleListed =
-  cotabulate (\rep -> Dayly $ \f xs -> ConsL (rmap f id) rep xs)
-
--- | liftDaylySingleListedFun is a specialization of liftDaylySingleListed
---  that doesn't needlessly eta-expand the functions it handles.
-liftDaylySingleListedFun :: a -> Dayly (Listed (->) a) a
-liftDaylySingleListedFun x = Dayly $ \f xs -> ConsL f (Identity x) xs
-
-listedToPretexts :: Corepresentable p => Listed p a t -> [Pretext p a a t]
-listedToPretexts = go id
-  where
-    go :: forall p t u a. Corepresentable p => (t -> u) -> Listed p a t -> [Pretext p a a u]
-    go _ (EndL _) = []
-    go f (ConsL g ar as) =
-      fmap (\a' -> f (cosieve g (a' <$ ar) (runListed as)))
-           (cosieve sell ar)
-        : go (f . cosieve g ar) as
-{-# INLINABLE listedToPretexts #-}
-
-holesOfFunSpec :: forall s t a. LensLike (Bazaar (->) a a) s t a a -> s -> [Pretext (->) a a t]
-holesOfFunSpec l s = listedToPretexts . lowerDayly $ runBazaar (l sell s) liftDaylySingleListedFun
-{-# INLINABLE holesOfFunSpec #-}
-
-holesOfGen :: forall p s t a. (Corepresentable p, Category p)
-           => Over p (Bazaar p a a) s t a a -> s -> [Pretext p a a t]
-holesOfGen l s = listedToPretexts . lowerDayly $ runBazaar (l sell s) liftDaylySingleListed
-{-# INLINABLE holesOfGen #-}
-
--- | The one-level version of 'Control.Lens.Plated.contextsOf'. This extracts a list of the immediate children according to a given 'Traversal' as editable contexts.
---
--- Given a context you can use 'Control.Comonad.Store.Class.pos' to see the values, 'Control.Comonad.Store.Class.peek' at what the structure would be like with an edited result, or simply 'extract' the original structure.
---
--- @
--- propChildren l x = 'toListOf' l x '==' 'map' 'Control.Comonad.Store.Class.pos' ('holesOf' l x)
--- propId l x = 'all' ('==' x) ['extract' w | w <- 'holesOf' l x]
--- @
---
--- @
--- 'holesOf' :: 'Iso'' s a                -> s -> ['Pretext'' (->) a s]
--- 'holesOf' :: 'Lens'' s a               -> s -> ['Pretext'' (->) a s]
--- 'holesOf' :: 'Traversal'' s a          -> s -> ['Pretext'' (->) a s]
--- 'holesOf' :: 'IndexedLens'' i s a      -> s -> ['Pretext'' ('Indexed' i) a s]
--- 'holesOf' :: 'IndexedTraversal'' i s a -> s -> ['Pretext'' ('Indexed' i) a s]
--- @
-holesOf :: forall p s t a. Conjoined p => Over p (Bazaar p a a) s t a a -> s -> [Pretext p a a t]
-holesOf l s =
-    unTagged
-  ( conjoined
-      (Tagged (holesOfFunSpec l s))
-      (Tagged (holesOfGen l s))
-    :: Tagged (p a b) [Pretext p a a t]
-  )
-{-# INLINE holesOf #-}
 
 -- | This converts a 'Traversal' that you \"know\" will target one or more elements to a 'Lens'. It can
 -- also be used to transform a non-empty 'Fold' into a 'Getter'.
@@ -787,7 +668,7 @@ unsafeSingular l = conjoined
 {-# INLINE unsafeSingular #-}
 
 ------------------------------------------------------------------------------
--- Internal functions used by 'partsOf', 'holesOf', etc.
+-- Internal functions used by 'partsOf', etc.
 ------------------------------------------------------------------------------
 
 ins :: Bizarre (->) w => w a b t -> [a]
@@ -819,6 +700,70 @@ unconsWithDefault :: a -> [a] -> (a,[a])
 unconsWithDefault d []     = (d,[])
 unconsWithDefault _ (x:xs) = (x,xs)
 {-# INLINE unconsWithDefault #-}
+
+
+-------------------------------------------------------------------------------
+-- Holes
+-------------------------------------------------------------------------------
+
+-- | The one-level version of 'Control.Lens.Plated.contextsOf'. This extracts a list of the immediate children according to a given 'Traversal' as editable contexts.
+--
+-- Given a context you can use 'Control.Comonad.Store.Class.pos' to see the values, 'Control.Comonad.Store.Class.peek' at what the structure would be like with an edited result, or simply 'extract' the original structure.
+--
+-- @
+-- propChildren l x = 'toListOf' l x '==' 'map' 'Control.Comonad.Store.Class.pos' ('holesOf' l x)
+-- propId l x = 'all' ('==' x) ['extract' w | w <- 'holesOf' l x]
+-- @
+--
+-- @
+-- 'holesOf' :: 'Iso'' s a                -> s -> ['Pretext'' (->) a s]
+-- 'holesOf' :: 'Lens'' s a               -> s -> ['Pretext'' (->) a s]
+-- 'holesOf' :: 'Traversal'' s a          -> s -> ['Pretext'' (->) a s]
+-- 'holesOf' :: 'IndexedLens'' i s a      -> s -> ['Pretext'' ('Indexed' i) a s]
+-- 'holesOf' :: 'IndexedTraversal'' i s a -> s -> ['Pretext'' ('Indexed' i) a s]
+-- @
+holesOf :: Conjoined p => Over p (Bazaar p a a) s t a a -> s -> [Pretext p a a t]
+holesOf f s = magToPretextList (runBazaar (f sell s) (cotabulate MOne)) []
+
+
+-- This is very similar to Magma, but we don't need to separate out
+-- the index here, so doing so is just added annoyance.
+data Mag p a b c where
+  MOne :: Corep p a -> Mag p a b b
+  MPure :: c -> Mag p a b c
+  MAp :: Mag p a b (c -> d) -> Mag p a b c -> Mag p a b d
+
+instance Functor (Mag p a b) where
+  fmap = MAp . MPure
+
+instance Applicative (Mag p a b) where
+  pure = MPure
+  (<*>) = MAp
+
+-- Adapted from Noah "Rampion" Easterly's implementation of a related holes
+-- function. See https://stackoverflow.com/a/49001904/1477667
+--
+-- The modified containers will share as much structure as possible with
+-- each other.
+magToPretextList :: forall p a t.
+     (Corepresentable p, Category p)
+  => Mag p a a t -> [Pretext p a a t] -> [Pretext p a a t]
+magToPretextList = fst . go id
+  where
+    go :: p x t
+       -> Mag p a a x
+       -> ([Pretext p a a t] -> [Pretext p a a t], x)
+    go f (MOne ar) =
+      ( (:) (fmap (\a' -> cosieve f (a' <$ ar))
+                  (cosieve sell ar))
+      , cosieve (id :: p a a) ar)
+    go _f (MPure x) = (id, x)
+    go f (MAp xs ys) =
+      let
+        (g, h) = go (lmap ($ j) f) xs
+        (i, j) = go (lmap h f) ys
+      in (g . i, h j)
+
 
 ------------------------------------------------------------------------------
 -- Traversals
