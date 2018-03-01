@@ -732,11 +732,11 @@ holesOf f xs = flip appEndo [] . fst $
   runHoles (runBazaar (f sell xs) (cotabulate holeInOne)) id
 {-# INLINE holesOf #-}
 
-holeInOne :: forall p a t. (Corepresentable p, Category p)
+holeInOne :: (Corepresentable p, Comonad (Corep p))
           => Corep p a -> Holes t (Endo [Pretext p a a t]) a
 holeInOne x = Holes $ \xt ->
     ( Endo (fmap xt (cosieve sell x) :)
-    , cosieve (id :: p a a) x)
+    , extract x)
 {-# INLINABLE holeInOne #-}
 
 -- We are very careful to share as much structure as possible among
