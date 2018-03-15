@@ -63,14 +63,13 @@ matrix:
     # env: TEST=--disable-tests BENCH=--disable-benchmarks
       addons: {apt: {packages: [*apt_packages,cabal-install-2.0,ghc-8.2.2], sources: [hvr-ghc]}}
     - compiler: "ghc-8.4.1"
-      env: GHCHEAD=true
-      addons: {apt: {packages: [*apt_packages,cabal-install-head,ghc-8.4.1], sources: [hvr-ghc]}}
+    # env: TEST=--disable-tests BENCH=--disable-benchmarks
+      addons: {apt: {packages: [*apt_packages,cabal-install-2.2,ghc-8.4.1], sources: [hvr-ghc]}}
     - compiler: "ghc-head"
       env: GHCHEAD=true
       addons: {apt: {packages: [*apt_packages,cabal-install-head,ghc-head], sources: [hvr-ghc]}}
 
   allow_failures:
-    - compiler: "ghc-8.4.1"
     - compiler: "ghc-head"
 
 before_install:
