@@ -20,6 +20,7 @@ import Control.Monad (when)
 import Data.Set (Set, member, empty, insert, delete)
 
 import Graphics.Gloss
+import qualified Graphics.Gloss.Data.Point.Arithmetic as Pt
 import Graphics.Gloss.Interface.Pure.Game
 
 import System.Random (randomRs, newStdGen)
@@ -100,7 +101,7 @@ update time = execState $ do
 updateBall :: Float -> State Pong ()
 updateBall time = do
   (u, v) <- use ballSpeed
-  ballPos += (time * u, time * v)
+  ballPos %= (Pt.+ (time * u, time * v))
 
   -- Make sure it doesn't leave the playing area
   ballPos.both %= clamp ballRadius
