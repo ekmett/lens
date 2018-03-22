@@ -26,6 +26,7 @@ module Main where
 
 import Control.Lens
 -- import Test.QuickCheck (quickCheck)
+import T799 ()
 
 data Bar a b c = Bar { _baz :: (a, b) }
 makeLenses ''Bar

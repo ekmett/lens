@@ -33,6 +33,7 @@ module Control.Lens.Internal.FieldTH
 import Control.Lens.At
 import Control.Lens.Fold
 import Control.Lens.Internal.TH
+import Control.Lens.Lens
 import Control.Lens.Plated
 import Control.Lens.Prism
 import Control.Lens.Setter
@@ -48,6 +49,7 @@ import qualified Language.Haskell.TH.Datatype as D
 import Data.Maybe (isJust,maybeToList)
 import Data.List (nub, findIndices)
 import Data.Either (partitionEithers)
+import Data.Semigroup
 import Data.Set.Lens
 import           Data.Map ( Map )
 import           Data.Set ( Set )
@@ -385,8 +387,19 @@ makeFieldInstance defType className decs =
 
   containsTypeFamilies = go <=< D.resolveTypeSynonyms
     where
-    go (ConT nm) = has _FamilyI <$> reify nm
+    go (ConT nm) = has (_FamilyI . _1 . _TypeFamilyD) <$> reify nm
     go ty = or <$> traverse go (ty ^.. plate)
+
+    -- We want to catch type families, but not *data* families. See #799.
+    _TypeFamilyD :: Getting Any Dec ()
+    _TypeFamilyD = _OpenTypeFamilyD.united <> _ClosedTypeFamilyD.united
+      where
+#if !(MIN_VERSION_template_haskell(2,11,0))
+      _OpenTypeFamilyD = _FamilyD . _1 . _TypeFam
+#endif
+#if !(MIN_VERSION_template_haskell(2,9,0))
+      _ClosedTypeFamilyD = ignored
+#endif
 
   pickInstanceDec hasFamilies
     | hasFamilies = do

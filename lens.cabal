@@ -342,6 +342,7 @@ library
 test-suite templates
   type: exitcode-stdio-1.0
   main-is: templates.hs
+  other-modules: T799
   ghc-options: -Wall -threaded
   hs-source-dirs: tests
 
