@@ -1,5 +1,5 @@
-next
-----
+4.6.1 [2018.03.23]
+------------------
 * Re-export `(<&>)` from `Data.Functor` on `base-4.11` and later.
 * Added `Cons` and `Snoc` instances for `Control.Applicative.ZipList`
 * Fix a bug in which `makeFields` would generate equality constraints for
