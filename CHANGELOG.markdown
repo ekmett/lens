@@ -4,6 +4,7 @@ next
 * Added `Cons` and `Snoc` instances for `Control.Applicative.ZipList`
 * Fix a bug in which `makeFields` would generate equality constraints for
   field types involving data families, which are unnecessary.
+* Improve the performance of `holesOf`.
 
 4.16 [2018.01.28]
 -----------------
