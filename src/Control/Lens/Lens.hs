@@ -1316,7 +1316,7 @@ l <<%@~ f = l $ Indexed $ \i a -> second' (f i) (a,a)
 -- ('%%@~') ::             'IndexedLens' i s t a b      -> (i -> a -> (r, b)) -> s -> (r, t)
 -- ('%%@~') :: 'Monoid' r => 'Control.Lens.Traversal.IndexedTraversal' i s t a b -> (i -> a -> (r, b)) -> s -> (r, t)
 -- @
-(%%@~) :: IndexedLensLike i f s t a b -> (i -> a -> f b) -> s -> f t
+(%%@~) :: Over (Indexed i) f s t a b -> (i -> a -> f b) -> s -> f t
 (%%@~) l = l .# Indexed
 {-# INLINE (%%@~) #-}
 
@@ -1332,7 +1332,7 @@ l <<%@~ f = l $ Indexed $ \i a -> second' (f i) (a,a)
 -- ('%%@=') :: 'MonadState' s m                 => 'IndexedLens' i s s a b      -> (i -> a -> (r, b)) -> s -> m r
 -- ('%%@=') :: ('MonadState' s m, 'Monoid' r) => 'Control.Lens.Traversal.IndexedTraversal' i s s a b -> (i -> a -> (r, b)) -> s -> m r
 -- @
-(%%@=) :: MonadState s m => IndexedLensLike i ((,) r) s s a b -> (i -> a -> (r, b)) -> m r
+(%%@=) :: MonadState s m => Over (Indexed i) ((,) r) s s a b -> (i -> a -> (r, b)) -> m r
 #if MIN_VERSION_mtl(2,1,0)
 l %%@= f = State.state (l %%@~ f)
 #else
@@ -1351,7 +1351,7 @@ l %%@= f = do
 -- ('<%@=') :: 'MonadState' s m                 => 'IndexedLens' i s s a b      -> (i -> a -> b) -> m b
 -- ('<%@=') :: ('MonadState' s m, 'Monoid' b) => 'Control.Lens.Traversal.IndexedTraversal' i s s a b -> (i -> a -> b) -> m b
 -- @
-(<%@=) :: MonadState s m => IndexedLensLike i ((,) b) s s a b -> (i -> a -> b) -> m b
+(<%@=) :: MonadState s m => Over (Indexed i) ((,) b) s s a b -> (i -> a -> b) -> m b
 l <%@= f = l %%@= \ i a -> let b = f i a in (b, b)
 {-# INLINE (<%@=) #-}
 
@@ -1363,7 +1363,7 @@ l <%@= f = l %%@= \ i a -> let b = f i a in (b, b)
 -- ('<<%@=') :: 'MonadState' s m                 => 'IndexedLens' i s s a b      -> (i -> a -> b) -> m a
 -- ('<<%@=') :: ('MonadState' s m, 'Monoid' b) => 'Control.Lens.Traversal.IndexedTraversal' i s s a b -> (i -> a -> b) -> m a
 -- @
-(<<%@=) :: MonadState s m => IndexedLensLike i ((,) a) s s a b -> (i -> a -> b) -> m a
+(<<%@=) :: MonadState s m => Over (Indexed i) ((,) a) s s a b -> (i -> a -> b) -> m a
 #if MIN_VERSION_mtl(2,1,0)
 l <<%@= f = State.state (l (Indexed $ \ i a -> (a, f i a)))
 #else
