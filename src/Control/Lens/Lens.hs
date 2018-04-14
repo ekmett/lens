@@ -484,7 +484,7 @@ chosen pafb = cotabulate $ \weaa -> cosieve (either id id `lmap` pafb) weaa <&> 
 --
 -- @
 -- 'alongside' :: 'Lens'   s t a b -> 'Lens'   s' t' a' b' -> 'Lens'   (s,s') (t,t') (a,a') (b,b')
--- 'alongside' :: 'Getter' s t a b -> 'Getter' s' t' a' b' -> 'Getter' (s,s') (t,t') (a,a') (b,b')
+-- 'alongside' :: 'Getter' s   a   -> 'Getter' s'    a'    -> 'Getter' (s,s')        (a,a')
 -- @
 alongside :: LensLike (AlongsideLeft f b') s  t  a  b
           -> LensLike (AlongsideRight f t) s' t' a' b'
