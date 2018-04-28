@@ -14,11 +14,11 @@
 #endif
 
 #ifdef TRUSTWORTHY
-# if MIN_VERSION_template_haskell(2,12,0)
-{-# LANGUAGE Safe #-}
-# else
 {-# LANGUAGE Trustworthy #-} -- template-haskell
-# endif
+#endif
+
+#if __GLASGOW_HASKELL__ >= 800
+{-# OPTIONS_GHC -Wno-trustworthy-safe #-}
 #endif
 
 #ifndef MIN_VERSION_template_haskell

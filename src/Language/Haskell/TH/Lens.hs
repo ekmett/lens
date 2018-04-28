@@ -1,12 +1,12 @@
 {-# LANGUAGE CPP #-}
 #if defined(__GLASGOW_HASKELL__)
-# if MIN_VERSION_template_haskell(2,12,0)
-{-# LANGUAGE Safe #-}
-# else
 {-# LANGUAGE Trustworthy #-}
-# endif
 #endif
 {-# LANGUAGE Rank2Types #-}
+
+#if __GLASGOW_HASKELL__ >= 800
+{-# OPTIONS_GHC -Wno-trustworthy-safe #-}
+#endif
 
 #ifndef MIN_VERSION_template_haskell
 #define MIN_VERSION_template_haskell(x,y,z) 1

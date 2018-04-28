@@ -4,6 +4,12 @@
 #ifndef MIN_VERSION_containers
 #define MIN_VERSION_containers(x,y,z) 1
 #endif
+
+{-# LANGUAGE Trustworthy #-}
+#if __GLASGOW_HASKELL__ >= 800
+{-# OPTIONS_GHC -Wno-trustworthy-safe #-}
+#endif
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Set.Lens
