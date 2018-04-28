@@ -1,12 +1,9 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE Rank2Types #-}
-
-#if __GLASGOW_HASKELL__ < 708
 {-# LANGUAGE Trustworthy #-}
-#endif
 
 #if __GLASGOW_HASKELL__ >= 800
-{-# OPTIONS_GHC -Wno-redundant-constraints #-}
+{-# OPTIONS_GHC -Wno-redundant-constraints -Wno-trustworthy-safe #-}
 #endif
 -------------------------------------------------------------------------------
 -- |

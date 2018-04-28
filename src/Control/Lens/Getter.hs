@@ -2,10 +2,7 @@
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FlexibleInstances #-}
-
-#if __GLASGOW_HASKELL__ < 708
 {-# LANGUAGE Trustworthy #-}
-#endif
 
 #if __GLASGOW_HASKELL__ && __GLASGOW_HASKELL__ >= 704
 {-# LANGUAGE NoPolyKinds #-}
