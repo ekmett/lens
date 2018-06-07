@@ -68,6 +68,7 @@ module Control.Lens.Fold
   , unfolded
   , iterated
   , filtered
+  , filteredBy
   , backwards
   , repeated
   , replicated
@@ -163,7 +164,7 @@ import Control.Monad.Reader
 import Control.Monad.State
 import Data.CallStack
 import Data.Foldable
-import Data.Functor.Apply
+import Data.Functor.Apply hiding ((<.))
 import Data.Functor.Compose
 import Data.Functor.Contravariant
 import Data.Int (Int64)
@@ -360,6 +361,24 @@ iterated f g a0 = go a0 where
 filtered :: (Choice p, Applicative f) => (a -> Bool) -> Optic' p f a a
 filtered p = dimap (\x -> if p x then Right x else Left x) (either pure id) . right'
 {-# INLINE filtered #-}
+
+-- | Obtain a potentially empty 'IndexedTraversal' by taking the first element from another,
+-- potentially empty `Fold` and using it as an index.
+--
+-- The resulting optic can be composed with to filter another 'Lens', 'Iso', 'Getter', 'Fold' (or 'Traversal').
+--
+-- >>> [(Just 2, 3), (Nothing, 4)] & mapped . filteredBy (_1 . _Just) <. _2 %@~ (*) :: [(Maybe Int, Int)]
+-- [(Just 2,6),(Nothing,4)]
+--
+-- @
+-- 'filteredBy' :: 'Fold' a i -> 'IndexedTraversal'' i a a
+-- @
+--
+-- Note: As with 'filtered', this is /not/ a legal 'IndexedTraversal', unless you are very careful not to invalidate the predicate on the target!
+filteredBy :: (Indexable i p, Applicative f) => Getting (First i) a i -> p a (f a) -> a -> f a
+filteredBy p f val = case val ^? p of
+  Nothing -> pure val
+  Just witness -> indexed f witness val
 
 -- | Obtain a 'Fold' by taking elements from another 'Fold', 'Lens', 'Iso', 'Getter' or 'Traversal' while a predicate holds.
 --
