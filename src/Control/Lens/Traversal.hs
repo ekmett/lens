@@ -1329,7 +1329,7 @@ deepOf r l = failing l (r . deepOf r l)
 --
 -- 'confusing' exploits the 'Yoneda' lemma to merge their separate uses of 'fmap' into a single 'fmap'.
 -- and it further exploits an interesting property of the right Kan lift (or 'Curried') to left associate
--- all of the uses of '(<*>)' to make it possible to fuse together more fmaps.
+-- all of the uses of '(\<*\>)' to make it possible to fuse together more fmaps.
 --
 -- This is particularly effective when the choice of functor 'f' is unknown at compile
 -- time or when the 'Traversal' @foo.bar@ in the above description is recursive or complex
