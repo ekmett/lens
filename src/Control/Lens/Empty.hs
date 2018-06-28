@@ -33,6 +33,7 @@ import Control.Lens.Iso
 #if __GLASGOW_HASKELL__ >= 710
 import Control.Lens.Fold
 #endif
+import Control.Applicative (ZipList(..))
 import Control.Lens.Prism
 import Control.Lens.Review
 import Data.ByteString as StrictB
@@ -119,6 +120,10 @@ instance (AsEmpty a, AsEmpty b, AsEmpty c) => AsEmpty (a,b,c) where
 
 instance AsEmpty [a] where
   _Empty = nearly [] Prelude.null
+  {-# INLINE _Empty #-}
+
+instance AsEmpty (ZipList a) where
+  _Empty = nearly (ZipList []) (Prelude.null . getZipList)
   {-# INLINE _Empty #-}
 
 instance AsEmpty (Map k a) where
