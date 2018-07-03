@@ -1,5 +1,6 @@
 next [????.??.??]
 -----------------
+* Allow building with GHC 8.6.
 * Make the instances for `Product` and `(:*:)` in `Control.Lens.Tuple`
   poly-kinded.
 * Make the definitions in `GHC.Generics.Lens` poly-kinded.
