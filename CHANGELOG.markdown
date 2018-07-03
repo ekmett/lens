@@ -1,4 +1,4 @@
-next [????.??.??]
+4.17 [2018.07.03]
 -----------------
 * Allow building with GHC 8.6.
 * Make the instances for `Product` and `(:*:)` in `Control.Lens.Tuple`
@@ -10,7 +10,7 @@ next [????.??.??]
 * Add an `AsEmpty` instance for `ZipList`.
 
 4.16.1 [2018.03.23]
-------------------
+-------------------
 * Re-export `(<&>)` from `Data.Functor` on `base-4.11` and later.
 * Added `Cons` and `Snoc` instances for `Control.Applicative.ZipList`
 * Fix a bug in which `makeFields` would generate equality constraints for
