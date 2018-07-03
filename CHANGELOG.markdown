@@ -1,3 +1,13 @@
+next [????.??.??]
+-----------------
+* Make the instances for `Product` and `(:*:)` in `Control.Lens.Tuple`
+  poly-kinded.
+* Make the definitions in `GHC.Generics.Lens` poly-kinded.
+* Make `(%%@~)`, `(%%@=)`, `(<%@=)`, and `(<<%@=)` consume an
+  `Over (Indexed i)` instead of an `IndexedLensLike i` to improve type
+  inference.
+* Add an `AsEmpty` instance for `ZipList`.
+
 4.6.1 [2018.03.23]
 ------------------
 * Re-export `(<&>)` from `Data.Functor` on `base-4.11` and later.
