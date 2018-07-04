@@ -779,7 +779,8 @@ instance Monoid m => Applicative (Holes t m) where
 
 -- | Traverse both parts of a 'Bitraversable' container with matching types.
 --
--- Usually that type will be a pair.
+-- Usually that type will be a pair. Use 'Control.Lens.Each.each' to traverse
+-- the elements of arbitrary homogeneous tuples.
 --
 -- >>> (1,2) & both *~ 10
 -- (10,20)
