@@ -2,7 +2,7 @@ name:          lens-examples
 category:      Data, Lenses
 version:       0.1
 license:       BSD3
-cabal-version: >= 1.8
+cabal-version: >= 1.10
 license-file:  LICENSE
 author:        Niklas Haas
 maintainer:    Edward A. Kmett <ekmett@gmail.com>
