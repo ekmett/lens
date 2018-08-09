@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell, Rank2Types, NoMonomorphismRestriction #-}
+{-# LANGUAGE CPP, TemplateHaskell, Rank2Types, NoMonomorphismRestriction #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Main
@@ -12,14 +12,16 @@
 -----------------------------------------------------------------------------
 module Main where
 
-import Control.Applicative ((<$>), (<*>))
-import Control.Lens
+#if !(MIN_VERSION_base(4,8,0))
+import Control.Applicative ((<$>))
+#endif
+import Control.Lens hiding (at)
 import Control.Monad.State (State, execState, get)
 import Control.Monad (when)
 
-import Data.Set (Set, member, empty, insert, delete)
+import Data.Set (Set, empty)
 
-import Graphics.Gloss
+import Graphics.Gloss hiding (display)
 import qualified Graphics.Gloss.Data.Point.Arithmetic as Pt
 import Graphics.Gloss.Interface.Pure.Game
 
@@ -27,9 +29,15 @@ import System.Random (randomRs, newStdGen)
 
 -- Some global constants
 
+gameSize :: Float
 gameSize        = 300
+
+windowWidth, windowHeight :: Int
 windowWidth     = 800
 windowHeight    = 600
+
+ballRadius, speedIncrease, losingAccuracy, winningAccuracy,
+  initialSpeed, paddleWidth, paddleHeight, paddleSpeed :: Float
 ballRadius      = 0.02
 speedIncrease   = 1.2
 losingAccuracy  = 0.9
@@ -38,6 +46,8 @@ initialSpeed    = 0.6
 paddleWidth     = 0.02
 paddleHeight    = 0.3
 paddleSpeed     = 1
+
+textSize :: Float
 textSize        = 0.001
 
 -- Pure data type for representing the game state
@@ -58,7 +68,10 @@ data Pong = Pong
 makeLenses ''Pong
 
 -- Renamed tuple lenses for enhanced clarity with points/vectors
+_x :: Field1 s t a b => Lens s t a b
 _x = _1
+
+_y :: Field2 s t a b => Lens s t a b
 _y = _2
 
 initial :: Pong
@@ -192,7 +205,7 @@ draw p = scale gameSize gameSize $ Pictures
   ]
   where
     paddleX = 1 + paddleWidth/2
-    p `at` (x,y) = translate x y p; infixr 1 `at`
+    po `at` (x,y) = translate x y po; infixr 1 `at`
 
 drawPaddle :: Picture
 drawPaddle = rectangleSolid paddleWidth paddleHeight
@@ -211,6 +224,7 @@ handle _ = id
 
 -- The main program action
 
+main :: IO ()
 main = do
   v:vs <- startingSpeeds
   let world = ballSpeed .~ v $ vectors .~ vs $ initial
