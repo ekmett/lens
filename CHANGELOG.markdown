@@ -1,3 +1,7 @@
+Next
+----
+* Only incur `semigroups` and `void` dependencies on old GHCs.
+
 4.17 [2018.07.03]
 -----------------
 * Allow building with GHC 8.6.
