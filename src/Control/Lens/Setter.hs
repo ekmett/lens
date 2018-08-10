@@ -490,6 +490,11 @@ set' l b = runIdentity #. l (\_ -> Identity b)
 -- >>> Map.empty & at 3 ?~ x
 -- fromList [(3,x)]
 --
+-- '?~' can be used type-changily:
+--
+-- >>> ('a', ('b', 'c')) & _2.both ?~ 'x'
+-- ('a',(Just 'x',Just 'x'))
+--
 -- @
 -- ('?~') :: 'Setter' s t a ('Maybe' b)    -> b -> s -> t
 -- ('?~') :: 'Iso' s t a ('Maybe' b)       -> b -> s -> t
