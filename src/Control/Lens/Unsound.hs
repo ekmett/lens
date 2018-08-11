@@ -34,7 +34,7 @@ module Control.Lens.Unsound
   ( 
     lensProduct
   , prismSum
-  , traversalMappend
+  , traversalUnion
   ) where
 
 import Control.Applicative
@@ -99,6 +99,6 @@ prismSum k =
 --
 -- Are you looking for 'Control.Lens.Traversal.failing'?
 --
-traversalUnion :: ATraversal' s a -> ATraversal' s a -> Traversal' s a
+traversalUnion :: Traversal' s a -> Traversal' s a -> Traversal' s a
 traversalUnion t1 t2 =
     lensProduct (partsOf t1) (partsOf t2) . both . each
