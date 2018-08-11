@@ -95,7 +95,7 @@ prismSum k =
 
 -- | A generalization of `mappend`ing folds: A union of disjoint traversals.
 --
--- Traversing the same entry twice is discouraged.
+-- Traversing the same entry twice is illegal.
 --
 -- Are you looking for 'Control.Lens.Traversal.failing'?
 --
