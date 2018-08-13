@@ -15,11 +15,12 @@ module Main where
 #if !(MIN_VERSION_base(4,8,0))
 import Control.Applicative ((<$>))
 #endif
-import Control.Lens hiding (at)
+import Control.Lens hiding ((:>), at)
 import Control.Monad.State (State, execState, get)
 import Control.Monad (when)
 
 import Data.Set (Set, empty)
+import Data.Stream.Infinite (Stream(..))
 
 import Graphics.Gloss hiding (display)
 import qualified Graphics.Gloss.Data.Point.Arithmetic as Pt
@@ -58,7 +59,7 @@ data Pong = Pong
   , _paddle1   :: Float
   , _paddle2   :: Float
   , _score     :: (Int, Int)
-  , _vectors   :: [Vector]
+  , _vectors   :: Stream Vector
 
   -- Since gloss doesn't cover this, we store the set of pressed keys
   , _keys      :: Set Key
@@ -75,7 +76,7 @@ _y :: Field2 s t a b => Lens s t a b
 _y = _2
 
 initial :: Pong
-initial = Pong (0, 0) (0, 0) 0 0 (0, 0) [] empty
+initial = Pong (0, 0) (0, 0) 0 0 (0, 0) (return (0, 0)) empty
 
 -- Calculate the y position at which the ball will next hit (on player2's side)
 hitPos :: Point -> Vector -> Float
@@ -187,7 +188,7 @@ reset = do
 -- Retrieve a speed from the list, dropping it in the process
 nextSpeed :: State Pong Vector
 nextSpeed = do
-  v:vs <- use vectors
+  v:>vs <- use vectors
   vectors .= vs
   return v
 
@@ -226,7 +227,7 @@ handle _ = id
 
 main :: IO ()
 main = do
-  v:vs <- startingSpeeds
+  v:>vs <- startingSpeeds
   let world = ballSpeed .~ v $ vectors .~ vs $ initial
   play display backColor fps world draw handle update
 
@@ -237,12 +238,17 @@ main = do
 
 -- Generate the random list of starting speeds
 
-startingSpeeds :: IO [Vector]
+startingSpeeds :: IO (Stream Vector)
 startingSpeeds = do
   rs <- randomRs (-initialSpeed, initialSpeed) <$> newStdGen
-  return . interleave $ filter ((> 0.2) . abs) rs
+  return . listToStream . interleave $ filter ((> 0.2) . abs) rs
 
   where
     interleave :: [a] -> [(a,a)]
     interleave (x:y:xs) = (x,y) : interleave xs
     interleave _        = []
+
+    -- Assumes the list is infinite.
+    listToStream :: [a] -> Stream a
+    listToStream (x:xs) = x :> listToStream xs
+    listToStream []     = error "Finite list"
