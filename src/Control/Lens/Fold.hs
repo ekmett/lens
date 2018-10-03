@@ -339,7 +339,7 @@ iterated f g a0 = go a0 where
   go a = g a .> go (f a)
 {-# INLINE iterated #-}
 
--- | Obtain an 'Fold' that can be composed with to filter another 'Lens', 'Iso', 'Getter', 'Fold' (or 'Traversal').
+-- | Obtain a 'Fold' that can be composed with to filter another 'Lens', 'Iso', 'Getter', 'Fold' (or 'Traversal').
 --
 -- Note: This is /not/ a legal 'Traversal', unless you are very careful not to invalidate the predicate on the target.
 --
