@@ -1,5 +1,4 @@
 {-# LANGUAGE CPP #-}
-{-# LANGUAGE MagicHash #-}
 {-# LANGUAGE DefaultSignatures #-}
 
 #ifdef TRUSTWORTHY

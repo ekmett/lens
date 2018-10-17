@@ -250,5 +250,4 @@ startingSpeeds = do
 
     -- Assumes the list is infinite.
     listToStream :: [a] -> Stream a
-    listToStream (x:xs) = x :> listToStream xs
-    listToStream []     = error "Finite list"
+    listToStream = foldr (:>) (error "Finite list")

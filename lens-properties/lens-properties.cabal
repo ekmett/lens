@@ -23,6 +23,7 @@ tested-with:   GHC == 7.4.2
              , GHC == 8.6.1
 
 extra-source-files:
+  .hlint.yaml
   CHANGELOG.markdown
 
 source-repository head
