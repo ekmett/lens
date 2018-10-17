@@ -39,9 +39,9 @@ matrix:
     - compiler: "ghc-8.6.1"
     # env: TEST=--disable-tests BENCH=--disable-benchmarks
       addons: {apt: {packages: [ghc-ppa-tools,cabal-install-2.4,ghc-8.6.1,freeglut3-dev], sources: [hvr-ghc]}}
-    - compiler: "ghc-8.4.3"
+    - compiler: "ghc-8.4.4"
     # env: TEST=--disable-tests BENCH=--disable-benchmarks
-      addons: {apt: {packages: [ghc-ppa-tools,cabal-install-2.4,ghc-8.4.3,freeglut3-dev], sources: [hvr-ghc]}}
+      addons: {apt: {packages: [ghc-ppa-tools,cabal-install-2.4,ghc-8.4.4,freeglut3-dev], sources: [hvr-ghc]}}
     - compiler: "ghc-8.2.2"
     # env: TEST=--disable-tests BENCH=--disable-benchmarks
       addons: {apt: {packages: [ghc-ppa-tools,cabal-install-2.4,ghc-8.2.2,freeglut3-dev], sources: [hvr-ghc]}}
@@ -134,10 +134,8 @@ install:
 # any command which exits with a non-zero exit code causes the build to fail.
 script:
   # test that source-distributions can be generated
-  - (cd "." && cabal sdist)
-  - (cd "./examples" && cabal sdist)
-  - (cd "./lens-properties" && cabal sdist)
-  - mv "."/dist/lens-*.tar.gz "./examples"/dist/lens-examples-*.tar.gz "./lens-properties"/dist/lens-properties-*.tar.gz ${DISTDIR}/
+  - cabal new-sdist all
+  - mv dist-newstyle/sdist/*.tar.gz ${DISTDIR}/
   - cd ${DISTDIR} || false
   - find . -maxdepth 1 -name '*.tar.gz' -exec tar -xvf '{}' \;
   - "printf 'packages: lens-*/*.cabal lens-examples-*/*.cabal lens-properties-*/*.cabal\\n' > cabal.project"
@@ -159,7 +157,9 @@ script:
   - if $HADDOCK; then cabal new-haddock -w ${HC} ${TEST} ${BENCH} all; else echo "Skipping haddock generation";fi
 
   # hlint
-  - (cd lens-* && hlint src --cpp-define=HLINT --cpp-ansi)
+  - (cd lens-* && hlint src --cpp-ansi --cpp-define=HLINT)
+  - (cd lens-examples-* && hlint . --cpp-ansi --cpp-define=HLINT)
+  - (cd lens-properties-* && hlint src --cpp-ansi --cpp-define=HLINT)
 
 # REGENDATA ["-o",".travis.yml","--ghc-head","--irc-channel=irc.freenode.org#haskell-lens","--no-no-tests-no-bench","--no-unconstrained","cabal.project","freeglut3-dev"]
 # EOF
