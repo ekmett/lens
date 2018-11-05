@@ -2,7 +2,7 @@ name:          lens
 category:      Data, Lenses, Generics
 version:       4.17
 license:       BSD2
-cabal-version: >= 1.8
+cabal-version: 1.18
 license-file:  LICENSE
 author:        Edward A. Kmett
 maintainer:    Edward A. Kmett <ekmett@gmail.com>
@@ -103,7 +103,6 @@ extra-source-files:
   examples/lens-examples.cabal
   examples/*.hs
   examples/*.lhs
-  images/*.png
   lens-properties/CHANGELOG.markdown
   lens-properties/LICENSE
   lens-properties/Setup.hs
@@ -116,6 +115,8 @@ extra-source-files:
   CHANGELOG.markdown
   README.markdown
   SUPPORT.markdown
+extra-doc-files:
+  images/*.png
 
 source-repository head
   type: git
@@ -348,6 +349,8 @@ library
 
   hs-source-dirs: src
 
+  default-language: Haskell2010
+
 -- Verify that Template Haskell expansion works
 test-suite templates
   type: exitcode-stdio-1.0
@@ -355,6 +358,7 @@ test-suite templates
   other-modules: T799
   ghc-options: -Wall -threaded
   hs-source-dirs: tests
+  default-language: Haskell2010
 
   if flag(dump-splices)
     ghc-options: -ddump-splices
@@ -374,6 +378,7 @@ test-suite properties
   hs-source-dirs:
     tests
     lens-properties/src
+  default-language: Haskell2010
   if !flag(test-properties)
     buildable: False
   else
@@ -391,6 +396,7 @@ test-suite hunit
   main-is: hunit.hs
   ghc-options: -w -threaded -rtsopts -with-rtsopts=-N
   hs-source-dirs: tests
+  default-language: Haskell2010
 
   if !flag(test-hunit)
     buildable: False
@@ -411,6 +417,7 @@ test-suite doctests
   main-is:           doctests.hs
   ghc-options:       -Wall -threaded
   hs-source-dirs:    tests
+  default-language:  Haskell2010
   x-doctest-options: --fast
 
   if flag(trustworthy) && impl(ghc>=7.2)
@@ -441,10 +448,11 @@ test-suite doctests
 
 -- Basic benchmarks for the uniplate-style combinators
 benchmark plated
-  type:           exitcode-stdio-1.0
-  main-is:        plated.hs
-  ghc-options:    -Wall -O2 -threaded -fdicts-cheap -funbox-strict-fields
-  hs-source-dirs: benchmarks
+  type:             exitcode-stdio-1.0
+  main-is:          plated.hs
+  ghc-options:      -Wall -O2 -threaded -fdicts-cheap -funbox-strict-fields
+  hs-source-dirs:   benchmarks
+  default-language: Haskell2010
   build-depends:
     base,
     comonad,
@@ -460,10 +468,11 @@ benchmark plated
 
 -- Benchmarking alongside variants
 benchmark alongside
-  type:           exitcode-stdio-1.0
-  main-is:        alongside.hs
-  ghc-options:    -w -O2 -threaded -fdicts-cheap -funbox-strict-fields
-  hs-source-dirs: benchmarks
+  type:             exitcode-stdio-1.0
+  main-is:          alongside.hs
+  ghc-options:      -w -O2 -threaded -fdicts-cheap -funbox-strict-fields
+  hs-source-dirs:   benchmarks
+  default-language: Haskell2010
   build-depends:
     base,
     comonad >= 4,
@@ -474,10 +483,11 @@ benchmark alongside
 
 -- Benchmarking folds
 benchmark folds
-  type:           exitcode-stdio-1.0
-  main-is:        folds.hs
-  ghc-options:    -w -O2 -threaded -fdicts-cheap -funbox-strict-fields
-  hs-source-dirs: benchmarks
+  type:             exitcode-stdio-1.0
+  main-is:          folds.hs
+  ghc-options:      -w -O2 -threaded -fdicts-cheap -funbox-strict-fields
+  hs-source-dirs:   benchmarks
+  default-language: Haskell2010
   build-depends:
     base,
     criterion,
@@ -489,10 +499,11 @@ benchmark folds
 
 -- Benchmarking traversals
 benchmark traversals
-  type:           exitcode-stdio-1.0
-  main-is:        traversals.hs
-  ghc-options:    -w -O2 -threaded -fdicts-cheap -funbox-strict-fields
-  hs-source-dirs: benchmarks
+  type:             exitcode-stdio-1.0
+  main-is:          traversals.hs
+  ghc-options:      -w -O2 -threaded -fdicts-cheap -funbox-strict-fields
+  hs-source-dirs:   benchmarks
+  default-language: Haskell2010
   build-depends:
     base,
     criterion,
@@ -505,10 +516,11 @@ benchmark traversals
 
 -- Benchmarking unsafe implementation strategies
 benchmark unsafe
-  type:           exitcode-stdio-1.0
-  main-is:        unsafe.hs
-  ghc-options:    -w -O2 -threaded -fdicts-cheap -funbox-strict-fields
-  hs-source-dirs: benchmarks
+  type:             exitcode-stdio-1.0
+  main-is:          unsafe.hs
+  ghc-options:      -w -O2 -threaded -fdicts-cheap -funbox-strict-fields
+  hs-source-dirs:   benchmarks
+  default-language: Haskell2010
   build-depends:
     base,
     comonad >= 4,
