@@ -135,6 +135,7 @@ module Control.Lens.Fold
   , ifiltered
   , itakingWhile
   , idroppingWhile
+  , indexOn
 
   -- * Internal types
   , Leftmost
@@ -2683,6 +2684,16 @@ idroppingWhile p l f = (flip evalState True .# getCompose) `rmap` l g where
       b' = b && p i a
     in (if b' then pure a else indexed f i a, b')
 {-# INLINE idroppingWhile #-}
+
+-- | Obtain an 'IndexedFold' from a regular 'Fold' using an indexing
+-- function. If @fld@ iterates over the @ai@, then @fld `'indexOn'` ix@ iterates
+-- over the @f ai@, each with index @ix ai@.
+--
+-- >>> itoListOf (traversed `indexOn` fst) [(1, True), (7, True), (4, False), (3, True)]
+-- [(1,(1,True)),(7,(7,True)),(4,(4,False)),(3,(3,True))]
+indexOn :: Fold s a -> (a -> i) -> IndexedFold i s a
+indexOn fld ix = \ p ->
+  fld (\a -> indexed p (ix a) a)
 
 ------------------------------------------------------------------------------
 -- Misc.
