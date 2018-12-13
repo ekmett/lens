@@ -375,7 +375,7 @@ type AReview t b = Optic' Tagged Identity t b
 -- around with 'Control.Lens.Review.re' to obtain a 'Getter' in the
 -- opposite direction.
 --
--- There are two laws that a 'Prism' should satisfy:
+-- There are three laws that a 'Prism' should satisfy:
 --
 -- First, if I 'Control.Lens.Review.re' or 'Control.Lens.Review.review' a value with a 'Prism' and then 'Control.Lens.Fold.preview' or use ('Control.Lens.Fold.^?'), I will get it back:
 --
@@ -385,9 +385,17 @@ type AReview t b = Optic' Tagged Identity t b
 --
 -- Second, if you can extract a value @a@ using a 'Prism' @l@ from a value @s@, then the value @s@ is completely described by @l@ and @a@:
 --
--- If @'Control.Lens.Fold.preview' l s ≡ 'Just' a@ then @'Control.Lens.Review.review' l a ≡ s@
+-- @
+-- 'Control.Lens.Fold.preview' l s ≡ 'Just' a ⟹ 'Control.Lens.Review.review' l a ≡ s
+-- @
 --
--- These two laws imply that the 'Traversal' laws hold for every 'Prism' and that we 'Data.Traversable.traverse' at most 1 element:
+-- Third, if you get non-match @t@, you can convert it result back to @s@:
+--
+-- @
+-- 'Control.Lens.Combinators.matching' l s ≡ 'Left' t ⟹ 'Control.Lens.Combinators.matching' l t ≡ 'Left' s
+-- @
+--
+-- The first two laws imply that the 'Traversal' laws hold for every 'Prism' and that we 'Data.Traversable.traverse' at most 1 element:
 --
 -- @
 -- 'Control.Lens.Fold.lengthOf' l x '<=' 1

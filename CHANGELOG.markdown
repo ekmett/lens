@@ -4,6 +4,7 @@ Next
 * Only incur `semigroups` and `void` dependencies on old GHCs.
 * Add `holes1Of`
 * Add `locally` https://github.com/ekmett/lens/pull/829
+* Add third `Prism` law.
 
 4.17 [2018.07.03]
 -----------------
