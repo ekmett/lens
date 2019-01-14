@@ -62,6 +62,8 @@ module Control.Lens.Setter
   , scribe
   , passing, ipassing
   , censoring, icensoring
+  -- * Reader Combinators
+  , locally
   -- * Simplified State Setting
   , set'
   -- * Indexed Setters
@@ -84,7 +86,8 @@ import Control.Lens.Internal.Indexed
 import Control.Lens.Internal.Setter
 import Control.Lens.Type
 import Control.Monad (liftM)
-import Control.Monad.State.Class as State
+import Control.Monad.Reader.Class as Reader
+import Control.Monad.State.Class  as State
 import Control.Monad.Writer.Class as Writer
 import Data.Functor.Contravariant
 import Data.Functor.Identity
@@ -1081,7 +1084,7 @@ l <>= a = State.modify (l <>~ a)
 
 -----------------------------------------------------------------------------
 -- Writer Operations
-----------------------------------------------------------------------------
+-----------------------------------------------------------------------------
 
 -- | Write to a fragment of a larger 'Writer' format.
 scribe :: (MonadWriter t m, Monoid s) => ASetter s t a b -> b -> m ()
@@ -1119,8 +1122,36 @@ icensoring l uv = censor (iover l uv)
 {-# INLINE icensoring #-}
 
 -----------------------------------------------------------------------------
+-- Reader Operations
+-----------------------------------------------------------------------------
+
+-- | Modify the value of the 'Reader' environment associated with the target of a
+-- 'Setter' or 'Traversal'.
+--
+-- @
+-- 'locally' l 'id' a ≡ a
+-- 'locally' l f '.' locally l g ≡ 'locally' l (f '.' g)
+-- @
+--
+-- >>> (1,1) & locally _1 (+1) (uncurry (+))
+-- 3
+--
+-- >>> "," & locally ($) ("Hello" <>) (<> " world!")
+-- "Hello, world!"
+--
+-- @
+-- locally :: MonadReader s m => 'Iso' s s a b       -> (a -> b) -> m r -> m r
+-- locally :: MonadReader s m => 'Lens' s s a b      -> (a -> b) -> m r -> m r
+-- locally :: MonadReader s m => 'Traversal' s s a b -> (a -> b) -> m r -> m r
+-- locally :: MonadReader s m => 'ASetter' s s a b   -> (a -> b) -> m r -> m r
+-- @
+locally :: MonadReader s m => ASetter s s a b -> (a -> b) -> m r -> m r
+locally l f = Reader.local (over l f)
+{-# INLINE locally #-}
+
+-----------------------------------------------------------------------------
 -- Indexed Setters
-----------------------------------------------------------------------------
+-----------------------------------------------------------------------------
 
 
 -- | Map with index. This is an alias for 'imapOf'.
