@@ -73,6 +73,7 @@ module Control.Lens.Getter
   , ito
   , like
   , ilike
+  , getter
   -- * Combinators for Getters and Folds
   , (^.)
   , view, views
@@ -152,6 +153,32 @@ ito :: (Indexable i p, Contravariant f) => (s -> (i, a)) -> Over' p f s a
 ito k = dimap k (contramap (snd . k)) . uncurry . indexed
 {-# INLINE ito #-}
 
+-- | Build a 'Getter' from a function ala 'prism' or 'lens'. This function is equivalent to 'to', with the target
+-- explicitly being a 'Getter'.
+--
+-- @
+-- 'getter' f '.' 'getter' g ≡ 'getter' (g '.' f)
+-- @
+--
+-- @
+-- s '^.' 'getter' get ≡ get s
+-- @
+--
+-- >>> s ^. getter f
+-- f s
+--
+-- >>> ("Hello", "world") ^. getter snd
+-- "world"
+--
+-- >>> 5 ^. getter succ
+-- 6
+--
+-- @
+-- 'getter' :: ('Contravariant' f, 'Functor' f) => (s -> a) -> (a -> f a) -> s -> f s
+-- @
+getter :: (s -> a) -> Getter s a
+getter = to
+{-# INLINE getter #-}
 
 -- | Build an constant-valued (index-preserving) 'Getter' from an arbitrary Haskell value.
 --
