@@ -1,6 +1,8 @@
 Next
 ----
+
 * Only incur `semigroups` and `void` dependencies on old GHCs.
+* Add `holes1Of`
 
 4.17 [2018.07.03]
 -----------------

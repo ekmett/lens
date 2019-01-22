@@ -75,7 +75,7 @@ module Control.Lens.Traversal
   -- * Parts and Holes
   , partsOf, partsOf'
   , unsafePartsOf, unsafePartsOf'
-  , holesOf
+  , holesOf, holes1Of
   , singular, unsafeSingular
 
   -- * Common Traversals
@@ -139,6 +139,7 @@ import Control.Lens.Getter (Getting, IndexedGetting, getting)
 import Control.Lens.Internal.Bazaar
 import Control.Lens.Internal.Context
 import Control.Lens.Internal.Indexed
+import Control.Lens.Internal.Fold
 import Control.Lens.Lens
 import Control.Lens.Setter (ASetter, AnIndexedSetter, isets, sets)
 import Control.Lens.Type
@@ -149,21 +150,24 @@ import Data.CallStack
 #if __GLASGOW_HASKELL__ < 710
 import Data.Foldable (Foldable)
 #endif
+import Data.Functor.Apply
 import Data.Functor.Compose
 import Data.Functor.Day.Curried
 import Data.Functor.Yoneda
 import Data.Int
 import Data.IntMap as IntMap
+import Data.List.NonEmpty (NonEmpty (..))
 import qualified Data.Map as Map
 import Data.Map (Map)
 import Data.Sequence (Seq, mapWithIndex)
 import Data.Vector as Vector (Vector, imap)
-import Data.Monoid
+import Data.Monoid (Monoid (..), Any (..), Endo (..))
 import Data.Profunctor
 import Data.Profunctor.Rep
 import Data.Profunctor.Sieve
 import Data.Profunctor.Unsafe
 import Data.Reflection
+import Data.Semigroup (Semigroup (..))
 import Data.Semigroup.Traversable
 import Data.Semigroup.Bitraversable
 import Data.Traversable
@@ -172,7 +176,8 @@ import GHC.Magic (inline)
 import Prelude hiding ((.),id)
 
 -- $setup
--- >>> :set -XNoOverloadedStrings
+-- >>> :set -XNoOverloadedStrings -XFlexibleContexts
+-- >>> import Data.Char (toUpper)
 -- >>> import Control.Lens
 -- >>> import Control.DeepSeq (NFData (..), force)
 -- >>> import Control.Exception (evaluate,try,ErrorCall(..))
@@ -181,6 +186,7 @@ import Prelude hiding ((.),id)
 -- >>> import Data.Void
 -- >>> import Data.List (sort)
 -- >>> import System.Timeout (timeout)
+-- >>> import qualified Data.List.NonEmpty as NonEmpty
 -- >>> let timingOut :: NFData a => a -> IO a; timingOut = fmap (fromMaybe (error "timeout")) . timeout (5*10^6) . evaluate . force
 
 ------------------------------------------------------------------------------
@@ -739,6 +745,36 @@ holeInOne x = Holes $ \xt ->
     , cosieve (id :: p a a) x)
 {-# INLINABLE holeInOne #-}
 
+-- | The non-empty version of 'holesOf'.
+-- This extract a non-empty list of immediate children accroding to a given
+-- 'Traversal1' as editable contexts.
+--
+-- >>> let head1 f s = runPretext (NonEmpty.head $ holes1Of traversed1 s) f
+-- >>> ('a' :| "bc") ^. head1
+-- 'a'
+--
+-- >>> ('a' :| "bc") & head1 %~ toUpper
+-- 'A' :| "bc"
+--
+-- @
+-- 'holes1Of' :: 'Iso'' s a                 -> s -> 'NonEmpty' ('Pretext'' (->) a s)
+-- 'holes1Of' :: 'Lens'' s a                -> s -> 'NonEmpty' ('Pretext'' (->) a s)
+-- 'holes1Of' :: 'Traversal1'' s a          -> s -> 'NonEmpty' ('Pretext'' (->) a s)
+-- 'holes1Of' :: 'IndexedLens'' i s a       -> s -> 'NonEmpty' ('Pretext'' ('Indexed' i) a s)
+-- 'holes1Of' :: 'IndexedTraversal1'' i s a -> s -> 'NonEmpty' ('Pretext'' ('Indexed' i) a s)
+-- @
+holes1Of :: Conjoined p
+         => Over p (Bazaar1 p a a) s t a a -> s -> NonEmpty (Pretext p a a t)
+holes1Of f xs = flip getNonEmptyDList [] . fst $
+  runHoles (runBazaar1 (f sell xs) (cotabulate holeInOne1)) id
+{-# INLINE holes1Of #-}
+
+holeInOne1 :: forall p a t. (Corepresentable p, Category p)
+          => Corep p a -> Holes t (NonEmptyDList (Pretext p a a t)) a
+holeInOne1 x = Holes $ \xt ->
+    ( NonEmptyDList (fmap xt (cosieve sell x) :|)
+    , cosieve (id :: p a a) x)
+
 -- We are very careful to share as much structure as possible among
 -- the results (in the common case where the traversal allows for such).
 -- Note in particular the recursive knot in the implementation of <*>
@@ -754,6 +790,13 @@ instance Functor (Holes t m) where
     let
       (qf, qv) = runHoles xs (xt . f)
     in (qf, f qv)
+
+instance Semigroup m => Apply (Holes t m) where
+  fs <.> xs = Holes $ \xt ->
+    let
+     (pf, pv) = runHoles fs (xt . ($ qv))
+     (qf, qv) = runHoles xs (xt . pv)
+    in (pf <> qf, pv qv)
 
 instance Monoid m => Applicative (Holes t m) where
   pure x = Holes $ \_ -> (mempty, x)
