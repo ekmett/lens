@@ -1254,10 +1254,14 @@ lengthOf l = foldlOf' l (\a _ -> a + 1) 0
 --
 -- Note that there is also a prefix version of this operator, 'preview'.
 -- As it is a prefix function, it can operate in any 'Control.Monad.Reader.MonadReader'
+-- 
 -- @
 -- ('^?') ≡ 'flip' 'preview'
 -- @
 --
+-- It may be helpful to think of '?^' as having one of the following
+-- more specialized types:
+-- 
 -- @
 -- ('^?') :: s -> 'Getter' s a     -> 'Maybe' a
 -- ('^?') :: s -> 'Fold' s a       -> 'Maybe' a
@@ -1956,7 +1960,8 @@ ipre l = dimap (getFirst . getConst #. l (Indexed $ \i a -> Const (First (Just (
 ------------------------------------------------------------------------------
 
 -- | Retrieve the first value targeted by a 'Fold' or 'Traversal' (or 'Just' the result
--- from a 'Getter' or 'Lens'). See also '^?'
+-- from a 'Getter' or 'Lens'). See also 'firstOf' and '?^', which are similar with
+-- some subtle differences (explained below).
 --
 -- @
 -- 'Data.Maybe.listToMaybe' '.' 'toList' ≡ 'preview' 'folded'
@@ -1971,6 +1976,9 @@ ipre l = dimap (getFirst . getConst #. l (Indexed $ \i a -> Const (First (Just (
 -- 'preview' = 'view' '.' 'pre'
 -- @
 --
+-- In this case, it can be helpful to think of 'preview' as having one of these
+-- more specialized types:
+-- 
 -- @
 -- 'preview' :: 'Getter' s a     -> s -> 'Maybe' a
 -- 'preview' :: 'Fold' s a       -> s -> 'Maybe' a
@@ -1988,6 +1996,13 @@ ipre l = dimap (getFirst . getConst #. l (Indexed $ \i a -> Const (First (Just (
 -- 'preview' :: 'MonadReader' s m => 'Lens'' s a      -> m ('Maybe' a)
 -- 'preview' :: 'MonadReader' s m => 'Iso'' s a       -> m ('Maybe' a)
 -- 'preview' :: 'MonadReader' s m => 'Traversal'' s a -> m ('Maybe' a)
+--
+-- 'firstOf' is also not generalized to work with any 'MonadReader', like '^?'.
+-- Unlike '^?' and 'preview', however, it uses a slightly different means of getting
+-- the first value. This method has slightly worse performance, but won't ever 
+-- cause a stack overflow. If you get stack overflows from using 'preview',
+-- refactor to use 'firstOf' instead.
+-- 
 -- @
 preview :: MonadReader s m => Getting (First a) s a -> m (Maybe a)
 preview l = asks (getFirst #. foldMapOf l (First #. Just))
