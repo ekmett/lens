@@ -1237,7 +1237,7 @@ lengthOf l = foldlOf' l (\a _ -> a + 1) 0
 -- way to extract the optional value.
 --
 -- Note: if you get stack overflows due to this, you may want to use 'firstOf' instead, which can deal
--- more gracefully with heavily left-biased trees. This is because '?^' works by using the 
+-- more gracefully with heavily left-biased trees. This is because '^?' works by using the 
 -- 'Data.Monoid.First' monoid, which can occasionally cause space leaks.
 --
 -- >>> Left 4 ^?_Left
@@ -1259,7 +1259,7 @@ lengthOf l = foldlOf' l (\a _ -> a + 1) 0
 -- ('^?') ≡ 'flip' 'preview'
 -- @
 --
--- It may be helpful to think of '?^' as having one of the following
+-- It may be helpful to think of '^?' as having one of the following
 -- more specialized types:
 -- 
 -- @
@@ -1295,7 +1295,7 @@ s ^?! l = foldrOf l const (error "(^?!): empty Fold") s
 -- | Retrieve the 'First' entry of a 'Fold' or 'Traversal' or retrieve 'Just' the result
 -- from a 'Getter' or 'Lens'.
 --
--- The answer is computed in a manner that leaks space less than @'preview'@ or @'?^'@
+-- The answer is computed in a manner that leaks space less than @'preview'@ or @^?'@
 -- and gives you back access to the outermost 'Just' constructor more quickly, but does so
 -- in a way that builds an intermediate structure, and thus may have worse
 -- constant factors. This also means that it can not be used in any 'Control.Monad.Reader.MonadReader',
@@ -1960,7 +1960,7 @@ ipre l = dimap (getFirst . getConst #. l (Indexed $ \i a -> Const (First (Just (
 ------------------------------------------------------------------------------
 
 -- | Retrieve the first value targeted by a 'Fold' or 'Traversal' (or 'Just' the result
--- from a 'Getter' or 'Lens'). See also 'firstOf' and '?^', which are similar with
+-- from a 'Getter' or 'Lens'). See also 'firstOf' and '^?', which are similar with
 -- some subtle differences (explained below).
 --
 -- @
