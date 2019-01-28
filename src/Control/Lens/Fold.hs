@@ -1252,9 +1252,8 @@ lengthOf l = foldlOf' l (\a _ -> a + 1) 0
 -- >>> "world" ^? ix 20
 -- Nothing
 --
--- Note that there is also a prefix version of this operator, 'preview'.
--- As it is a prefix function, it can operate in any 'Control.Monad.Reader.MonadReader'
--- 
+-- This operator works as an infix version of 'preview'. 
+--
 -- @
 -- ('^?') ≡ 'flip' 'preview'
 -- @
@@ -1967,16 +1966,24 @@ ipre l = dimap (getFirst . getConst #. l (Indexed $ \i a -> Const (First (Just (
 -- 'Data.Maybe.listToMaybe' '.' 'toList' ≡ 'preview' 'folded'
 -- @
 --
--- Unlike '^?', this function uses a 
--- 'Control.Monad.Reader.MonadReader' to read the value to be focused in on.
--- This allows one to pass the value as the last argument by using the 
--- 'Control.Monad.Reader.MonadReader' instance for @(->) s@:
---
 -- @
 -- 'preview' = 'view' '.' 'pre'
 -- @
+-- 
 --
--- In this case, it can be helpful to think of 'preview' as having one of these
+-- Unlike '^?', this function uses a 
+-- 'Control.Monad.Reader.MonadReader' to read the value to be focused in on.
+-- This allows one to pass the value as the last argument by using the 
+-- 'Control.Monad.Reader.MonadReader' instance for @(->) s@
+-- However, it may also be used as part of some deeply nested transformer stack.
+--
+-- 'preview' uses a monoidal value to obtain the result.
+-- This means that it generally has good performance, but can occasionally cause space leaks
+-- or even stack overflows on some data types.
+-- There is another function, 'firstOf', which avoids these issues at the cost of
+-- a slight constant performance cost and a little less flexibility.
+--
+-- It may be helpful to think of 'preview' as having one of the following
 -- more specialized types:
 -- 
 -- @
@@ -1987,8 +1994,6 @@ ipre l = dimap (getFirst . getConst #. l (Indexed $ \i a -> Const (First (Just (
 -- 'preview' :: 'Traversal'' s a -> s -> 'Maybe' a
 -- @
 --
--- However, it may also be used as part of some deeply nested transformer stack,
--- like so:
 --
 -- @
 -- 'preview' :: 'MonadReader' s m => 'Getter' s a     -> m ('Maybe' a)
@@ -1996,12 +2001,6 @@ ipre l = dimap (getFirst . getConst #. l (Indexed $ \i a -> Const (First (Just (
 -- 'preview' :: 'MonadReader' s m => 'Lens'' s a      -> m ('Maybe' a)
 -- 'preview' :: 'MonadReader' s m => 'Iso'' s a       -> m ('Maybe' a)
 -- 'preview' :: 'MonadReader' s m => 'Traversal'' s a -> m ('Maybe' a)
---
--- 'firstOf' is also not generalized to work with any 'MonadReader', like '^?'.
--- Unlike '^?' and 'preview', however, it uses a slightly different means of getting
--- the first value. This method has slightly worse performance, but won't ever 
--- cause a stack overflow. If you get stack overflows from using 'preview',
--- refactor to use 'firstOf' instead.
 -- 
 -- @
 preview :: MonadReader s m => Getting (First a) s a -> m (Maybe a)
