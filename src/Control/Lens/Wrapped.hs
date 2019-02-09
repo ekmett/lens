@@ -337,6 +337,14 @@ instance Wrapped (Monoid.Alt f a) where
   {-# INLINE _Wrapped' #-}
 #endif
 
+#if MIN_VERSION_base(4,12,0)
+instance (t ~ Monoid.Ap g b) => Rewrapped (Monoid.Ap f a) t
+instance Wrapped (Monoid.Ap f a) where
+  type Unwrapped (Monoid.Ap f a) = f a
+  _Wrapped' = iso Monoid.getAp Monoid.Ap
+  {-# INLINE _Wrapped' #-}
+#endif
+
 instance t ~ ArrowMonad m' a' => Rewrapped (ArrowMonad m a) t
 instance Wrapped (ArrowMonad m a) where
   type Unwrapped (ArrowMonad m a) = m () a
