@@ -317,7 +317,7 @@ children = toListOf plate
 --
 -- Usually 'transform' is more appropriate, but 'rewrite' can give better
 -- compositionality. Given two single transformations @f@ and @g@, you can
--- construct @\a -> f a `mplus` g a@ which performs both rewrites until a fixed point.
+-- construct @\\a -> f a '<|>' g a@ which performs both rewrites until a fixed point.
 rewrite :: Plated a => (a -> Maybe a) -> a -> a
 rewrite = rewriteOf plate
 {-# INLINE rewrite #-}
@@ -331,7 +331,7 @@ rewrite = rewriteOf plate
 --
 -- Usually 'transformOf' is more appropriate, but 'rewriteOf' can give better
 -- compositionality. Given two single transformations @f@ and @g@, you can
--- construct @\a -> f a `mplus` g a@ which performs both rewrites until a fixed point.
+-- construct @\\a -> f a '<|>' g a@ which performs both rewrites until a fixed point.
 --
 -- @
 -- 'rewriteOf' :: 'Control.Lens.Iso.Iso'' a a       -> (a -> 'Maybe' a) -> a -> a
