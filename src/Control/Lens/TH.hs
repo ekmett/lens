@@ -116,6 +116,7 @@ import Data.Set (Set)
 import Data.Set.Lens
 import Data.Traversable hiding (mapM)
 import Language.Haskell.TH
+import Language.Haskell.TH.Datatype
 import Language.Haskell.TH.Lens
 import Language.Haskell.TH.Syntax hiding (lift)
 
@@ -512,11 +513,16 @@ makeDataDecl dec = case deNewtype dec of
     , fullType = apps $ ConT tyName
     , constructors = cons
     }
+#if MIN_VERSION_template_haskell(2,15,0)
+  DataInstD ctx _ fnArgs _ cons _
+#else
   DataInstD ctx familyName args
 #if MIN_VERSION_template_haskell(2,11,0)
             _
 #endif
-            cons _ -> Just DataDecl
+            cons _
+#endif
+                    -> Just DataDecl
     { dataContext = ctx
     , tyConName = Nothing
     , dataParameters = map PlainTV vars
@@ -533,6 +539,13 @@ makeDataDecl dec = case deNewtype dec of
       --
       -- has 2 type parameters: a and b.
       vars = toList $ setOf typeVars args
+
+#if MIN_VERSION_template_haskell(2,15,0)
+      (familyName, args) =
+        case unfoldType fnArgs of
+          (ConT familyName', args') -> (familyName', args')
+          (_, _) -> error $ "Illegal data instance LHS: " ++ pprint fnArgs
+#endif
   _ -> Nothing
 
 -- | A data, newtype, data instance or newtype instance declaration.
@@ -609,7 +622,11 @@ makeWrappedInstance dataDecl con fieldType = do
   let appliedType  = fullType dataDecl (map VarT typeArgs)
 
   -- type Unwrapped (Con a b c...) = $fieldType
-  let unwrappedATF = tySynInstD' unwrappedTypeName [return appliedType] (return fieldType)
+  let unwrappedATF = tySynInstDCompat unwrappedTypeName
+#if MIN_VERSION_th_abstraction(0,3,0)
+                       Nothing
+#endif
+                       [return appliedType] (return fieldType)
 
   -- Wrapped (Con a b c...)
   let klass        = conT wrappedTypeName `appT` return appliedType

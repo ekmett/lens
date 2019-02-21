@@ -1,5 +1,6 @@
-next [????.??.??]
+4.18 [????.??.??]
 -----------------
+* Support building with GHC 8.8.
 * Add additional bifunctor instances for `Swapped`.
 * New lenses `head1` and `last1`, to access the first/last elements of
   a `Traversable1` container.

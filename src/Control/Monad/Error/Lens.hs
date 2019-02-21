@@ -35,8 +35,10 @@ import Control.Monad
 import Control.Monad.Error.Class
 import Data.Functor.Plus
 import qualified Data.Monoid as M
+
+#if !(MIN_VERSION_base(4,11,0))
 import Data.Semigroup (Semigroup(..))
-import Prelude
+#endif
 
 #ifdef HLINT
 {-# ANN module "HLint: ignore Use fmap" #-}
