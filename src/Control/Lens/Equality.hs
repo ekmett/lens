@@ -42,6 +42,8 @@ import Data.Proxy (Proxy)
 -- $setup
 -- >>> import Control.Lens
 
+#include "lens-common.h"
+
 -----------------------------------------------------------------------------
 -- Equality
 -----------------------------------------------------------------------------
@@ -73,7 +75,7 @@ substEq l = case runEq l of
 
 -- | We can use 'Equality' to do substitution into anything.
 #if __GLASGOW_HASKELL__ >= 706
-mapEq :: forall (s :: k1) (t :: k2) (a :: k1) (b :: k2) (f :: k1 -> *) . AnEquality s t a b -> f s -> f a
+mapEq :: forall KVS(k1 k2) (s :: k1) (t :: k2) (a :: k1) (b :: k2) (f :: k1 -> *) . AnEquality s t a b -> f s -> f a
 #else
 mapEq :: AnEquality s t a b -> f s -> f a
 #endif
