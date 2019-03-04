@@ -63,7 +63,7 @@ module Control.Lens.Setter
   , passing, ipassing
   , censoring, icensoring
   -- * Reader Combinators
-  , locally
+  , locally, ilocally
   -- * Simplified State Setting
   , set'
   -- * Indexed Setters
@@ -1091,7 +1091,7 @@ scribe :: (MonadWriter t m, Monoid s) => ASetter s t a b -> b -> m ()
 scribe l b = tell (set l b mempty)
 {-# INLINE scribe #-}
 
--- | This is a generalization of 'pass' that alows you to modify just a
+-- | This is a generalization of 'pass' that allows you to modify just a
 -- portion of the resulting 'MonadWriter'.
 passing :: MonadWriter w m => Setter w w u v -> m (a, u -> v) -> m a
 passing l m = pass $ do
@@ -1099,7 +1099,7 @@ passing l m = pass $ do
   return (a, over l uv)
 {-# INLINE passing #-}
 
--- | This is a generalization of 'pass' that alows you to modify just a
+-- | This is a generalization of 'pass' that allows you to modify just a
 -- portion of the resulting 'MonadWriter' with access to the index of an
 -- 'IndexedSetter'.
 ipassing :: MonadWriter w m => IndexedSetter i w w u v -> m (a, i -> u -> v) -> m a
@@ -1108,13 +1108,13 @@ ipassing l m = pass $ do
   return (a, iover l uv)
 {-# INLINE ipassing #-}
 
--- | This is a generalization of 'censor' that alows you to 'censor' just a
+-- | This is a generalization of 'censor' that allows you to 'censor' just a
 -- portion of the resulting 'MonadWriter'.
 censoring :: MonadWriter w m => Setter w w u v -> (u -> v) -> m a -> m a
 censoring l uv = censor (over l uv)
 {-# INLINE censoring #-}
 
--- | This is a generalization of 'censor' that alows you to 'censor' just a
+-- | This is a generalization of 'censor' that allows you to 'censor' just a
 -- portion of the resulting 'MonadWriter', with access to the index of an
 -- 'IndexedSetter'.
 icensoring :: MonadWriter w m => IndexedSetter i w w u v -> (i -> u -> v) -> m a -> m a
@@ -1126,7 +1126,7 @@ icensoring l uv = censor (iover l uv)
 -----------------------------------------------------------------------------
 
 -- | Modify the value of the 'Reader' environment associated with the target of a
--- 'Setter' or 'Traversal'.
+-- 'Setter', 'Lens', or 'Traversal'.
 --
 -- @
 -- 'locally' l 'id' a ≡ a
@@ -1143,11 +1143,29 @@ icensoring l uv = censor (iover l uv)
 -- locally :: MonadReader s m => 'Iso' s s a b       -> (a -> b) -> m r -> m r
 -- locally :: MonadReader s m => 'Lens' s s a b      -> (a -> b) -> m r -> m r
 -- locally :: MonadReader s m => 'Traversal' s s a b -> (a -> b) -> m r -> m r
--- locally :: MonadReader s m => 'ASetter' s s a b   -> (a -> b) -> m r -> m r
+-- locally :: MonadReader s m => 'Setter' s s a b    -> (a -> b) -> m r -> m r
 -- @
 locally :: MonadReader s m => ASetter s s a b -> (a -> b) -> m r -> m r
 locally l f = Reader.local (over l f)
 {-# INLINE locally #-}
+
+-- | This is a generalization of 'locally' that allows one to make indexed
+-- 'local' changes to a 'Reader' environment associated with the target of a
+-- 'Setter', 'Lens', or 'Traversal'.
+--
+-- @
+-- 'locally' l f ≡ 'ilocally' l f . const
+-- 'ilocally' l f ≡ 'locally' l f . 'Indexed'
+-- @
+--
+-- @
+-- ilocally :: MonadReader s m => 'IndexedLens' s s a b      -> (i -> a -> b) -> m r -> m r
+-- ilocally :: MonadReader s m => 'IndexedTraversal' s s a b -> (i -> a -> b) -> m r -> m r
+-- ilocally :: MonadReader s m => 'IndexedSetter' s s a b    -> (i -> a -> b) -> m r -> m r
+-- @
+ilocally :: MonadReader s m => AnIndexedSetter i s s a b -> (i -> a -> b) -> m r -> m r
+ilocally l f = Reader.local (iover l f)
+{-# INLINE ilocally #-}
 
 -----------------------------------------------------------------------------
 -- Indexed Setters
