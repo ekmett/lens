@@ -159,18 +159,70 @@ l <.&.= b = l <%= (.&. b)
 l <.|.= b = l <%= (.|. b)
 {-# INLINE (<.|.=) #-}
 
+-- | Bitwise '.&.' the target(s) of a 'Lens' or 'Traversal', and return the
+-- original value, or a monoidal summary of the original values.
+--
+-- When you do not need the old value, ('.&.~') is more flexible.
+--
+-- >>> _2 <<.&.~ 7 $ ("hello", 254)
+-- (254,("hello",6))
+--
+-- @
+-- ('<<.&.~') ::  'Bits' a            => 'Iso' s t a a       -> a -> s -> (a, t)
+-- ('<<.&.~') ::  'Bits' a            => 'Lens' s t a a      -> a -> s -> (a, t)
+-- ('<<.&.~') :: ('Bits' a, 'Data.Monoid.Monoid' a) => 'Traversal' s t a a -> a -> s -> (a, t)
+-- @
 (<<.&.~) :: Bits a => Optical' (->) q ((,)a) s a -> a -> q s (a, s)
 l <<.&.~ b = l $ \a -> (a, a .&. b)
 {-# INLINE (<<.&.~) #-}
 
+-- | Bitwise '.|.' the target(s) of a 'Lens' or 'Traversal', and return the
+-- original value, or a monoidal summary of the original values.
+--
+-- When you do not need the old value, ('.|.~') is more flexible.
+--
+-- >>> _2 <<.|.~ 6 $ ("hello", 3)
+-- (3,("hello",7))
+--
+-- @
+-- ('<<.|.~') ::  'Bits' a            => 'Iso' s t a a       -> a -> s -> (a, t)
+-- ('<<.|.~') ::  'Bits' a            => 'Lens' s t a a      -> a -> s -> (a, t)
+-- ('<<.|.~') :: ('Bits' a, 'Data.Monoid.Monoid' a) => 'Traversal' s t a a -> a -> s -> (a, t)
+-- @
 (<<.|.~) :: Bits a => Optical' (->) q ((,)a) s a -> a -> q s (a, s)
 l <<.|.~ b = l $ \a -> (a, a .|. b)
 {-# INLINE (<<.|.~) #-}
 
+-- | Modify the target(s) of a 'Lens'', (or 'Traversal'') by computing its
+-- bitwise '.&.' with another value, returning the original value (or a
+-- monoidal summary of all the original values).
+--
+-- When you do not need the old value, ('.&.=') is more flexible.
+--
+-- >>> runState (_1 <<.&.= 15) (31,0)
+-- (31,(15,0))
+--
+-- @
+-- ('<<.&.=') :: ('MonadState' s m, 'Bits' a)           => Lens'' s a      -> a -> m a
+-- ('<<.&.=') :: ('MonadState' s m, 'Bits' a, 'Data.Monoid.Monoid' a) => Traversal'' s a -> a -> m a
+-- @
 (<<.&.=) :: (MonadState s m, Bits a) => LensLike' ((,) a) s a -> a -> m a
 l <<.&.= b = l %%= \a -> (a, a .&. b)
 {-# INLINE (<<.&.=) #-}
 
+-- | Modify the target(s) of a 'Lens'', (or 'Traversal'') by computing its
+-- bitwise '.|.' with another value, returning the original value (or a
+-- monoidal summary of all the original values).
+--
+-- When you do not need the old value, ('.|.=') is more flexible.
+--
+-- >>> runState (_1 <<.|.= 7) (28,0)
+-- (28,(31,0))
+--
+-- @
+-- ('<<.|.=') :: ('MonadState' s m, 'Bits' a)           => Lens'' s a      -> a -> m a
+-- ('<<.|.=') :: ('MonadState' s m, 'Bits' a, 'Data.Monoid.Monoid' a) => Traversal'' s a -> a -> m a
+-- @
 (<<.|.=) :: (MonadState s m, Bits a) => LensLike' ((,) a) s a -> a -> m a
 l <<.|.= b = l %%= \a -> (a, a .|. b)
 {-# INLINE (<<.|.=) #-}
