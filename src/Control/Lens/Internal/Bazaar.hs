@@ -2,7 +2,6 @@
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FunctionalDependencies #-}
 #if __GLASGOW_HASKELL__ >= 707
 {-# LANGUAGE RoleAnnotations #-}

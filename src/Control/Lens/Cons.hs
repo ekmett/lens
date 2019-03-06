@@ -2,7 +2,6 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 #ifdef TRUSTWORTHY
@@ -125,7 +124,7 @@ instance Cons [a] [b] a b where
   {-# INLINE _Cons #-}
 
 instance Cons (ZipList a) (ZipList b) a b where
-  _Cons = withPrism listCons $ \listReview listPreview -> 
+  _Cons = withPrism listCons $ \listReview listPreview ->
     prism (coerce' listReview) (coerce' listPreview) where
 
     listCons :: Prism [a] [b] (a, [a]) (b, [b])
@@ -359,7 +358,7 @@ instance Snoc [a] [b] a b where
   {-# INLINE _Snoc #-}
 
 instance Snoc (ZipList a) (ZipList b) a b where
-  _Snoc = withPrism listSnoc $ \listReview listPreview -> 
+  _Snoc = withPrism listSnoc $ \listReview listPreview ->
     prism (coerce' listReview) (coerce' listPreview) where
 
     listSnoc :: Prism [a] [b] ([a], a) ([b], b)
