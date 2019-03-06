@@ -163,5 +163,5 @@ script:
   - (cd lens-examples-* && hlint . --cpp-ansi --cpp-define=HLINT)
   - (cd lens-properties-* && hlint src --cpp-ansi --cpp-define=HLINT)
 
-# REGENDATA ["-o",".travis.yml","--ghc-head","--irc-channel=irc.freenode.org#haskell-lens","--no-no-tests-no-bench","--no-unconstrained","cabal.project","freeglut3-dev"]
+# REGENDATA ["--output=.travis.yml","--config=cabal.haskell-ci","cabal.project"]
 # EOF
