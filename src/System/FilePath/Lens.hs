@@ -108,10 +108,18 @@ l <</>= r = l <%= (</> r)
 {-# INLINE (<</>=) #-}
 
 
+-- | Add a path onto the end of the target of a 'Lens' and return the origitnal
+-- value.
+--
+-- When you do not need the result of the operation, ('</>~) is more flexible.
 (<<</>~) :: Optical' (->) q ((,)FilePath) s FilePath -> FilePath -> q s (FilePath, s)
 l <<</>~ b = l $ \a -> (a, a </> b)
 {-# INLINE (<<</>~) #-}
 
+-- | Add a path onto the end of a targert of a 'Lens into your monad's state
+-- and return the old value.
+--
+-- When you do not need the result of the operation, ('</>=') is more flexible.
 (<<</>=) :: MonadState s m => LensLike' ((,)FilePath) s FilePath -> FilePath -> m FilePath
 l <<</>= b = l %%= \a -> (a, a </> b)
 {-# INLINE (<<</>=) #-}
@@ -179,6 +187,13 @@ l <<.>= r = l <%= (<.> r)
 l <<<.>~ b = l $ \a -> (a, a <.> b)
 {-# INLINE (<<<.>~) #-}
 
+-- | Add an extension onto the end of the target of a 'Lens' into your monad's
+-- state and return the old value.
+--
+-- >>> runState (_1 <<<.>= "txt") ("hello","world")
+-- ("hello",("hello.txt","world"))
+--
+-- When you do not need the old value, ('<.>=') is more flexible.
 (<<<.>=) :: MonadState s m => LensLike' ((,)FilePath) s FilePath -> String -> m FilePath
 l <<<.>= b = l %%= \a -> (a, a <.> b)
 {-# INLINE (<<<.>=) #-}
