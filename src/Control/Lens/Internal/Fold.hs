@@ -192,7 +192,7 @@ instance Semigroup (NonEmptyDList a) where
 -- Leftmost and Rightmost
 ------------------------------------------------------------------------------
 
--- | Used for 'Control.Lens.Fold.preview'.
+-- | Used for 'Control.Lens.Fold.firstOf'.
 data Leftmost a = LPure | LLeaf a | LStep (Leftmost a)
 
 instance Semigroup (Leftmost a) where
