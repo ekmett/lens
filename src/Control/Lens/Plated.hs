@@ -106,6 +106,7 @@ module Control.Lens.Plated
   , gplate
   , gplate1
   , GPlated
+  , GPlated1
   )
   where
 
