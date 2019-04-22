@@ -6,6 +6,7 @@ Next
 * Add `locally` https://github.com/ekmett/lens/pull/829
 * add `ilocally` https://github.com/ekmett/lens/pull/836
 * Add third `Prism` law.
+* Add `gplate1`
 
 4.17 [2018.07.03]
 -----------------

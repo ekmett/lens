@@ -6,6 +6,10 @@
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
+#if __GLASGOW_HASKELL__ >= 706
+{-# LANGUAGE PolyKinds #-} -- gplate1
+#endif
+
 #if __GLASGOW_HASKELL__ < 710
 {-# LANGUAGE OverlappingInstances #-}
 #define OVERLAPPING_PRAGMA
@@ -27,6 +31,10 @@
 
 #ifndef MIN_VERSION_free
 #define MIN_VERSION_free(x,y,z) 1
+#endif
+
+#ifndef MIN_VERSION_base
+#define MIN_VERSION_base(x,y,z) 1
 #endif
 -------------------------------------------------------------------------------
 -- |
@@ -96,7 +104,9 @@ module Control.Lens.Plated
 
   -- * Generics
   , gplate
+  , gplate1
   , GPlated
+  , GPlated1
   )
   where
 
@@ -766,3 +776,75 @@ instance GPlated a U1 where
 instance GPlated a V1 where
   gplate' _ v = v `seq` error "GPlated/V1"
   {-# INLINE gplate' #-}
+
+#if MIN_VERSION_base(4,9,0)
+instance GPlated a (URec b) where
+  gplate' _ = pure
+  {-# INLINE gplate' #-}
+#endif
+
+-- | Implement 'plate' operation for a type using its 'Generic1' instance.
+gplate1 :: (Generic1 f, GPlated1 f (Rep1 f)) => Traversal' (f a) (f a)
+gplate1 f x = GHC.Generics.to1 <$> gplate1' f (GHC.Generics.from1 x)
+{-# INLINE gplate1 #-}
+
+class GPlated1 f g where
+  gplate1' :: Traversal' (g a) (f a)
+
+-- | recursive match
+instance GPlated1 f g => GPlated1 f (M1 i c g) where
+  gplate1' f (M1 x) = M1 <$> gplate1' f x
+  {-# INLINE gplate1' #-}
+
+-- | recursive match
+instance (GPlated1 f g, GPlated1 f h) => GPlated1 f (g :+: h) where
+  gplate1' f (L1 x) = L1 <$> gplate1' f x
+  gplate1' f (R1 x) = R1 <$> gplate1' f x
+  {-# INLINE gplate1' #-}
+
+-- | recursive match
+instance (GPlated1 f g, GPlated1 f h) => GPlated1 f (g :*: h) where
+  gplate1' f (x :*: y) = (:*:) <$> gplate1' f x <*> gplate1' f y
+  {-# INLINE gplate1' #-}
+
+-- | ignored
+instance GPlated1 f (K1 i a) where
+  gplate1' _ = pure
+  {-# INLINE gplate1' #-}
+
+-- | ignored
+instance GPlated1 f Par1 where
+  gplate1' _ = pure
+  {-# INLINE gplate1' #-}
+
+-- | ignored
+instance GPlated1 f U1 where
+  gplate1' _ = pure
+  {-# INLINE gplate1' #-}
+
+-- | ignored
+instance GPlated1 f V1 where
+  gplate1' _ = pure
+  {-# INLINE gplate1' #-}
+
+-- | match
+instance OVERLAPPING_PRAGMA GPlated1 f (Rec1 f) where
+  gplate1' f (Rec1 x) = Rec1 <$> f x
+  {-# INLINE gplate1' #-}
+
+-- | ignored
+instance GPlated1 f (Rec1 g) where
+  gplate1' _ = pure
+  {-# INLINE gplate1' #-}
+
+-- | recursive match under outer 'Traversable' instance
+instance (Traversable t, GPlated1 f g) => GPlated1 f (t :.: g) where
+  gplate1' f (Comp1 x) = Comp1 <$> traverse (gplate1' f) x
+  {-# INLINE gplate1' #-}
+
+#if MIN_VERSION_base(4,9,0)
+-- | ignored
+instance GPlated1 f (URec a) where
+  gplate1' _ = pure
+  {-# INLINE gplate1' #-}
+#endif
