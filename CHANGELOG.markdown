@@ -4,9 +4,10 @@ Next
 * Only incur `semigroups` and `void` dependencies on old GHCs.
 * Add `holes1Of`
 * Add `locally` https://github.com/ekmett/lens/pull/829
-* add `ilocally` https://github.com/ekmett/lens/pull/836
+* Add `ilocally` https://github.com/ekmett/lens/pull/836
 * Add third `Prism` law.
 * Add `gplate1`
+* Add additional bifunctor instances for `Swapped`
 
 4.17 [2018.07.03]
 -----------------
