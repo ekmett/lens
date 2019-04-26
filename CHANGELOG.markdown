@@ -1,6 +1,6 @@
-Next
-----
-
+4.17.1 [2019.04.26]
+-------------------
+* Support `th-abstraction-0.3.0.0` or later.
 * Only incur `semigroups` and `void` dependencies on old GHCs.
 * Add `holes1Of`
 * Add `locally` https://github.com/ekmett/lens/pull/829
@@ -8,6 +8,7 @@ Next
 * Add third `Prism` law.
 * Add `gplate1`
 * Add additional bifunctor instances for `Swapped`
+* Add `Wrapped`/`Rewrapped` instances for `Data.Monoid.Ap`.
 
 4.17 [2018.07.03]
 -----------------
