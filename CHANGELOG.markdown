@@ -1,5 +1,5 @@
-Next [????.??.??]
------------------
+4.17.1 [2019.04.26]
+-------------------
 * Support `th-abstraction-0.3.0.0` or later.
 * Only incur `semigroups` and `void` dependencies on old GHCs.
 * Add `holes1Of`.
