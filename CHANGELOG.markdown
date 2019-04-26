@@ -7,6 +7,7 @@ Next [????.??.??]
 * Add `ilocally` (https://github.com/ekmett/lens/pull/836).
 * Add a third `Prism` law.
 * Add `gplate1`.
+* Add `Wrapped`/`Rewrapped` instances for `Data.Monoid.Ap`.
 
 4.17 [2018.07.03]
 -----------------
