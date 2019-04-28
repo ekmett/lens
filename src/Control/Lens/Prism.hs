@@ -198,6 +198,8 @@ below k =
 --
 -- >>> isn't _Empty []
 -- False
+--
+-- 'Control.Lens.Fold.has' works as the inverse of this. 
 isn't :: APrism s t a b -> s -> Bool
 isn't k s =
   case matching k s of
