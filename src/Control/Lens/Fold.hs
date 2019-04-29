@@ -1237,7 +1237,8 @@ lengthOf l = foldlOf' l (\a _ -> a + 1) 0
 -- way to extract the optional value.
 --
 -- Note: if you get stack overflows due to this, you may want to use 'firstOf' instead, which can deal
--- more gracefully with heavily left-biased trees.
+-- more gracefully with heavily left-biased trees. This is because '^?' works by using the 
+-- 'Data.Monoid.First' monoid, which can occasionally cause space leaks.
 --
 -- >>> Left 4 ^?_Left
 -- Just 4
@@ -1251,10 +1252,15 @@ lengthOf l = foldlOf' l (\a _ -> a + 1) 0
 -- >>> "world" ^? ix 20
 -- Nothing
 --
+-- This operator works as an infix version of 'preview'. 
+--
 -- @
 -- ('^?') ≡ 'flip' 'preview'
 -- @
 --
+-- It may be helpful to think of '^?' as having one of the following
+-- more specialized types:
+-- 
 -- @
 -- ('^?') :: s -> 'Getter' s a     -> 'Maybe' a
 -- ('^?') :: s -> 'Fold' s a       -> 'Maybe' a
@@ -1288,9 +1294,11 @@ s ^?! l = foldrOf l const (error "(^?!): empty Fold") s
 -- | Retrieve the 'First' entry of a 'Fold' or 'Traversal' or retrieve 'Just' the result
 -- from a 'Getter' or 'Lens'.
 --
--- The answer is computed in a manner that leaks space less than @'ala' 'First' '.' 'foldMapOf'@
--- and gives you back access to the outermost 'Just' constructor more quickly, but may have worse
--- constant factors.
+-- The answer is computed in a manner that leaks space less than @'preview'@ or @^?'@
+-- and gives you back access to the outermost 'Just' constructor more quickly, but does so
+-- in a way that builds an intermediate structure, and thus may have worse
+-- constant factors. This also means that it can not be used in any 'Control.Monad.Reader.MonadReader',
+-- but must instead have 's' passed as its last argument, unlike 'preview'.
 --
 -- Note: this could been named `headOf`.
 --
@@ -1951,19 +1959,33 @@ ipre l = dimap (getFirst . getConst #. l (Indexed $ \i a -> Const (First (Just (
 ------------------------------------------------------------------------------
 
 -- | Retrieve the first value targeted by a 'Fold' or 'Traversal' (or 'Just' the result
--- from a 'Getter' or 'Lens'). See also ('^?').
+-- from a 'Getter' or 'Lens'). See also 'firstOf' and '^?', which are similar with
+-- some subtle differences (explained below).
 --
 -- @
 -- 'Data.Maybe.listToMaybe' '.' 'toList' ≡ 'preview' 'folded'
 -- @
 --
--- This is usually applied in the 'Control.Monad.Reader.Reader'
--- 'Control.Monad.Monad' @(->) s@.
---
 -- @
 -- 'preview' = 'view' '.' 'pre'
 -- @
+-- 
 --
+-- Unlike '^?', this function uses a 
+-- 'Control.Monad.Reader.MonadReader' to read the value to be focused in on.
+-- This allows one to pass the value as the last argument by using the 
+-- 'Control.Monad.Reader.MonadReader' instance for @(->) s@
+-- However, it may also be used as part of some deeply nested transformer stack.
+--
+-- 'preview' uses a monoidal value to obtain the result.
+-- This means that it generally has good performance, but can occasionally cause space leaks
+-- or even stack overflows on some data types.
+-- There is another function, 'firstOf', which avoids these issues at the cost of
+-- a slight constant performance cost and a little less flexibility.
+--
+-- It may be helpful to think of 'preview' as having one of the following
+-- more specialized types:
+-- 
 -- @
 -- 'preview' :: 'Getter' s a     -> s -> 'Maybe' a
 -- 'preview' :: 'Fold' s a       -> s -> 'Maybe' a
@@ -1972,8 +1994,6 @@ ipre l = dimap (getFirst . getConst #. l (Indexed $ \i a -> Const (First (Just (
 -- 'preview' :: 'Traversal'' s a -> s -> 'Maybe' a
 -- @
 --
--- However, it may be useful to think of its full generality when working with
--- a 'Control.Monad.Monad' transformer stack:
 --
 -- @
 -- 'preview' :: 'MonadReader' s m => 'Getter' s a     -> m ('Maybe' a)
@@ -1981,6 +2001,7 @@ ipre l = dimap (getFirst . getConst #. l (Indexed $ \i a -> Const (First (Just (
 -- 'preview' :: 'MonadReader' s m => 'Lens'' s a      -> m ('Maybe' a)
 -- 'preview' :: 'MonadReader' s m => 'Iso'' s a       -> m ('Maybe' a)
 -- 'preview' :: 'MonadReader' s m => 'Traversal'' s a -> m ('Maybe' a)
+-- 
 -- @
 preview :: MonadReader s m => Getting (First a) s a -> m (Maybe a)
 preview l = asks (getFirst #. foldMapOf l (First #. Just))
