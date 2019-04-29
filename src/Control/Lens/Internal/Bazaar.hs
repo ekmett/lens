@@ -105,16 +105,30 @@ instance Profunctor p => Bizarre p (Bazaar p) where
 instance Functor (Bazaar p a b) where
   fmap = ifmap
   {-# INLINE fmap #-}
+  x <$ Bazaar k = Bazaar ( (x <$) . k )
+  {-# INLINE (<$) #-}
 
 instance Apply (Bazaar p a b) where
-  Bazaar mf <.> Bazaar ma = Bazaar $ \ pafb -> mf pafb <*> ma pafb
+  (<.>) = (<*>)
   {-# INLINE (<.>) #-}
+  (.>) = (*>)
+  {-# INLINE (.>) #-}
+  (<.) = (<*)
+  {-# INLINE (<.) #-}
 
 instance Applicative (Bazaar p a b) where
   pure a = Bazaar $ \_ -> pure a
   {-# INLINE pure #-}
   Bazaar mf <*> Bazaar ma = Bazaar $ \ pafb -> mf pafb <*> ma pafb
   {-# INLINE (<*>) #-}
+#if MIN_VERSION_base(4,10,0)
+  liftA2 f (Bazaar mx) (Bazaar my) = Bazaar $ \pafb -> liftA2 f (mx pafb) (my pafb)
+  {-# INLINE liftA2 #-}
+#endif
+  Bazaar mx *> Bazaar my = Bazaar $ \pafb -> mx pafb *> my pafb
+  {-# INLINE (*>) #-}
+  Bazaar mx <* Bazaar my = Bazaar $ \pafb -> mx pafb <* my pafb
+  {-# INLINE (<*) #-}
 
 instance (a ~ b, Conjoined p) => Comonad (Bazaar p a b) where
   extract = iextract
@@ -125,6 +139,10 @@ instance (a ~ b, Conjoined p) => Comonad (Bazaar p a b) where
 instance (a ~ b, Conjoined p) => ComonadApply (Bazaar p a b) where
   (<@>) = (<*>)
   {-# INLINE (<@>) #-}
+  (@>) = (*>)
+  {-# INLINE (@>) #-}
+  (<@) = (<*)
+  {-# INLINE (<@) #-}
 
 ------------------------------------------------------------------------------
 -- BazaarT
@@ -168,16 +186,30 @@ instance Profunctor p => Bizarre p (BazaarT p g) where
 instance Functor (BazaarT p g a b) where
   fmap = ifmap
   {-# INLINE fmap #-}
+  x <$ BazaarT k = BazaarT ( (x <$) . k )
+  {-# INLINE (<$) #-}
 
 instance Apply (BazaarT p g a b) where
-  BazaarT mf <.> BazaarT ma = BazaarT $ \ pafb -> mf pafb <*> ma pafb
+  (<.>) = (<*>)
   {-# INLINE (<.>) #-}
+  (.>) = (*>)
+  {-# INLINE (.>) #-}
+  (<.) = (<*)
+  {-# INLINE (<.) #-}
 
 instance Applicative (BazaarT p g a b) where
   pure a = BazaarT $ tabulate $ \_ -> pure (pure a)
   {-# INLINE pure #-}
   BazaarT mf <*> BazaarT ma = BazaarT $ \ pafb -> mf pafb <*> ma pafb
   {-# INLINE (<*>) #-}
+#if MIN_VERSION_base(4,10,0)
+  liftA2 f (BazaarT mx) (BazaarT my) = BazaarT $ \pafb -> liftA2 f (mx pafb) (my pafb)
+  {-# INLINE liftA2 #-}
+#endif
+  BazaarT mf *> BazaarT ma = BazaarT $ \ pafb -> mf pafb *> ma pafb
+  {-# INLINE (*>) #-}
+  BazaarT mf <* BazaarT ma = BazaarT $ \ pafb -> mf pafb <* ma pafb
+  {-# INLINE (<*) #-}
 
 instance (a ~ b, Conjoined p) => Comonad (BazaarT p g a b) where
   extract = iextract
@@ -188,6 +220,10 @@ instance (a ~ b, Conjoined p) => Comonad (BazaarT p g a b) where
 instance (a ~ b, Conjoined p) => ComonadApply (BazaarT p g a b) where
   (<@>) = (<*>)
   {-# INLINE (<@>) #-}
+  (@>) = (*>)
+  {-# INLINE (@>) #-}
+  (<@) = (<*)
+  {-# INLINE (<@) #-}
 
 instance (Profunctor p, Contravariant g) => Contravariant (BazaarT p g a b) where
   contramap _ = (<$) (error "contramap: BazaarT")
@@ -261,10 +297,16 @@ instance Profunctor p => Bizarre1 p (Bazaar1 p) where
 instance Functor (Bazaar1 p a b) where
   fmap = ifmap
   {-# INLINE fmap #-}
+  x <$ Bazaar1 k = Bazaar1 ((x <$) . k)
+  {-# INLINE (<$) #-}
 
 instance Apply (Bazaar1 p a b) where
   Bazaar1 mf <.> Bazaar1 ma = Bazaar1 $ \ pafb -> mf pafb <.> ma pafb
   {-# INLINE (<.>) #-}
+  Bazaar1 mf .> Bazaar1 ma = Bazaar1 $ \ pafb -> mf pafb .> ma pafb
+  {-# INLINE (.>) #-}
+  Bazaar1 mf <. Bazaar1 ma = Bazaar1 $ \ pafb -> mf pafb <. ma pafb
+  {-# INLINE (<.) #-}
 
 instance (a ~ b, Conjoined p) => Comonad (Bazaar1 p a b) where
   extract = iextract
@@ -273,8 +315,12 @@ instance (a ~ b, Conjoined p) => Comonad (Bazaar1 p a b) where
   {-# INLINE duplicate #-}
 
 instance (a ~ b, Conjoined p) => ComonadApply (Bazaar1 p a b) where
-  Bazaar1 mf <@> Bazaar1 ma = Bazaar1 $ \ pafb -> mf pafb <.> ma pafb
+  (<@>) = (<.>)
   {-# INLINE (<@>) #-}
+  (@>) = (.>)
+  {-# INLINE (@>) #-}
+  (<@) = (<.)
+  {-# INLINE (<@) #-}
 
 ------------------------------------------------------------------------------
 -- BazaarT1
@@ -318,10 +364,16 @@ instance Profunctor p => Bizarre1 p (BazaarT1 p g) where
 instance Functor (BazaarT1 p g a b) where
   fmap = ifmap
   {-# INLINE fmap #-}
+  x <$ BazaarT1 k = BazaarT1 ((x <$) . k)
+  {-# INLINE (<$) #-}
 
 instance Apply (BazaarT1 p g a b) where
   BazaarT1 mf <.> BazaarT1 ma = BazaarT1 $ \ pafb -> mf pafb <.> ma pafb
   {-# INLINE (<.>) #-}
+  BazaarT1 mf .> BazaarT1 ma = BazaarT1 $ \ pafb -> mf pafb .> ma pafb
+  {-# INLINE (.>) #-}
+  BazaarT1 mf <. BazaarT1 ma = BazaarT1 $ \ pafb -> mf pafb <. ma pafb
+  {-# INLINE (<.) #-}
 
 instance (a ~ b, Conjoined p) => Comonad (BazaarT1 p g a b) where
   extract = iextract
@@ -330,8 +382,12 @@ instance (a ~ b, Conjoined p) => Comonad (BazaarT1 p g a b) where
   {-# INLINE duplicate #-}
 
 instance (a ~ b, Conjoined p) => ComonadApply (BazaarT1 p g a b) where
-  BazaarT1 mf <@> BazaarT1 ma = BazaarT1 $ \ pafb -> mf pafb <.> ma pafb
+  (<@>) = (<.>)
   {-# INLINE (<@>) #-}
+  (@>) = (.>)
+  {-# INLINE (@>) #-}
+  (<@) = (<.)
+  {-# INLINE (<@) #-}
 
 instance (Profunctor p, Contravariant g) => Contravariant (BazaarT1 p g a b) where
   contramap _ = (<$) (error "contramap: BazaarT1")
