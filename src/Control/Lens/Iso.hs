@@ -2,6 +2,7 @@
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeFamilies #-}
 
 #if __GLASGOW_HASKELL__ >= 710
 {-# LANGUAGE PatternSynonyms #-}
@@ -20,7 +21,7 @@
 -- License     :  BSD-style (see the file LICENSE)
 -- Maintainer  :  Edward Kmett <ekmett@gmail.com>
 -- Stability   :  provisional
--- Portability :  Rank2Types
+-- Portability :  Rank2Types, TypeFamilies, FunctionalDependencies
 --
 ----------------------------------------------------------------------------
 module Control.Lens.Iso
@@ -99,16 +100,21 @@ import Control.Lens.Review
 import Control.Lens.Type
 import Control.Monad.State.Lazy as Lazy
 import Control.Monad.State.Strict as Strict
-import Control.Monad.Writer.Lazy as Lazy
-import Control.Monad.Writer.Strict as Strict
-import Control.Monad.RWS.Lazy as Lazy
-import Control.Monad.RWS.Strict as Strict
+import Control.Monad.Writer.Lazy as Lazy hiding (Product, Sum)
+import Control.Monad.Writer.Strict as Strict hiding (Product, Sum)
+import Control.Monad.RWS.Lazy as Lazy hiding (Product, Sum)
+import Control.Monad.RWS.Strict as Strict hiding (Product, Sum)
 import Control.Monad.ST.Lazy as Lazy
 import Control.Monad.ST as Strict
+
 import Data.Bifunctor
+import Data.Bifunctor.Biff
+import Data.Bifunctor.Flip
+import Data.Bifunctor.Product
+import Data.Bifunctor.Sum
+import Data.Bifunctor.Tannen
 import Data.ByteString as StrictB hiding (reverse)
 import Data.ByteString.Lazy as LazyB hiding (reverse)
-
 import Data.Functor.Identity
 import Data.Text as StrictT hiding (reverse)
 import Data.Text.Lazy as LazyT hiding (reverse)
@@ -408,6 +414,57 @@ instance Swapped (,) where
 
 instance Swapped Either where
   swapped = iso (either Right Left) (either Right Left)
+
+instance (Swapped f, Swapped g) => Swapped (Product f g) where
+  swapped = iso f f
+    where
+      f (Pair x y) = Pair (x ^. swapped) (y ^. swapped)
+
+instance (Swapped p, Swapped q) => Swapped (Sum p q) where
+  swapped = iso f f
+    where
+      f (L2 x) = L2 (x ^. swapped)
+      f (R2 x) = R2 (x ^. swapped)
+
+instance (Swapped p) => Swapped (Flip p) where
+  swapped = iso f f
+    where
+      f (Flip p) = Flip (p ^. swapped)
+
+instance (f ~ g, Functor f, Swapped p) => Swapped (Biff p f g) where
+  swapped = iso f f
+    where
+      f (Biff p) = Biff (p ^. swapped)
+
+instance (Functor f, Swapped p) => Swapped (Tannen f p) where
+  swapped = iso f f
+    where
+      f (Tannen x) = Tannen $ fmap (^. swapped) x
+
+instance Swapped ((,,) x) where
+  swapped = iso f f
+    where
+      f ~(x,a,b) = (x,b,a)
+
+instance Swapped ((,,,) x y) where
+  swapped = iso f f
+    where
+      f ~(x,y,a,b) = (x,y,b,a)
+
+instance Swapped ((,,,,) x y z) where
+  swapped = iso f f
+    where
+      f ~(x,y,z,a,b) = (x,y,z,b,a)
+
+instance Swapped ((,,,,,) x y z w) where
+  swapped = iso f f
+    where
+      f ~(x,y,z,w,a,b) = (x,y,z,w,b,a)
+
+instance Swapped ((,,,,,,) x y z w v) where
+  swapped = iso f f
+    where
+      f ~(x,y,z,w,v,a,b) = (x,y,z,w,v,b,a)
 
 -- | Ad hoc conversion between \"strict\" and \"lazy\" versions of a structure,
 -- such as 'StrictT.Text' or 'StrictB.ByteString'.
