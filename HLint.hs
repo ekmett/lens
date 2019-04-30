@@ -5,6 +5,8 @@ ignore "Redundant lambda"
 ignore "Use >=>"
 ignore "Use const"
 ignore "Use module export list"
+ignore "Use lambda-case"
+ignore "Use tuple-section"
 
 -- Used hlint --find src/ in the lens repo to generate this:
 infixl 9 :>

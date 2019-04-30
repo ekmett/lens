@@ -1,24 +1,17 @@
 \begin{code}
 {-# LANGUAGE CPP #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# OPTIONS_GHC -Wall #-}
 module Main (main) where
 
 #ifndef MIN_VERSION_cabal_doctest
 #define MIN_VERSION_cabal_doctest(x,y,z) 0
 #endif
 
--- haddock stuff
-import Distribution.Package ( Package (..), packageName )
-import Distribution.Simple ( defaultMainWithHooks, UserHooks(..), simpleUserHooks )
-import Distribution.Simple.Setup (Flag (..), HaddockFlags, haddockDistPref)
-import Distribution.Simple.Utils (copyFiles)
-import Distribution.Verbosity (normal)
-import Distribution.Text ( display )
-import System.FilePath ( (</>) )
-
 #if MIN_VERSION_cabal_doctest(1,0,0)
 
-import Distribution.Extra.Doctest ( generateBuildModule )
+import Distribution.Extra.Doctest ( defaultMainWithDoctests )
+main :: IO ()
+main = defaultMainWithDoctests "doctests"
 
 #else
 
@@ -31,26 +24,11 @@ import Distribution.Extra.Doctest ( generateBuildModule )
 import Warning ()
 #endif
 
-generateBuildModule :: a -> b -> c -> d -> IO ()
-generateBuildModule _ _ _ _ = return ()
-
-#endif
-
-haddockOutputDir :: Package p => HaddockFlags -> p -> FilePath
-haddockOutputDir flags pkg = destDir where
-  baseDir = case haddockDistPref flags of
-    NoFlag -> "."
-    Flag x -> x
-  destDir = baseDir </> "doc" </> "html" </> display (packageName pkg)
+import Distribution.Simple
 
 main :: IO ()
-main = defaultMainWithHooks simpleUserHooks
-  { buildHook = \pkg lbi hooks flags -> do
-     generateBuildModule "doctests" flags pkg lbi
-     buildHook simpleUserHooks pkg lbi hooks flags
-  , postHaddock = \args flags pkg lbi -> do
-     copyFiles normal (haddockOutputDir flags pkg) [("images","Hierarchy.png")]
-     postHaddock simpleUserHooks args flags pkg lbi
-  }
+main = defaultMain
+
+#endif
 
 \end{code}

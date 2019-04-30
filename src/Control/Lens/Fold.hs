@@ -9,8 +9,9 @@
 #define MIN_VERSION_reflection(x,y,z) 1
 #endif
 
-#if __GLASGOW_HASKELL__ < 708
 {-# LANGUAGE Trustworthy #-}
+#if __GLASGOW_HASKELL__ >= 800
+{-# OPTIONS_GHC -Wno-trustworthy-safe #-}
 #endif
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
@@ -67,6 +68,7 @@ module Control.Lens.Fold
   , unfolded
   , iterated
   , filtered
+  , filteredBy
   , backwards
   , repeated
   , replicated
@@ -83,6 +85,7 @@ module Control.Lens.Fold
   , andOf, orOf
   , productOf, sumOf
   , traverseOf_, forOf_, sequenceAOf_
+  , traverse1Of_, for1Of_, sequence1Of_
   , mapMOf_, forMOf_, sequenceOf_
   , asumOf, msumOf
   , concatMapOf, concatOf
@@ -161,7 +164,7 @@ import Control.Monad.Reader
 import Control.Monad.State
 import Data.CallStack
 import Data.Foldable
-import Data.Functor.Apply
+import Data.Functor.Apply hiding ((<.))
 import Data.Functor.Compose
 import Data.Functor.Contravariant
 import Data.Int (Int64)
@@ -193,6 +196,7 @@ import Data.List.NonEmpty (NonEmpty(..))
 -- >>> import Control.Exception (evaluate)
 -- >>> import Data.Maybe (fromMaybe)
 -- >>> import System.Timeout (timeout)
+-- >>> import qualified Data.Map as Map
 -- >>> let f :: Expr -> Expr; f = Debug.SimpleReflect.Vars.f
 -- >>> let g :: Expr -> Expr; g = Debug.SimpleReflect.Vars.g
 -- >>> let timingOut :: NFData a => a -> IO a; timingOut = fmap (fromMaybe (error "timeout")) . timeout (5*10^6) . evaluate . force
@@ -336,7 +340,7 @@ iterated f g a0 = go a0 where
   go a = g a .> go (f a)
 {-# INLINE iterated #-}
 
--- | Obtain an 'Fold' that can be composed with to filter another 'Lens', 'Iso', 'Getter', 'Fold' (or 'Traversal').
+-- | Obtain a 'Fold' that can be composed with to filter another 'Lens', 'Iso', 'Getter', 'Fold' (or 'Traversal').
 --
 -- Note: This is /not/ a legal 'Traversal', unless you are very careful not to invalidate the predicate on the target.
 --
@@ -357,6 +361,24 @@ iterated f g a0 = go a0 where
 filtered :: (Choice p, Applicative f) => (a -> Bool) -> Optic' p f a a
 filtered p = dimap (\x -> if p x then Right x else Left x) (either pure id) . right'
 {-# INLINE filtered #-}
+
+-- | Obtain a potentially empty 'IndexedTraversal' by taking the first element from another,
+-- potentially empty `Fold` and using it as an index.
+--
+-- The resulting optic can be composed with to filter another 'Lens', 'Iso', 'Getter', 'Fold' (or 'Traversal').
+--
+-- >>> [(Just 2, 3), (Nothing, 4)] & mapped . filteredBy (_1 . _Just) <. _2 %@~ (*) :: [(Maybe Int, Int)]
+-- [(Just 2,6),(Nothing,4)]
+--
+-- @
+-- 'filteredBy' :: 'Fold' a i -> 'IndexedTraversal'' i a a
+-- @
+--
+-- Note: As with 'filtered', this is /not/ a legal 'IndexedTraversal', unless you are very careful not to invalidate the predicate on the target!
+filteredBy :: (Indexable i p, Applicative f) => Getting (First i) a i -> p a (f a) -> a -> f a
+filteredBy p f val = case val ^? p of
+  Nothing -> pure val
+  Just witness -> indexed f witness val
 
 -- | Obtain a 'Fold' by taking elements from another 'Fold', 'Lens', 'Iso', 'Getter' or 'Traversal' while a predicate holds.
 --
@@ -951,6 +973,48 @@ sequenceAOf_ :: Functor f => Getting (Traversed a f) s (f a) -> s -> f ()
 sequenceAOf_ l = void . getTraversed #. foldMapOf l Traversed
 {-# INLINE sequenceAOf_ #-}
 
+-- | Traverse over all of the targets of a 'Fold1', computing an 'Apply' based answer.
+--
+-- As long as you have 'Applicative' or 'Functor' effect you are better using 'traverseOf_'.
+-- The 'traverse1Of_' is useful only when you have genuine 'Apply' effect.
+--
+-- >>> traverse1Of_ both1 (\ks -> Map.fromList [ (k, ()) | k <- ks ]) ("abc", "bcd")
+-- fromList [('b',()),('c',())]
+--
+-- @
+-- 'traverse1Of_' :: 'Apply' f => 'Fold1' s a -> (a -> f r) -> s -> f ()
+-- @
+--
+-- @since 4.16
+traverse1Of_ :: Functor f => Getting (TraversedF r f) s a -> (a -> f r) -> s -> f ()
+traverse1Of_ l f = void . getTraversedF #. foldMapOf l (TraversedF #. f)
+{-# INLINE traverse1Of_ #-}
+
+-- | See 'forOf_' and 'traverse1Of_'.
+--
+-- >>> for1Of_ both1 ("abc", "bcd") (\ks -> Map.fromList [ (k, ()) | k <- ks ])
+-- fromList [('b',()),('c',())]
+--
+-- @
+-- 'for1Of_' :: 'Apply' f => 'Fold1' s a -> s -> (a -> f r) -> f ()
+-- @
+--
+-- @since 4.16
+for1Of_ :: Functor f => Getting (TraversedF r f) s a -> s -> (a -> f r) -> f ()
+for1Of_ = flip . traverse1Of_
+{-# INLINE for1Of_ #-}
+
+-- | See 'sequenceAOf_' and 'traverse1Of_'.
+--
+-- @
+-- 'sequence1Of_' :: 'Apply' f => 'Fold1' s (f a) -> s -> f ()
+-- @
+--
+-- @since 4.16
+sequence1Of_ :: Functor f => Getting (TraversedF a f) s (f a) -> s -> f ()
+sequence1Of_ l = void . getTraversedF #. foldMapOf l TraversedF
+{-# INLINE sequence1Of_ #-}
+
 -- | Map each target of a 'Fold' on a structure to a monadic action, evaluate these actions from left to right, and ignore the results.
 --
 -- >>> mapMOf_ both putStrLn ("hello","world")
@@ -1192,7 +1256,8 @@ lengthOf l = foldlOf' l (\a _ -> a + 1) 0
 -- way to extract the optional value.
 --
 -- Note: if you get stack overflows due to this, you may want to use 'firstOf' instead, which can deal
--- more gracefully with heavily left-biased trees.
+-- more gracefully with heavily left-biased trees. This is because '^?' works by using the 
+-- 'Data.Monoid.First' monoid, which can occasionally cause space leaks.
 --
 -- >>> Left 4 ^?_Left
 -- Just 4
@@ -1206,10 +1271,15 @@ lengthOf l = foldlOf' l (\a _ -> a + 1) 0
 -- >>> "world" ^? ix 20
 -- Nothing
 --
+-- This operator works as an infix version of 'preview'. 
+--
 -- @
 -- ('^?') ≡ 'flip' 'preview'
 -- @
 --
+-- It may be helpful to think of '^?' as having one of the following
+-- more specialized types:
+-- 
 -- @
 -- ('^?') :: s -> 'Getter' s a     -> 'Maybe' a
 -- ('^?') :: s -> 'Fold' s a       -> 'Maybe' a
@@ -1243,9 +1313,11 @@ s ^?! l = foldrOf l const (error "(^?!): empty Fold") s
 -- | Retrieve the 'First' entry of a 'Fold' or 'Traversal' or retrieve 'Just' the result
 -- from a 'Getter' or 'Lens'.
 --
--- The answer is computed in a manner that leaks space less than @'ala' 'First' '.' 'foldMapOf'@
--- and gives you back access to the outermost 'Just' constructor more quickly, but may have worse
--- constant factors.
+-- The answer is computed in a manner that leaks space less than @'preview'@ or @^?'@
+-- and gives you back access to the outermost 'Just' constructor more quickly, but does so
+-- in a way that builds an intermediate structure, and thus may have worse
+-- constant factors. This also means that it can not be used in any 'Control.Monad.Reader.MonadReader',
+-- but must instead have 's' passed as its last argument, unlike 'preview'.
 --
 -- Note: this could been named `headOf`.
 --
@@ -1906,19 +1978,33 @@ ipre l = dimap (getFirst . getConst #. l (Indexed $ \i a -> Const (First (Just (
 ------------------------------------------------------------------------------
 
 -- | Retrieve the first value targeted by a 'Fold' or 'Traversal' (or 'Just' the result
--- from a 'Getter' or 'Lens'). See also ('^?').
+-- from a 'Getter' or 'Lens'). See also 'firstOf' and '^?', which are similar with
+-- some subtle differences (explained below).
 --
 -- @
 -- 'Data.Maybe.listToMaybe' '.' 'toList' ≡ 'preview' 'folded'
 -- @
 --
--- This is usually applied in the 'Control.Monad.Reader.Reader'
--- 'Control.Monad.Monad' @(->) s@.
---
 -- @
 -- 'preview' = 'view' '.' 'pre'
 -- @
+-- 
 --
+-- Unlike '^?', this function uses a 
+-- 'Control.Monad.Reader.MonadReader' to read the value to be focused in on.
+-- This allows one to pass the value as the last argument by using the 
+-- 'Control.Monad.Reader.MonadReader' instance for @(->) s@
+-- However, it may also be used as part of some deeply nested transformer stack.
+--
+-- 'preview' uses a monoidal value to obtain the result.
+-- This means that it generally has good performance, but can occasionally cause space leaks
+-- or even stack overflows on some data types.
+-- There is another function, 'firstOf', which avoids these issues at the cost of
+-- a slight constant performance cost and a little less flexibility.
+--
+-- It may be helpful to think of 'preview' as having one of the following
+-- more specialized types:
+-- 
 -- @
 -- 'preview' :: 'Getter' s a     -> s -> 'Maybe' a
 -- 'preview' :: 'Fold' s a       -> s -> 'Maybe' a
@@ -1927,8 +2013,6 @@ ipre l = dimap (getFirst . getConst #. l (Indexed $ \i a -> Const (First (Just (
 -- 'preview' :: 'Traversal'' s a -> s -> 'Maybe' a
 -- @
 --
--- However, it may be useful to think of its full generality when working with
--- a 'Control.Monad.Monad' transformer stack:
 --
 -- @
 -- 'preview' :: 'MonadReader' s m => 'Getter' s a     -> m ('Maybe' a)
@@ -1936,6 +2020,7 @@ ipre l = dimap (getFirst . getConst #. l (Indexed $ \i a -> Const (First (Just (
 -- 'preview' :: 'MonadReader' s m => 'Lens'' s a      -> m ('Maybe' a)
 -- 'preview' :: 'MonadReader' s m => 'Iso'' s a       -> m ('Maybe' a)
 -- 'preview' :: 'MonadReader' s m => 'Traversal'' s a -> m ('Maybe' a)
+-- 
 -- @
 preview :: MonadReader s m => Getting (First a) s a -> m (Maybe a)
 preview l = asks (getFirst #. foldMapOf l (First #. Just))

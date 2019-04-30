@@ -42,6 +42,8 @@ import Numeric (showHex, showOct, showSigned)
 import Numeric.Lens
 import Control.Lens.Properties (isIso, isLens, isPrism, isSetter, isTraversal)
 
+#include "lens-common.h"
+
 -- an illegal lens
 bad :: Lens' (Int,Int) Int
 bad f (a,b) = (,) b <$> f a
@@ -123,12 +125,12 @@ sampleExtremePoly f foo = f foo
 samplePolyEquality :: Equality Monad Identity Monad Identity
 samplePolyEquality f = f
 
-lessSimplePoly :: forall (s :: k1) (t :: k2) (a :: k1) (b :: k2) .
+lessSimplePoly :: forall KVS(k1 k2) (s :: k1) (t :: k2) (a :: k1) (b :: k2) .
                   Equality a b a b
 lessSimplePoly f = f
 
 equalityAnEqualityPoly ::
-       forall (s :: k1) (t :: k2) (a :: k1) (b :: k2) .
+       forall KVS(k1 k2) (s :: k1) (t :: k2) (a :: k1) (b :: k2) .
        Equality s t a b -> AnEquality s t a b
 equalityAnEqualityPoly f = f
 #else

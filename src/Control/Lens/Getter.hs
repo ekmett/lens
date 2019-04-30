@@ -2,10 +2,7 @@
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FlexibleInstances #-}
-
-#if __GLASGOW_HASKELL__ < 708
 {-# LANGUAGE Trustworthy #-}
-#endif
 
 #if __GLASGOW_HASKELL__ && __GLASGOW_HASKELL__ >= 704
 {-# LANGUAGE NoPolyKinds #-}
@@ -17,6 +14,10 @@
 -- users would get warnings when annotating types at uses of these functions.
 #if __GLASGOW_HASKELL__ >= 711
 {-# OPTIONS_GHC -fno-warn-redundant-constraints #-}
+#endif
+
+#if __GLASGOW_HASKELL__ >= 800
+{-# OPTIONS_GHC -Wno-trustworthy-safe #-}
 #endif
 -------------------------------------------------------------------------------
 -- |

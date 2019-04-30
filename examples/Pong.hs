@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell, Rank2Types, NoMonomorphismRestriction #-}
+{-# LANGUAGE CPP, TemplateHaskell, Rank2Types, NoMonomorphismRestriction #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Main
@@ -12,23 +12,33 @@
 -----------------------------------------------------------------------------
 module Main where
 
-import Control.Applicative ((<$>), (<*>))
-import Control.Lens
+#if !(MIN_VERSION_base(4,8,0))
+import Control.Applicative ((<$>))
+#endif
+import Control.Lens hiding ((:>), at)
 import Control.Monad.State (State, execState, get)
 import Control.Monad (when)
 
-import Data.Set (Set, member, empty, insert, delete)
+import Data.Set (Set, empty)
+import Data.Stream.Infinite (Stream(..))
 
-import Graphics.Gloss
+import Graphics.Gloss hiding (display)
+import qualified Graphics.Gloss.Data.Point.Arithmetic as Pt
 import Graphics.Gloss.Interface.Pure.Game
 
 import System.Random (randomRs, newStdGen)
 
 -- Some global constants
 
+gameSize :: Float
 gameSize        = 300
+
+windowWidth, windowHeight :: Int
 windowWidth     = 800
 windowHeight    = 600
+
+ballRadius, speedIncrease, losingAccuracy, winningAccuracy,
+  initialSpeed, paddleWidth, paddleHeight, paddleSpeed :: Float
 ballRadius      = 0.02
 speedIncrease   = 1.2
 losingAccuracy  = 0.9
@@ -37,6 +47,8 @@ initialSpeed    = 0.6
 paddleWidth     = 0.02
 paddleHeight    = 0.3
 paddleSpeed     = 1
+
+textSize :: Float
 textSize        = 0.001
 
 -- Pure data type for representing the game state
@@ -47,7 +59,7 @@ data Pong = Pong
   , _paddle1   :: Float
   , _paddle2   :: Float
   , _score     :: (Int, Int)
-  , _vectors   :: [Vector]
+  , _vectors   :: Stream Vector
 
   -- Since gloss doesn't cover this, we store the set of pressed keys
   , _keys      :: Set Key
@@ -57,11 +69,14 @@ data Pong = Pong
 makeLenses ''Pong
 
 -- Renamed tuple lenses for enhanced clarity with points/vectors
+_x :: Field1 s t a b => Lens s t a b
 _x = _1
+
+_y :: Field2 s t a b => Lens s t a b
 _y = _2
 
 initial :: Pong
-initial = Pong (0, 0) (0, 0) 0 0 (0, 0) [] empty
+initial = Pong (0, 0) (0, 0) 0 0 (0, 0) (return (0, 0)) empty
 
 -- Calculate the y position at which the ball will next hit (on player2's side)
 hitPos :: Point -> Vector -> Float
@@ -100,7 +115,7 @@ update time = execState $ do
 updateBall :: Float -> State Pong ()
 updateBall time = do
   (u, v) <- use ballSpeed
-  ballPos += (time * u, time * v)
+  ballPos %= (Pt.+ (time * u, time * v))
 
   -- Make sure it doesn't leave the playing area
   ballPos.both %= clamp ballRadius
@@ -173,7 +188,7 @@ reset = do
 -- Retrieve a speed from the list, dropping it in the process
 nextSpeed :: State Pong Vector
 nextSpeed = do
-  v:vs <- use vectors
+  v:>vs <- use vectors
   vectors .= vs
   return v
 
@@ -191,7 +206,7 @@ draw p = scale gameSize gameSize $ Pictures
   ]
   where
     paddleX = 1 + paddleWidth/2
-    p `at` (x,y) = translate x y p; infixr 1 `at`
+    po `at` (x,y) = translate x y po; infixr 1 `at`
 
 drawPaddle :: Picture
 drawPaddle = rectangleSolid paddleWidth paddleHeight
@@ -210,8 +225,9 @@ handle _ = id
 
 -- The main program action
 
+main :: IO ()
 main = do
-  v:vs <- startingSpeeds
+  v:>vs <- startingSpeeds
   let world = ballSpeed .~ v $ vectors .~ vs $ initial
   play display backColor fps world draw handle update
 
@@ -222,12 +238,16 @@ main = do
 
 -- Generate the random list of starting speeds
 
-startingSpeeds :: IO [Vector]
+startingSpeeds :: IO (Stream Vector)
 startingSpeeds = do
   rs <- randomRs (-initialSpeed, initialSpeed) <$> newStdGen
-  return . interleave $ filter ((> 0.2) . abs) rs
+  return . listToStream . interleave $ filter ((> 0.2) . abs) rs
 
   where
     interleave :: [a] -> [(a,a)]
     interleave (x:y:xs) = (x,y) : interleave xs
     interleave _        = []
+
+    -- Assumes the list is infinite.
+    listToStream :: [a] -> Stream a
+    listToStream = foldr (:>) (error "Finite list")

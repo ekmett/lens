@@ -3,7 +3,6 @@
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE Trustworthy #-}
@@ -75,7 +74,7 @@ module Control.Lens.Traversal
   -- * Parts and Holes
   , partsOf, partsOf'
   , unsafePartsOf, unsafePartsOf'
-  , holesOf
+  , holesOf, holes1Of
   , singular, unsafeSingular
 
   -- * Common Traversals
@@ -139,6 +138,7 @@ import Control.Lens.Getter (Getting, IndexedGetting, getting)
 import Control.Lens.Internal.Bazaar
 import Control.Lens.Internal.Context
 import Control.Lens.Internal.Indexed
+import Control.Lens.Internal.Fold
 import Control.Lens.Lens
 import Control.Lens.Setter (ASetter, AnIndexedSetter, isets, sets)
 import Control.Lens.Type
@@ -149,31 +149,34 @@ import Data.CallStack
 #if __GLASGOW_HASKELL__ < 710
 import Data.Foldable (Foldable)
 #endif
+import Data.Functor.Apply
 import Data.Functor.Compose
 import Data.Functor.Day.Curried
 import Data.Functor.Yoneda
 import Data.Int
 import Data.IntMap as IntMap
+import Data.List.NonEmpty (NonEmpty (..))
 import qualified Data.Map as Map
 import Data.Map (Map)
 import Data.Sequence (Seq, mapWithIndex)
 import Data.Vector as Vector (Vector, imap)
-import Data.Monoid
+import Data.Monoid (Monoid (..), Any (..), Endo (..))
 import Data.Profunctor
 import Data.Profunctor.Rep
 import Data.Profunctor.Sieve
 import Data.Profunctor.Unsafe
 import Data.Reflection
+import Data.Semigroup (Semigroup (..))
 import Data.Semigroup.Traversable
 import Data.Semigroup.Bitraversable
-import Data.Tagged
 import Data.Traversable
 import Data.Tuple (swap)
 import GHC.Magic (inline)
 import Prelude hiding ((.),id)
 
 -- $setup
--- >>> :set -XNoOverloadedStrings
+-- >>> :set -XNoOverloadedStrings -XFlexibleContexts
+-- >>> import Data.Char (toUpper)
 -- >>> import Control.Lens
 -- >>> import Control.DeepSeq (NFData (..), force)
 -- >>> import Control.Exception (evaluate,try,ErrorCall(..))
@@ -182,6 +185,7 @@ import Prelude hiding ((.),id)
 -- >>> import Data.Void
 -- >>> import Data.List (sort)
 -- >>> import System.Timeout (timeout)
+-- >>> import qualified Data.List.NonEmpty as NonEmpty
 -- >>> let timingOut :: NFData a => a -> IO a; timingOut = fmap (fromMaybe (error "timeout")) . timeout (5*10^6) . evaluate . force
 
 ------------------------------------------------------------------------------
@@ -230,11 +234,11 @@ type AnIndexedTraversal1' i s a = AnIndexedTraversal1 i s s a a
 --
 --  * a 'Traversal' if @f@ is 'Applicative',
 --
---  * a 'Getter' if @f@ is only a 'Functor' and 'Contravariant',
+--  * a 'Getter' if @f@ is only a 'Functor' and 'Data.Functor.Contravariant.Contravariant',
 --
 --  * a 'Lens' if @f@ is only a 'Functor',
 --
---  * a 'Fold' if @f@ is 'Functor', 'Contravariant' and 'Applicative'.
+--  * a 'Fold' if @f@ is 'Applicative' and 'Data.Functor.Contravariant.Contravariant'.
 type Traversing p f s t a b = Over p (BazaarT p f a b) s t a b
 
 type Traversing1 p f s t a b = Over p (BazaarT1 p f a b) s t a b
@@ -505,7 +509,7 @@ iloci f w = getCompose (runBazaar w (Compose #. Indexed (\i -> fmap (indexed sel
 {-# INLINE iloci #-}
 
 -------------------------------------------------------------------------------
--- Parts and Holes
+-- Parts
 -------------------------------------------------------------------------------
 
 -- | 'partsOf' turns a 'Traversal' into a 'Lens' that resembles an early version of the 'Data.Data.Lens.uniplate' (or 'Data.Data.Lens.biplate') type.
@@ -601,36 +605,6 @@ iunsafePartsOf' l = conjoined
   (\f s -> let b = inline l sell s; (is, as) = unzip (pins b) in unsafeOuts b <$> indexed f (is :: [i]) as)
 {-# INLINE iunsafePartsOf' #-}
 
--- | The one-level version of 'Control.Lens.Plated.contextsOf'. This extracts a list of the immediate children according to a given 'Traversal' as editable contexts.
---
--- Given a context you can use 'Control.Comonad.Store.Class.pos' to see the values, 'Control.Comonad.Store.Class.peek' at what the structure would be like with an edited result, or simply 'extract' the original structure.
---
--- @
--- propChildren l x = childrenOf l x '==' 'map' 'Control.Comonad.Store.Class.pos' ('holesOf' l x)
--- propId l x = 'all' ('==' x) ['extract' w | w <- 'holesOf' l x]
--- @
---
--- @
--- 'holesOf' :: 'Iso'' s a                -> s -> ['Pretext'' (->) a s]
--- 'holesOf' :: 'Lens'' s a               -> s -> ['Pretext'' (->) a s]
--- 'holesOf' :: 'Traversal'' s a          -> s -> ['Pretext'' (->) a s]
--- 'holesOf' :: 'IndexedLens'' i s a      -> s -> ['Pretext'' ('Indexed' i) a s]
--- 'holesOf' :: 'IndexedTraversal'' i s a -> s -> ['Pretext'' ('Indexed' i) a s]
--- @
-holesOf :: forall p s t a. Conjoined p => Over p (Bazaar p a a) s t a a -> s -> [Pretext p a a t]
-holesOf l s = unTagged
-  ( conjoined
-     (Tagged $ let
-        f [] _ = []
-        f (x:xs) g = Pretext (\xfy -> g . (:xs) <$> xfy x) : f xs (g . (x:))
-      in f (ins b) (unsafeOuts b))
-     (Tagged $ let
-        f [] _ = []
-        f (wx:xs) g = Pretext (\wxfy -> g . (:Prelude.map extract xs) <$> cosieve wxfy wx) : f xs (g . (extract wx:))
-      in f (pins b) (unsafeOuts b))
-    :: Tagged (p a b) [Pretext p a a t]
-  ) where b = l sell s
-{-# INLINE holesOf #-}
 
 -- | This converts a 'Traversal' that you \"know\" will target one or more elements to a 'Lens'. It can
 -- also be used to transform a non-empty 'Fold' into a 'Getter'.
@@ -699,7 +673,7 @@ unsafeSingular l = conjoined
 {-# INLINE unsafeSingular #-}
 
 ------------------------------------------------------------------------------
--- Internal functions used by 'partsOf', 'holesOf', etc.
+-- Internal functions used by 'partsOf', etc.
 ------------------------------------------------------------------------------
 
 ins :: Bizarre (->) w => w a b t -> [a]
@@ -732,13 +706,123 @@ unconsWithDefault d []     = (d,[])
 unconsWithDefault _ (x:xs) = (x,xs)
 {-# INLINE unconsWithDefault #-}
 
+
+-------------------------------------------------------------------------------
+-- Holes
+-------------------------------------------------------------------------------
+
+-- | The one-level version of 'Control.Lens.Plated.contextsOf'. This extracts a
+-- list of the immediate children according to a given 'Traversal' as editable
+-- contexts.
+--
+-- Given a context you can use 'Control.Comonad.Store.Class.pos' to see the
+-- values, 'Control.Comonad.Store.Class.peek' at what the structure would be
+-- like with an edited result, or simply 'extract' the original structure.
+--
+-- @
+-- propChildren l x = 'toListOf' l x '==' 'map' 'Control.Comonad.Store.Class.pos' ('holesOf' l x)
+-- propId l x = 'all' ('==' x) ['extract' w | w <- 'holesOf' l x]
+-- @
+--
+-- @
+-- 'holesOf' :: 'Iso'' s a                -> s -> ['Pretext'' (->) a s]
+-- 'holesOf' :: 'Lens'' s a               -> s -> ['Pretext'' (->) a s]
+-- 'holesOf' :: 'Traversal'' s a          -> s -> ['Pretext'' (->) a s]
+-- 'holesOf' :: 'IndexedLens'' i s a      -> s -> ['Pretext'' ('Indexed' i) a s]
+-- 'holesOf' :: 'IndexedTraversal'' i s a -> s -> ['Pretext'' ('Indexed' i) a s]
+-- @
+holesOf :: Conjoined p
+        => Over p (Bazaar p a a) s t a a -> s -> [Pretext p a a t]
+holesOf f xs = flip appEndo [] . fst $
+  runHoles (runBazaar (f sell xs) (cotabulate holeInOne)) id
+{-# INLINE holesOf #-}
+
+holeInOne :: (Corepresentable p, Comonad (Corep p))
+          => Corep p a -> Holes t (Endo [Pretext p a a t]) a
+holeInOne x = Holes $ \xt ->
+    ( Endo (fmap xt (cosieve sell x) :)
+    , extract x)
+{-# INLINABLE holeInOne #-}
+
+-- | The non-empty version of 'holesOf'.
+-- This extract a non-empty list of immediate children accroding to a given
+-- 'Traversal1' as editable contexts.
+--
+-- >>> let head1 f s = runPretext (NonEmpty.head $ holes1Of traversed1 s) f
+-- >>> ('a' :| "bc") ^. head1
+-- 'a'
+--
+-- >>> ('a' :| "bc") & head1 %~ toUpper
+-- 'A' :| "bc"
+--
+-- @
+-- 'holes1Of' :: 'Iso'' s a                 -> s -> 'NonEmpty' ('Pretext'' (->) a s)
+-- 'holes1Of' :: 'Lens'' s a                -> s -> 'NonEmpty' ('Pretext'' (->) a s)
+-- 'holes1Of' :: 'Traversal1'' s a          -> s -> 'NonEmpty' ('Pretext'' (->) a s)
+-- 'holes1Of' :: 'IndexedLens'' i s a       -> s -> 'NonEmpty' ('Pretext'' ('Indexed' i) a s)
+-- 'holes1Of' :: 'IndexedTraversal1'' i s a -> s -> 'NonEmpty' ('Pretext'' ('Indexed' i) a s)
+-- @
+holes1Of :: Conjoined p
+         => Over p (Bazaar1 p a a) s t a a -> s -> NonEmpty (Pretext p a a t)
+holes1Of f xs = flip getNonEmptyDList [] . fst $
+  runHoles (runBazaar1 (f sell xs) (cotabulate holeInOne1)) id
+{-# INLINE holes1Of #-}
+
+holeInOne1 :: forall p a t. (Corepresentable p, Category p)
+          => Corep p a -> Holes t (NonEmptyDList (Pretext p a a t)) a
+holeInOne1 x = Holes $ \xt ->
+    ( NonEmptyDList (fmap xt (cosieve sell x) :|)
+    , cosieve (id :: p a a) x)
+
+-- We are very careful to share as much structure as possible among
+-- the results (in the common case where the traversal allows for such).
+-- Note in particular the recursive knot in the implementation of <*>
+-- for Holes. This sharing magic was inspired by Noah "Rampion" Easterly's
+-- implementation of a related holes function: see
+-- https://stackoverflow.com/a/49001904/1477667. The Holes type is
+-- inspired by Roman Cheplyaka's answer to that same question.
+
+newtype Holes t m x = Holes { runHoles :: (x -> t) -> (m, x) }
+
+instance Functor (Holes t m) where
+  fmap f xs = Holes $ \xt ->
+    let
+      (qf, qv) = runHoles xs (xt . f)
+    in (qf, f qv)
+
+instance Semigroup m => Apply (Holes t m) where
+  fs <.> xs = Holes $ \xt ->
+    let
+     (pf, pv) = runHoles fs (xt . ($ qv))
+     (qf, qv) = runHoles xs (xt . pv)
+    in (pf <> qf, pv qv)
+
+instance Monoid m => Applicative (Holes t m) where
+  pure x = Holes $ \_ -> (mempty, x)
+
+  fs <*> xs = Holes $ \xt ->
+    let
+     (pf, pv) = runHoles fs (xt . ($ qv))
+     (qf, qv) = runHoles xs (xt . pv)
+    in (pf `mappend` qf, pv qv)
+
+#if MIN_VERSION_base(4,10,0)
+  liftA2 f xs ys = Holes $ \xt ->
+    let
+      (pf, pv) = runHoles xs (xt . flip f qv)
+      (qf, qv) = runHoles ys (xt . f pv)
+    in (pf `mappend` qf, f pv qv)
+#endif
+
+
 ------------------------------------------------------------------------------
 -- Traversals
 ------------------------------------------------------------------------------
 
 -- | Traverse both parts of a 'Bitraversable' container with matching types.
 --
--- Usually that type will be a pair.
+-- Usually that type will be a pair. Use 'Control.Lens.Each.each' to traverse
+-- the elements of arbitrary homogeneous tuples.
 --
 -- >>> (1,2) & both *~ 10
 -- (10,20)
@@ -1274,7 +1358,7 @@ infixl 5 `failing`
 deepOf :: (Conjoined p, Applicative f) => LensLike f s t s t -> Traversing p f s t a b -> Over p f s t a b
 deepOf r l = failing l (r . deepOf r l)
 
--- | "Fuse" a 'Traversal' by reassociating all of the '<*>' operations to the
+-- | "Fuse" a 'Traversal' by reassociating all of the @('<*>')@ operations to the
 -- left and fusing all of the 'fmap' calls into one. This is particularly
 -- useful when constructing a 'Traversal' using operations from "GHC.Generics".
 --
@@ -1288,7 +1372,7 @@ deepOf r l = failing l (r . deepOf r l)
 --
 -- 'confusing' exploits the 'Yoneda' lemma to merge their separate uses of 'fmap' into a single 'fmap'.
 -- and it further exploits an interesting property of the right Kan lift (or 'Curried') to left associate
--- all of the uses of '(<*>)' to make it possible to fuse together more fmaps.
+-- all of the uses of @('<*>')@ to make it possible to fuse together more fmaps.
 --
 -- This is particularly effective when the choice of functor 'f' is unknown at compile
 -- time or when the 'Traversal' @foo.bar@ in the above description is recursive or complex

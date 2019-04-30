@@ -1,8 +1,8 @@
 name:          lens
 category:      Data, Lenses, Generics
-version:       4.15.4
+version:       4.17.1
 license:       BSD2
-cabal-version: >= 1.8
+cabal-version: 1.18
 license-file:  LICENSE
 author:        Edward A. Kmett
 maintainer:    Edward A. Kmett <ekmett@gmail.com>
@@ -12,7 +12,14 @@ bug-reports:   http://github.com/ekmett/lens/issues
 copyright:     Copyright (C) 2012-2016 Edward A. Kmett
 build-type:    Custom
 -- build-tools:   cpphs
-tested-with:   GHC == 7.4.2, GHC == 7.6.3, GHC == 7.8.4, GHC == 7.10.3, GHC == 8.0.2, GHC == 8.2.1
+tested-with:   GHC == 7.4.2
+             , GHC == 7.6.3
+             , GHC == 7.8.4
+             , GHC == 7.10.3
+             , GHC == 8.0.2
+             , GHC == 8.2.2
+             , GHC == 8.4.4
+             , GHC == 8.6.4
 synopsis:      Lenses, Folds and Traversals
 description:
   This package comes \"Batteries Included\" with many useful lenses for the types
@@ -96,10 +103,11 @@ extra-source-files:
   examples/lens-examples.cabal
   examples/*.hs
   examples/*.lhs
-  images/*.png
+  include/*.h
   lens-properties/CHANGELOG.markdown
   lens-properties/LICENSE
   lens-properties/Setup.hs
+  lens-properties/lens-properties.cabal
   travis/cabal-apt-install
   travis/config
   HLint.hs
@@ -108,6 +116,8 @@ extra-source-files:
   CHANGELOG.markdown
   README.markdown
   SUPPORT.markdown
+extra-doc-files:
+  images/*.png
 
 source-repository head
   type: git
@@ -115,7 +125,7 @@ source-repository head
 
 custom-setup
   setup-depends:
-    Cabal >= 1.10 && <2.1,
+    Cabal >= 1.10 && <2.5,
     base  >= 4.5 && <5,
     cabal-doctest >= 1 && <1.1,
     filepath
@@ -192,10 +202,10 @@ library
     call-stack                >= 0.1      && < 0.2,
     comonad                   >= 4        && < 6,
     contravariant             >= 1.3      && < 2,
-    containers                >= 0.4.0    && < 0.6,
+    containers                >= 0.4.0    && < 0.7,
     distributive              >= 0.3      && < 1,
     filepath                  >= 1.2.0.0  && < 1.5,
-    free                      >= 4        && < 5,
+    free                      >= 4        && < 6,
     ghc-prim,
     hashable                  >= 1.1.2.3  && < 1.3,
     kan-extensions            >= 5        && < 6,
@@ -205,19 +215,24 @@ library
     profunctors               >= 5.2.1    && < 6,
     reflection                >= 2.1      && < 3,
     semigroupoids             >= 5        && < 6,
-    semigroups                >= 0.8.4    && < 1,
     tagged                    >= 0.4.4    && < 1,
-    template-haskell          >= 2.4      && < 2.13,
-    th-abstraction            >= 0.2.1    && < 0.3,
+    template-haskell          >= 2.4      && < 2.15,
+    th-abstraction            >= 0.2.1    && < 0.4,
     text                      >= 0.11     && < 1.3,
     transformers              >= 0.2      && < 0.6,
     transformers-compat       >= 0.4      && < 1,
     unordered-containers      >= 0.2.4    && < 0.3,
-    vector                    >= 0.9      && < 0.13,
-    void                      >= 0.5      && < 1
+    vector                    >= 0.9      && < 0.13
 
   if impl(ghc < 8.0)
-    build-depends: generic-deriving >= 1.10 && < 2
+    build-depends:
+      generic-deriving >= 1.10  && < 2,
+      semigroups       >= 0.8.4 && < 1
+
+  if impl(ghc < 7.9)
+    build-depends:
+      nats >= 0.1 && < 1.2,
+      void >= 0.5 && < 1
 
   exposed-modules:
     Control.Exception.Lens
@@ -268,6 +283,7 @@ library
     Control.Lens.Traversal
     Control.Lens.Tuple
     Control.Lens.Type
+    Control.Lens.Unsound
     Control.Lens.Wrapped
     Control.Lens.Zoom
     Control.Monad.Error.Lens
@@ -300,6 +316,7 @@ library
     System.IO.Error.Lens
     Language.Haskell.TH.Lens
     Numeric.Lens
+    Numeric.Natural.Lens
 
   other-modules:
     Paths_lens
@@ -333,12 +350,18 @@ library
 
   hs-source-dirs: src
 
+  include-dirs: include
+
+  default-language: Haskell2010
+
 -- Verify that Template Haskell expansion works
 test-suite templates
   type: exitcode-stdio-1.0
   main-is: templates.hs
+  other-modules: T799
   ghc-options: -Wall -threaded
   hs-source-dirs: tests
+  default-language: Haskell2010
 
   if flag(dump-splices)
     ghc-options: -ddump-splices
@@ -358,6 +381,8 @@ test-suite properties
   hs-source-dirs:
     tests
     lens-properties/src
+  include-dirs: include
+  default-language: Haskell2010
   if !flag(test-properties)
     buildable: False
   else
@@ -375,6 +400,7 @@ test-suite hunit
   main-is: hunit.hs
   ghc-options: -w -threaded -rtsopts -with-rtsopts=-N
   hs-source-dirs: tests
+  default-language: Haskell2010
 
   if !flag(test-hunit)
     buildable: False
@@ -395,6 +421,7 @@ test-suite doctests
   main-is:           doctests.hs
   ghc-options:       -Wall -threaded
   hs-source-dirs:    tests
+  default-language:  Haskell2010
   x-doctest-options: --fast
 
   if flag(trustworthy) && impl(ghc>=7.2)
@@ -410,7 +437,7 @@ test-suite doctests
       containers,
       directory      >= 1.0,
       deepseq,
-      doctest        >= 0.11.4 && < 0.12 || >= 0.13 && < 0.14,
+      doctest        >= 0.11.4 && < 0.12 || >= 0.13 && < 0.17,
       filepath,
       generic-deriving,
       lens,
@@ -425,10 +452,11 @@ test-suite doctests
 
 -- Basic benchmarks for the uniplate-style combinators
 benchmark plated
-  type:           exitcode-stdio-1.0
-  main-is:        plated.hs
-  ghc-options:    -Wall -O2 -threaded -fdicts-cheap -funbox-strict-fields
-  hs-source-dirs: benchmarks
+  type:             exitcode-stdio-1.0
+  main-is:          plated.hs
+  ghc-options:      -Wall -O2 -threaded -fdicts-cheap -funbox-strict-fields
+  hs-source-dirs:   benchmarks
+  default-language: Haskell2010
   build-depends:
     base,
     comonad,
@@ -444,10 +472,11 @@ benchmark plated
 
 -- Benchmarking alongside variants
 benchmark alongside
-  type:           exitcode-stdio-1.0
-  main-is:        alongside.hs
-  ghc-options:    -w -O2 -threaded -fdicts-cheap -funbox-strict-fields
-  hs-source-dirs: benchmarks
+  type:             exitcode-stdio-1.0
+  main-is:          alongside.hs
+  ghc-options:      -w -O2 -threaded -fdicts-cheap -funbox-strict-fields
+  hs-source-dirs:   benchmarks
+  default-language: Haskell2010
   build-depends:
     base,
     comonad >= 4,
@@ -458,10 +487,11 @@ benchmark alongside
 
 -- Benchmarking folds
 benchmark folds
-  type:           exitcode-stdio-1.0
-  main-is:        folds.hs
-  ghc-options:    -w -O2 -threaded -fdicts-cheap -funbox-strict-fields
-  hs-source-dirs: benchmarks
+  type:             exitcode-stdio-1.0
+  main-is:          folds.hs
+  ghc-options:      -w -O2 -threaded -fdicts-cheap -funbox-strict-fields
+  hs-source-dirs:   benchmarks
+  default-language: Haskell2010
   build-depends:
     base,
     criterion,
@@ -473,10 +503,11 @@ benchmark folds
 
 -- Benchmarking traversals
 benchmark traversals
-  type:           exitcode-stdio-1.0
-  main-is:        traversals.hs
-  ghc-options:    -w -O2 -threaded -fdicts-cheap -funbox-strict-fields
-  hs-source-dirs: benchmarks
+  type:             exitcode-stdio-1.0
+  main-is:          traversals.hs
+  ghc-options:      -w -O2 -threaded -fdicts-cheap -funbox-strict-fields
+  hs-source-dirs:   benchmarks
+  default-language: Haskell2010
   build-depends:
     base,
     criterion,
@@ -489,10 +520,11 @@ benchmark traversals
 
 -- Benchmarking unsafe implementation strategies
 benchmark unsafe
-  type:           exitcode-stdio-1.0
-  main-is:        unsafe.hs
-  ghc-options:    -w -O2 -threaded -fdicts-cheap -funbox-strict-fields
-  hs-source-dirs: benchmarks
+  type:             exitcode-stdio-1.0
+  main-is:          unsafe.hs
+  ghc-options:      -w -O2 -threaded -fdicts-cheap -funbox-strict-fields
+  hs-source-dirs:   benchmarks
+  default-language: Haskell2010
   build-depends:
     base,
     comonad >= 4,

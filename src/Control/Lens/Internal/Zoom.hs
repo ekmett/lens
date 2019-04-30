@@ -2,9 +2,10 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE UndecidableInstances #-}
-
-#if __GLASGOW_HASKELL__ < 708
 {-# LANGUAGE Trustworthy #-}
+
+#if __GLASGOW_HASKELL__ >= 800
+{-# OPTIONS_GHC -Wno-trustworthy-safe #-}
 #endif
 
 {-# OPTIONS_GHC -fno-warn-orphans -fno-warn-warnings-deprecations #-}
@@ -287,8 +288,8 @@ instance Contravariant (Effect m r) where
   contramap _ (Effect m) = Effect m
   {-# INLINE contramap #-}
 
-instance (Apply m, Semigroup r) => Semigroup (Effect m r a) where
-  Effect ma <> Effect mb = Effect (liftF2 (<>) ma mb)
+instance (Monad m, Semigroup r) => Semigroup (Effect m r a) where
+  Effect ma <> Effect mb = Effect (liftM2 (<>) ma mb)
   {-# INLINE (<>) #-}
 
 instance (Monad m, Monoid r) => Monoid (Effect m r a) where

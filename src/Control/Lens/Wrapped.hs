@@ -2,11 +2,9 @@
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
-{-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE DefaultSignatures #-}
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE UndecidableInstances #-}
 
@@ -334,6 +332,14 @@ instance (t ~ Monoid.Alt g b) => Rewrapped (Monoid.Alt f a) t
 instance Wrapped (Monoid.Alt f a) where
   type Unwrapped (Monoid.Alt f a) = f a
   _Wrapped' = iso Monoid.getAlt Monoid.Alt
+  {-# INLINE _Wrapped' #-}
+#endif
+
+#if MIN_VERSION_base(4,12,0)
+instance (t ~ Monoid.Ap g b) => Rewrapped (Monoid.Ap f a) t
+instance Wrapped (Monoid.Ap f a) where
+  type Unwrapped (Monoid.Ap f a) = f a
+  _Wrapped' = iso Monoid.getAp Monoid.Ap
   {-# INLINE _Wrapped' #-}
 #endif
 

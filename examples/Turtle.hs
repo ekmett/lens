@@ -11,7 +11,7 @@
 module Turtle where
 
 import Control.Lens
-import Data.Default
+import Data.Default.Class
 
 data Point = Point
   { __x, __y :: Double

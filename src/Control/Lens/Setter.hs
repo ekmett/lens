@@ -3,9 +3,10 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FlexibleContexts #-}
-
-#if __GLASGOW_HASKELL__ < 708
 {-# LANGUAGE Trustworthy #-}
+
+#if __GLASGOW_HASKELL__ >= 800
+{-# OPTIONS_GHC -Wno-trustworthy-safe #-}
 #endif
 -----------------------------------------------------------------------------
 -- |
@@ -61,6 +62,8 @@ module Control.Lens.Setter
   , scribe
   , passing, ipassing
   , censoring, icensoring
+  -- * Reader Combinators
+  , locally, ilocally
   -- * Simplified State Setting
   , set'
   -- * Indexed Setters
@@ -83,7 +86,8 @@ import Control.Lens.Internal.Indexed
 import Control.Lens.Internal.Setter
 import Control.Lens.Type
 import Control.Monad (liftM)
-import Control.Monad.State.Class as State
+import Control.Monad.Reader.Class as Reader
+import Control.Monad.State.Class  as State
 import Control.Monad.Writer.Class as Writer
 import Data.Functor.Contravariant
 import Data.Functor.Identity
@@ -196,7 +200,8 @@ mapped = sets fmap
 -- | This 'setter' can be used to modify all of the values in a 'Monad'.
 --
 -- You sometimes have to use this rather than 'mapped' -- due to
--- temporary insanity 'Functor' is not a superclass of 'Monad'.
+-- temporary insanity 'Functor' was not a superclass of 'Monad' until
+-- GHC 7.10.
 --
 -- @
 -- 'liftM' ≡ 'over' 'lifted'
@@ -487,6 +492,11 @@ set' l b = runIdentity #. l (\_ -> Identity b)
 --
 -- >>> Map.empty & at 3 ?~ x
 -- fromList [(3,x)]
+--
+-- '?~' can be used type-changily:
+--
+-- >>> ('a', ('b', 'c')) & _2.both ?~ 'x'
+-- ('a',(Just 'x',Just 'x'))
 --
 -- @
 -- ('?~') :: 'Setter' s t a ('Maybe' b)    -> b -> s -> t
@@ -1074,14 +1084,14 @@ l <>= a = State.modify (l <>~ a)
 
 -----------------------------------------------------------------------------
 -- Writer Operations
-----------------------------------------------------------------------------
+-----------------------------------------------------------------------------
 
 -- | Write to a fragment of a larger 'Writer' format.
 scribe :: (MonadWriter t m, Monoid s) => ASetter s t a b -> b -> m ()
 scribe l b = tell (set l b mempty)
 {-# INLINE scribe #-}
 
--- | This is a generalization of 'pass' that alows you to modify just a
+-- | This is a generalization of 'pass' that allows you to modify just a
 -- portion of the resulting 'MonadWriter'.
 passing :: MonadWriter w m => Setter w w u v -> m (a, u -> v) -> m a
 passing l m = pass $ do
@@ -1089,7 +1099,7 @@ passing l m = pass $ do
   return (a, over l uv)
 {-# INLINE passing #-}
 
--- | This is a generalization of 'pass' that alows you to modify just a
+-- | This is a generalization of 'pass' that allows you to modify just a
 -- portion of the resulting 'MonadWriter' with access to the index of an
 -- 'IndexedSetter'.
 ipassing :: MonadWriter w m => IndexedSetter i w w u v -> m (a, i -> u -> v) -> m a
@@ -1098,13 +1108,13 @@ ipassing l m = pass $ do
   return (a, iover l uv)
 {-# INLINE ipassing #-}
 
--- | This is a generalization of 'censor' that alows you to 'censor' just a
+-- | This is a generalization of 'censor' that allows you to 'censor' just a
 -- portion of the resulting 'MonadWriter'.
 censoring :: MonadWriter w m => Setter w w u v -> (u -> v) -> m a -> m a
 censoring l uv = censor (over l uv)
 {-# INLINE censoring #-}
 
--- | This is a generalization of 'censor' that alows you to 'censor' just a
+-- | This is a generalization of 'censor' that allows you to 'censor' just a
 -- portion of the resulting 'MonadWriter', with access to the index of an
 -- 'IndexedSetter'.
 icensoring :: MonadWriter w m => IndexedSetter i w w u v -> (i -> u -> v) -> m a -> m a
@@ -1112,8 +1122,54 @@ icensoring l uv = censor (iover l uv)
 {-# INLINE icensoring #-}
 
 -----------------------------------------------------------------------------
+-- Reader Operations
+-----------------------------------------------------------------------------
+
+-- | Modify the value of the 'Reader' environment associated with the target of a
+-- 'Setter', 'Lens', or 'Traversal'.
+--
+-- @
+-- 'locally' l 'id' a ≡ a
+-- 'locally' l f '.' locally l g ≡ 'locally' l (f '.' g)
+-- @
+--
+-- >>> (1,1) & locally _1 (+1) (uncurry (+))
+-- 3
+--
+-- >>> "," & locally ($) ("Hello" <>) (<> " world!")
+-- "Hello, world!"
+--
+-- @
+-- locally :: MonadReader s m => 'Iso' s s a b       -> (a -> b) -> m r -> m r
+-- locally :: MonadReader s m => 'Lens' s s a b      -> (a -> b) -> m r -> m r
+-- locally :: MonadReader s m => 'Traversal' s s a b -> (a -> b) -> m r -> m r
+-- locally :: MonadReader s m => 'Setter' s s a b    -> (a -> b) -> m r -> m r
+-- @
+locally :: MonadReader s m => ASetter s s a b -> (a -> b) -> m r -> m r
+locally l f = Reader.local (over l f)
+{-# INLINE locally #-}
+
+-- | This is a generalization of 'locally' that allows one to make indexed
+-- 'local' changes to a 'Reader' environment associated with the target of a
+-- 'Setter', 'Lens', or 'Traversal'.
+--
+-- @
+-- 'locally' l f ≡ 'ilocally' l f . const
+-- 'ilocally' l f ≡ 'locally' l f . 'Indexed'
+-- @
+--
+-- @
+-- ilocally :: MonadReader s m => 'IndexedLens' s s a b      -> (i -> a -> b) -> m r -> m r
+-- ilocally :: MonadReader s m => 'IndexedTraversal' s s a b -> (i -> a -> b) -> m r -> m r
+-- ilocally :: MonadReader s m => 'IndexedSetter' s s a b    -> (i -> a -> b) -> m r -> m r
+-- @
+ilocally :: MonadReader s m => AnIndexedSetter i s s a b -> (i -> a -> b) -> m r -> m r
+ilocally l f = Reader.local (iover l f)
+{-# INLINE ilocally #-}
+
+-----------------------------------------------------------------------------
 -- Indexed Setters
-----------------------------------------------------------------------------
+-----------------------------------------------------------------------------
 
 
 -- | Map with index. This is an alias for 'imapOf'.

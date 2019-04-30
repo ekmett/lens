@@ -119,7 +119,7 @@ showSigned' f n
 -- | A simpler variant of 'Numeric.readSigned' that supports any base, only
 -- recognizes an initial dash and doesn't know about parentheses
 readSigned' :: Real a => ReadS a -> ReadS a
-readSigned' f ('-':xs) = f xs & mapped . _1 %~ negate
+readSigned' f ('-':xs) = f xs <&> _1 %~ negate
 readSigned' f xs       = f xs
 
 -- | @'binary' = 'base' 2@

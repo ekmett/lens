@@ -1,0 +1,7 @@
+ghc-head:               True
+no-tests-no-benchmarks: False
+unconstrained:          False
+hlint:                  True
+hlint-options:          --cpp-ansi --cpp-define=HLINT
+apt:                    freeglut3-dev
+irc-channels:           irc.freenode.org#haskell-lens

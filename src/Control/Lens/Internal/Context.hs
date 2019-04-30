@@ -1,10 +1,8 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FunctionalDependencies #-}
 #if __GLASGOW_HASKELL__ >= 707
 {-# LANGUAGE RoleAnnotations #-}
@@ -69,6 +67,7 @@ class IndexedFunctor w where
 -- "Parameterized Notions of Computation" <http://bentnib.org/paramnotions-jfp.pdf>
 -- and that construction is dualized here.
 class IndexedFunctor w => IndexedComonad w where
+  {-# MINIMAL iextract, (iduplicate | iextend) #-}
   -- | extract from an indexed comonadic value when the indices match.
   iextract :: w a a t -> t
 

@@ -1,8 +1,9 @@
 name:          lens-properties
 category:      Data, Lenses
-version:       4.11
+version:       4.11.1
 license:       BSD3
 cabal-version: >= 1.8
+license-file:  LICENSE
 author:        Edward Kmett and Oliver Charles
 maintainer:    Edward Kmett <ekmett@gmail.com>
 stability:     provisional
@@ -10,9 +11,19 @@ homepage:      http://github.com/ekmett/lens/
 bug-reports:   http://github.com/ekmett/lens/issues
 copyright:     Copyright (C) 2012-2015 Edward A. Kmett, Copyright (C) 2014 Oliver Charles
 synopsis:      QuickCheck properties for lens
+description:   QuickCheck properties for lens.
 build-type:    Simple
+tested-with:   GHC == 7.4.2
+             , GHC == 7.6.3
+             , GHC == 7.8.4
+             , GHC == 7.10.3
+             , GHC == 8.0.2
+             , GHC == 8.2.2
+             , GHC == 8.4.4
+             , GHC == 8.6.4
 
 extra-source-files:
+  .hlint.yaml
   CHANGELOG.markdown
 
 source-repository head
@@ -21,9 +32,9 @@ source-repository head
 
 library
   build-depends:
-    base         >= 4.3 && < 5,
+    base         >= 4.5 && < 5,
     lens         >= 4   && < 5,
-    QuickCheck   >= 2.4 && < 2.10,
+    QuickCheck   >= 2.4 && < 2.14,
     transformers >= 0.2 && < 0.6
 
   exposed-modules:

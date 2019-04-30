@@ -2,7 +2,7 @@ name:          lens-examples
 category:      Data, Lenses
 version:       0.1
 license:       BSD3
-cabal-version: >= 1.8
+cabal-version: >= 1.10
 license-file:  LICENSE
 author:        Niklas Haas
 maintainer:    Edward A. Kmett <ekmett@gmail.com>
@@ -11,10 +11,19 @@ homepage:      http://github.com/ekmett/lens/
 bug-reports:   http://github.com/ekmett/lens/issues
 copyright:     Copyright (C) 2012 Edward A. Kmett
 synopsis:      Lenses, Folds and Traversals
-description:   Pong Example
+description:   Lenses, Folds and Traversals
+               .
+               Pong Example
 
 build-type:    Simple
-tested-with:   GHC == 7.4.1
+tested-with:   GHC == 7.4.2
+             , GHC == 7.6.3
+             , GHC == 7.8.4
+             , GHC == 7.10.3
+             , GHC == 8.0.2
+             , GHC == 8.2.2
+             , GHC == 8.4.4
+             , GHC == 8.6.4
 
 source-repository head
   type: git
@@ -23,15 +32,33 @@ source-repository head
 flag pong
   default: True
 
+library
+  exposed-modules:
+    Aeson
+    Plates
+    Turtle
+  build-depends:
+    aeson,
+    base       >= 4.5      && < 5,
+    bytestring >= 0.9.1.10 && < 0.11,
+    data-default-class,
+    ghc-prim,
+    lens
+  default-language: Haskell2010
+  ghc-options: -Wall
+
 executable lens-pong
   if !flag(pong)
     buildable: False
 
   build-depends:
-    base,
-    containers >= 0.4   && < 0.6,
-    gloss      >= 1.7   && < 1.12,
+    base       >= 4.5   && < 5,
+    containers >= 0.4   && < 0.7,
+    gloss      >= 1.12  && < 1.14,
     lens,
     mtl        >= 2.0.1 && < 2.3,
-    random     >= 1.0   && < 1.2
+    random     >= 1.0   && < 1.2,
+    streams    >= 3.3   && < 4
   main-is: Pong.hs
+  default-language: Haskell2010
+  ghc-options: -Wall

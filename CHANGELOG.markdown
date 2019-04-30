@@ -3,6 +3,71 @@ next
 * New lenses `head1` and `last1`, to access the first/last elements of
   a `Traversable1` container.
 
+4.17.1 [2019.04.26]
+-------------------
+* Support `th-abstraction-0.3.0.0` or later.
+* Only incur `semigroups` and `void` dependencies on old GHCs.
+* Add `holes1Of`
+* Add `locally` https://github.com/ekmett/lens/pull/829
+* Add `ilocally` https://github.com/ekmett/lens/pull/836
+* Add third `Prism` law.
+* Add `gplate1`
+* Add additional bifunctor instances for `Swapped`
+* Add `Wrapped`/`Rewrapped` instances for `Data.Monoid.Ap`.
+
+4.17 [2018.07.03]
+-----------------
+* Allow building with GHC 8.6.
+* Make the instances for `Product` and `(:*:)` in `Control.Lens.Tuple`
+  poly-kinded.
+* Make the definitions in `GHC.Generics.Lens` poly-kinded.
+* Make `(%%@~)`, `(%%@=)`, `(<%@=)`, and `(<<%@=)` consume an
+  `Over (Indexed i)` instead of an `IndexedLensLike i` to improve type
+  inference.
+* Add an `AsEmpty` instance for `ZipList`.
+
+4.16.1 [2018.03.23]
+-------------------
+* Re-export `(<&>)` from `Data.Functor` on `base-4.11` and later.
+* Added `Cons` and `Snoc` instances for `Control.Applicative.ZipList`
+* Fix a bug in which `makeFields` would generate equality constraints for
+  field types involving data families, which are unnecessary.
+* Improve the performance of `holesOf`.
+
+4.16 [2018.01.28]
+-----------------
+* The `Semigroup` instances for `Traversed` and `Sequenced` are now more
+  constrained (going from `Apply` to `Applicative` and `Monad`, respectively).
+  In GHC 8.4, `Semigroup` is a superclass of `Monoid`, therefore we'd need to
+  have `Apply` constraint in the `Monoid` instances. We opted to weaken our
+  ability to use `Apply` than to lose compatibility with third-party packages
+  that don't supply instances for `Apply`.
+
+  In practice this changes the (specialised) type signature of `traverseOf_`
+  ```diff+
+  - traverseOf_ :: Apply f       => Fold1 s a -> (a -> f r) -> s -> f ()
+  + traverseOf_ :: Applicative f => Fold1 s a -> (a -> f r) -> s -> f ()
+  ```
+  and similarly for `forOf_` and `sequenceOf_`.
+
+  As part of this change, new combinators `traverse1Of_`, `for1Of_` and
+  `sequence1Of_` were added for `Apply`-only effects.
+
+  Similar instance context changes were made for `Folding` and `Effect`,
+  but these changes aren't publicly visible.
+
+* Add `Control.Lens.Unsound`, which exports unsound functionality for forming
+  products of lenses and sums of prisms.
+
+* Add `Numeric.Natural.Lens`, which export convenient isomorphisms for
+  natural numbers.
+
+* Add `Strict` instances for strict and lazy `ST`.
+
+* Adapt `Language.Haskell.TH.Lens` for `template-haskell-2.13` (bundled
+  with GHC 8.4).
+
+* Add `Semigroup` and `Monoid` instances for `Indexing`.
 
 4.15.4
 ----

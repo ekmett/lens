@@ -5,14 +5,16 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE Trustworthy #-}
 
 #ifndef MIN_VERSION_mtl
 #define MIN_VERSION_mtl(x,y,z) 1
 #endif
 
-#if __GLASGOW_HASKELL__ < 708
-{-# LANGUAGE Trustworthy #-}
+#if __GLASGOW_HASKELL__ >= 800
+{-# OPTIONS_GHC -Wno-trustworthy-safe #-}
 #endif
+
 -------------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Lens
@@ -146,8 +148,11 @@ import Data.Profunctor.Unsafe
 import Data.Semigroup.Traversable
 import Data.Void
 import Prelude
-#if __GLASGOW_HASKELL__ >= 710
+#if MIN_VERSION_base(4,8,0)
 import Data.Function ((&))
+#endif
+#if MIN_VERSION_base(4,11,0)
+import Data.Functor ((<&>))
 #endif
 
 #ifdef HLINT
@@ -175,7 +180,7 @@ infixr 4 %%@~, <%@~, <<%@~, %%~, <+~, <*~, <-~, <//~, <^~, <^^~, <**~, <&&~, <||
 infix  4 %%@=, <%@=, <<%@=, %%=, <+=, <*=, <-=, <//=, <^=, <^^=, <**=, <&&=, <||=, <<>=, <%=, <<%=, <<.=, <<?=, <#=, #=, #%=, <#%=, #%%=
        , <<+=, <<-=, <<*=, <<//=, <<^=, <<^^=, <<**=, <<||=, <<&&=, <<<>=
 infixr 2 <<~
-infixl 1 <&>, ??, &~
+infixl 1 ??, &~
 
 -------------------------------------------------------------------------------
 -- Lenses
@@ -332,7 +337,7 @@ l %%= f = do
 -------------------------------------------------------------------------------
 
 
-#if __GLASGOW_HASKELL__ < 710
+#if !(MIN_VERSION_base(4,8,0))
 -- | Passes the result of the left side to the function on the right side (forward pipe operator).
 --
 -- This is the flipped version of ('$'), which is more common in languages like F# as (@|>@) where it is needed
@@ -360,6 +365,7 @@ a & f = f a
 infixl 1 &
 #endif
 
+#if !(MIN_VERSION_base(4,11,0))
 -- | Infix flipped 'fmap'.
 --
 -- @
@@ -368,6 +374,8 @@ infixl 1 &
 (<&>) :: Functor f => f a -> (a -> b) -> f b
 as <&> f = f <$> as
 {-# INLINE (<&>) #-}
+infixl 1 <&>
+#endif
 
 -- | This is convenient to 'flip' argument order of composite functions defined as:
 --
@@ -484,7 +492,7 @@ chosen pafb = cotabulate $ \weaa -> cosieve (either id id `lmap` pafb) weaa <&> 
 --
 -- @
 -- 'alongside' :: 'Lens'   s t a b -> 'Lens'   s' t' a' b' -> 'Lens'   (s,s') (t,t') (a,a') (b,b')
--- 'alongside' :: 'Getter' s t a b -> 'Getter' s' t' a' b' -> 'Getter' (s,s') (t,t') (a,a') (b,b')
+-- 'alongside' :: 'Getter' s   a   -> 'Getter' s'    a'    -> 'Getter' (s,s')        (a,a')
 -- @
 alongside :: LensLike (AlongsideLeft f b') s  t  a  b
           -> LensLike (AlongsideRight f t) s' t' a' b'
@@ -1316,7 +1324,7 @@ l <<%@~ f = l $ Indexed $ \i a -> second' (f i) (a,a)
 -- ('%%@~') ::             'IndexedLens' i s t a b      -> (i -> a -> (r, b)) -> s -> (r, t)
 -- ('%%@~') :: 'Monoid' r => 'Control.Lens.Traversal.IndexedTraversal' i s t a b -> (i -> a -> (r, b)) -> s -> (r, t)
 -- @
-(%%@~) :: IndexedLensLike i f s t a b -> (i -> a -> f b) -> s -> f t
+(%%@~) :: Over (Indexed i) f s t a b -> (i -> a -> f b) -> s -> f t
 (%%@~) l = l .# Indexed
 {-# INLINE (%%@~) #-}
 
@@ -1332,7 +1340,7 @@ l <<%@~ f = l $ Indexed $ \i a -> second' (f i) (a,a)
 -- ('%%@=') :: 'MonadState' s m                 => 'IndexedLens' i s s a b      -> (i -> a -> (r, b)) -> s -> m r
 -- ('%%@=') :: ('MonadState' s m, 'Monoid' r) => 'Control.Lens.Traversal.IndexedTraversal' i s s a b -> (i -> a -> (r, b)) -> s -> m r
 -- @
-(%%@=) :: MonadState s m => IndexedLensLike i ((,) r) s s a b -> (i -> a -> (r, b)) -> m r
+(%%@=) :: MonadState s m => Over (Indexed i) ((,) r) s s a b -> (i -> a -> (r, b)) -> m r
 #if MIN_VERSION_mtl(2,1,0)
 l %%@= f = State.state (l %%@~ f)
 #else
@@ -1351,7 +1359,7 @@ l %%@= f = do
 -- ('<%@=') :: 'MonadState' s m                 => 'IndexedLens' i s s a b      -> (i -> a -> b) -> m b
 -- ('<%@=') :: ('MonadState' s m, 'Monoid' b) => 'Control.Lens.Traversal.IndexedTraversal' i s s a b -> (i -> a -> b) -> m b
 -- @
-(<%@=) :: MonadState s m => IndexedLensLike i ((,) b) s s a b -> (i -> a -> b) -> m b
+(<%@=) :: MonadState s m => Over (Indexed i) ((,) b) s s a b -> (i -> a -> b) -> m b
 l <%@= f = l %%@= \ i a -> let b = f i a in (b, b)
 {-# INLINE (<%@=) #-}
 
@@ -1363,7 +1371,7 @@ l <%@= f = l %%@= \ i a -> let b = f i a in (b, b)
 -- ('<<%@=') :: 'MonadState' s m                 => 'IndexedLens' i s s a b      -> (i -> a -> b) -> m a
 -- ('<<%@=') :: ('MonadState' s m, 'Monoid' b) => 'Control.Lens.Traversal.IndexedTraversal' i s s a b -> (i -> a -> b) -> m a
 -- @
-(<<%@=) :: MonadState s m => IndexedLensLike i ((,) a) s s a b -> (i -> a -> b) -> m a
+(<<%@=) :: MonadState s m => Over (Indexed i) ((,) a) s s a b -> (i -> a -> b) -> m a
 #if MIN_VERSION_mtl(2,1,0)
 l <<%@= f = State.state (l (Indexed $ \ i a -> (a, f i a)))
 #else
