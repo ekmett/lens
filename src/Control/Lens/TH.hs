@@ -512,7 +512,11 @@ makeDataDecl dec = case deNewtype dec of
     , fullType = apps $ ConT tyName
     , constructors = cons
     }
+#if MIN_VERSION_template_haskell(2,15,0)
+  DataInstD ctx _ args
+#else
   DataInstD ctx familyName args
+#endif
 #if MIN_VERSION_template_haskell(2,11,0)
             _
 #endif
@@ -520,8 +524,12 @@ makeDataDecl dec = case deNewtype dec of
     { dataContext = ctx
     , tyConName = Nothing
     , dataParameters = map PlainTV vars
+#if MIN_VERSION_template_haskell(2,15,0)
+    , fullType = \tys -> substType (Map.fromList $ zip vars tys) args
+#else
     , fullType = \tys -> apps (ConT familyName) $
         substType (Map.fromList $ zip vars tys) args
+#endif
     , constructors = cons
     }
     where

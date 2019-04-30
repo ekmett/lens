@@ -46,7 +46,9 @@ import Paths_lens (version)
 
 -- | Compatibility shim for recent changes to template haskell's 'tySynInstD'
 tySynInstD' :: Name -> [TypeQ] -> TypeQ -> DecQ
-#if MIN_VERSION_template_haskell(2,9,0)
+#if MIN_VERSION_template_haskell(2,15,0)
+tySynInstD' fam ts r = tySynInstD $ tySynEqn Nothing (appsT (conT fam) ts) r
+#elif MIN_VERSION_template_haskell(2,9,0)
 tySynInstD' fam ts r = tySynInstD fam (tySynEqn ts r)
 #else
 tySynInstD' = tySynInstD

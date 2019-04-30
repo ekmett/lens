@@ -490,7 +490,11 @@ instance HasTypes Foreign where
   types f (ImportF cc saf str n t) = ImportF cc saf str n <$> types f t
   types f (ExportF cc     str n t) = ExportF cc     str n <$> types f t
 
-#if MIN_VERSION_template_haskell(2,9,0)
+#if MIN_VERSION_template_haskell(2,15,0)
+instance HasTypes TySynEqn where
+  types f (TySynEqn m lhs rhs) = TySynEqn m <$> types f lhs
+                                         <*> types f rhs
+#elif MIN_VERSION_template_haskell(2,9,0)
 instance HasTypes TySynEqn where
   types f (TySynEqn lhss rhs) = TySynEqn <$> traverse (types f) lhss
                                          <*> types f rhs
@@ -1011,6 +1015,15 @@ _PragmaD
       remitter _ = Nothing
 
 #if MIN_VERSION_template_haskell(2,9,0)
+#if MIN_VERSION_template_haskell(2,15,0)
+_TySynInstD :: Prism' Dec TySynEqn
+_TySynInstD
+  = prism' reviewer remitter
+  where
+      reviewer x = TySynInstD x
+      remitter (TySynInstD x) = Just x
+      remitter _ = Nothing
+#else
 _TySynInstD :: Prism' Dec (Name, TySynEqn)
 _TySynInstD
   = prism' reviewer remitter
@@ -1018,6 +1031,7 @@ _TySynInstD
       reviewer (x, y) = TySynInstD x y
       remitter (TySynInstD x y) = Just (x, y)
       remitter _ = Nothing
+#endif
 
 _RoleAnnotD :: Prism' Dec (Name, [Role])
 _RoleAnnotD
@@ -1084,7 +1098,14 @@ _ClosedTypeFamilyD
 #endif
 
 #if MIN_VERSION_template_haskell(2,11,0)
-# if MIN_VERSION_template_haskell(2,12,0)
+
+#if MIN_VERSION_template_haskell(2,15,0)
+type DataInstPrism cons = Prism' Dec (Cxt, Maybe [TyVarBndr], Type, Maybe Kind, cons, [DerivClause])
+#else
+type DataInstPrism cons = DataPrism' [Type] cons
+#endif
+
+#if MIN_VERSION_template_haskell(2,12,0)
 type DataPrism' tys cons = Prism' Dec (Cxt, Name, tys, Maybe Kind, cons, [DerivClause])
 # else
 type DataPrism' tys cons = Prism' Dec (Cxt, Name, tys, Maybe Kind, cons, Cxt)
@@ -1106,7 +1127,7 @@ _NewtypeD
       remitter (NewtypeD x y z w u v) = Just (x, y, z, w, u, v)
       remitter _ = Nothing
 
-_DataInstD :: DataPrism' [Type] [Con]
+_DataInstD :: DataInstPrism [Con]
 _DataInstD
   = prism' reviewer remitter
   where
@@ -1114,7 +1135,7 @@ _DataInstD
       remitter (DataInstD x y z w u v) = Just (x, y, z, w, u, v)
       remitter _ = Nothing
 
-_NewtypeInstD :: DataPrism' [Type] Con
+_NewtypeInstD :: DataInstPrism Con
 _NewtypeInstD
   = prism' reviewer remitter
   where
@@ -1542,6 +1563,15 @@ _SpecialiseInstP
       remitter (SpecialiseInstP x) = Just x
       remitter _ = Nothing
 
+#if MIN_VERSION_template_haskell(2,15,0)
+_RuleP :: Prism' Pragma (String, Maybe [TyVarBndr], [RuleBndr], Exp, Exp, Phases)
+_RuleP
+  = prism' reviewer remitter
+  where
+      reviewer (x, y, z, w, u, v) = RuleP x y z w u v
+      remitter (RuleP x y z w u v) = Just (x, y, z, w, u, v)
+      remitter _ = Nothing
+#else
 _RuleP :: Prism' Pragma (String, [RuleBndr], Exp, Exp, Phases)
 _RuleP
   = prism' reviewer remitter
@@ -1549,6 +1579,7 @@ _RuleP
       reviewer (x, y, z, w, u) = RuleP x y z w u
       remitter (RuleP x y z w u) = Just (x, y, z, w, u)
       remitter _ = Nothing
+#endif
 
 #if MIN_VERSION_template_haskell(2,9,0)
 _AnnP :: Prism' Pragma (AnnTarget, Exp)
@@ -1712,7 +1743,17 @@ _DataFam
       remitter _ = Nothing
 #endif
 
-#if MIN_VERSION_template_haskell(2,9,0)
+#if MIN_VERSION_template_haskell(2,15,0)
+tySynEqnPatterns :: Lens' TySynEqn Type
+tySynEqnPatterns = lens g s where
+   g (TySynEqn _ xs _)    = xs
+   s (TySynEqn m _  y) xs = TySynEqn m xs y
+
+tySynEqnResult :: Lens' TySynEqn Type
+tySynEqnResult = lens g s where
+   g (TySynEqn _ _  x) = x
+   s (TySynEqn m xs _) = TySynEqn m xs
+#elif MIN_VERSION_template_haskell(2,9,0)
 tySynEqnPatterns :: Lens' TySynEqn [Type]
 tySynEqnPatterns = lens g s where
    g (TySynEqn xs _)    = xs

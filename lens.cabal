@@ -125,7 +125,7 @@ source-repository head
 
 custom-setup
   setup-depends:
-    Cabal >= 1.10 && <2.5,
+    Cabal >= 1.10 && <2.6,
     base  >= 4.5 && <5,
     cabal-doctest >= 1 && <1.1,
     filepath
@@ -216,7 +216,7 @@ library
     reflection                >= 2.1      && < 3,
     semigroupoids             >= 5        && < 6,
     tagged                    >= 0.4.4    && < 1,
-    template-haskell          >= 2.4      && < 2.15,
+    template-haskell          >= 2.4      && < 2.16,
     th-abstraction            >= 0.2.1    && < 0.4,
     text                      >= 0.11     && < 1.3,
     transformers              >= 0.2      && < 0.6,
