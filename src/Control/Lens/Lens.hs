@@ -118,6 +118,7 @@ module Control.Lens.Lens
   -- * Common Lenses
   , devoid
   , united
+  , head1, last1
 
   -- * Context
   , Context(..)
@@ -136,12 +137,15 @@ import Control.Lens.Internal.Getter
 import Control.Lens.Internal.Indexed
 import Control.Lens.Type
 import Control.Monad.State as State
+import Data.Functor.Apply
+import Data.Functor.Reverse
 import Data.Functor.Yoneda
 import Data.Monoid
 import Data.Profunctor
 import Data.Profunctor.Rep
 import Data.Profunctor.Sieve
 import Data.Profunctor.Unsafe
+import Data.Semigroup.Traversable
 import Data.Void
 import Prelude
 #if MIN_VERSION_base(4,8,0)
@@ -160,6 +164,8 @@ import Data.Functor ((<&>))
 -- >>> import Control.Lens
 -- >>> import Control.Monad.State
 -- >>> import Data.Char (chr)
+-- >>> import Data.List.NonEmpty (NonEmpty ((:|)))
+-- >>> import Data.Tree (Tree (Node))
 -- >>> import Debug.SimpleReflect.Expr
 -- >>> import Debug.SimpleReflect.Vars as Vars hiding (f,g,h)
 -- >>> let f :: Expr -> Expr; f = Debug.SimpleReflect.Vars.f
@@ -1496,6 +1502,42 @@ devoid _ = absurd
 united :: Lens' a ()
 united f v = f () <&> \ () -> v
 {-# INLINE united #-}
+
+data First1 f a = First1 (f a) a
+
+instance (Functor f) => Functor (First1 f) where
+  fmap f (First1 fa a) = First1 (f <$> fa) (f a)
+  {-# INLINE fmap #-}
+
+instance (Functor f) => Apply (First1 f) where
+  First1 ff f <.> First1 _ x = First1 (($ x) <$> ff) (f x)
+  {-# INLINE (<.>) #-}
+
+getFirst1 :: First1 f a -> f a
+getFirst1 (First1 fa _) = fa
+{-# INLINE getFirst1 #-}
+
+-- | A 'Lens' focusing on the first element of a 'Traversable1' container.
+--
+-- >>> 2 :| [3, 4] & head1 +~ 10
+-- 12 :| [3,4]
+--
+-- >>> Identity True ^. head1
+-- True
+head1 :: (Traversable1 t) => Lens' (t a) a
+head1 f = getFirst1 . traverse1 (\a -> First1 (f a) a)
+{-# INLINE head1 #-}
+
+-- | A 'Lens' focusing on the last element of a 'Traversable1' container.
+--
+-- >>> 2 :| [3, 4] & last1 +~ 10
+-- 2 :| [3,14]
+--
+-- >>> Node 'a' [Node 'b' [], Node 'c' []] ^. last1
+-- 'c'
+last1 :: (Traversable1 t) => Lens' (t a) a
+last1 f = fmap getReverse . head1 f . Reverse
+{-# INLINE last1 #-}
 
 -- | Fuse a composition of lenses using 'Yoneda' to provide 'fmap' fusion.
 --

@@ -1,3 +1,8 @@
+next
+----
+* New lenses `head1` and `last1`, to access the first/last elements of
+  a `Traversable1` container.
+
 4.17.1 [2019.04.26]
 -------------------
 * Support `th-abstraction-0.3.0.0` or later.
