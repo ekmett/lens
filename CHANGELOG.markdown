@@ -1,7 +1,11 @@
-next
-----
+next [????.??.??]
+-----------------
+* Add additional bifunctor instances for `Swapped`.
 * New lenses `head1` and `last1`, to access the first/last elements of
   a `Traversable1` container.
+* Weaken `holeInOne`'s `Category p` constraint to `Comonad (Corep p)`.
+* Add `filteredBy`.
+* Add `traversalUnion` to `Control.Lens.Unsound`.
 
 4.17.1 [2019.04.26]
 -------------------
@@ -12,7 +16,6 @@ next
 * Add `ilocally` https://github.com/ekmett/lens/pull/836
 * Add third `Prism` law.
 * Add `gplate1`
-* Add additional bifunctor instances for `Swapped`
 * Add `Wrapped`/`Rewrapped` instances for `Data.Monoid.Ap`.
 
 4.17 [2018.07.03]
