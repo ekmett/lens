@@ -146,9 +146,6 @@ import Control.Monad
 import Control.Monad.Trans.State.Lazy
 import Data.Bitraversable
 import Data.CallStack
-#if __GLASGOW_HASKELL__ < 710
-import Data.Foldable (Foldable)
-#endif
 import Data.Functor.Apply
 import Data.Functor.Compose
 import Data.Functor.Day.Curried
@@ -160,19 +157,27 @@ import qualified Data.Map as Map
 import Data.Map (Map)
 import Data.Sequence (Seq, mapWithIndex)
 import Data.Vector as Vector (Vector, imap)
-import Data.Monoid (Monoid (..), Any (..), Endo (..))
+import Data.Monoid (Any (..), Endo (..))
 import Data.Profunctor
 import Data.Profunctor.Rep
 import Data.Profunctor.Sieve
 import Data.Profunctor.Unsafe
 import Data.Reflection
-import Data.Semigroup (Semigroup (..))
 import Data.Semigroup.Traversable
 import Data.Semigroup.Bitraversable
 import Data.Traversable
 import Data.Tuple (swap)
 import GHC.Magic (inline)
 import Prelude hiding ((.),id)
+
+#if !(MIN_VERSION_base(4,8,0))
+import Data.Foldable (Foldable)
+import Data.Monoid (Monoid (..))
+#endif
+
+#if !(MIN_VERSION_base(4,11,0))
+import Data.Semigroup (Semigroup (..))
+#endif
 
 -- $setup
 -- >>> :set -XNoOverloadedStrings -XFlexibleContexts

@@ -44,14 +44,6 @@ import Data.Version (showVersion)
 import Paths_lens (version)
 #endif
 
--- | Compatibility shim for recent changes to template haskell's 'tySynInstD'
-tySynInstD' :: Name -> [TypeQ] -> TypeQ -> DecQ
-#if MIN_VERSION_template_haskell(2,9,0)
-tySynInstD' fam ts r = tySynInstD fam (tySynEqn ts r)
-#else
-tySynInstD' = tySynInstD
-#endif
-
 -- | Apply arguments to a type constructor
 appsT :: TypeQ -> [TypeQ] -> TypeQ
 appsT = foldl appT
@@ -95,6 +87,34 @@ fromSet f x = Map.fromDistinctAscList [ (k,f k) | k <- Set.toAscList x ]
 -- | Generate many new names from a given base name.
 newNames :: String {- ^ base name -} -> Int {- ^ count -} -> Q [Name]
 newNames base n = sequence [ newName (base++show i) | i <- [1..n] ]
+
+-- | Decompose an applied type into its individual components. For example, this:
+--
+-- @
+-- Either Int Char
+-- @
+--
+-- would be unfolded to this:
+--
+-- @
+-- ('ConT' ''Either, ['ConT' ''Int, 'ConT' ''Char])
+-- @
+--
+-- This function ignores explicit parentheses and visible kind applications.
+unfoldType :: Type -> (Type, [Type])
+unfoldType = go []
+  where
+    go :: [Type] -> Type -> (Type, [Type])
+    go acc (ForallT _ _ ty) = go acc ty
+    go acc (AppT ty1 ty2)   = go (ty2:acc) ty1
+    go acc (SigT ty _)      = go acc ty
+#if MIN_VERSION_template_haskell(2,11,0)
+    go acc (ParensT ty)     = go acc ty
+#endif
+#if MIN_VERSION_template_haskell(2,15,0)
+    go acc (AppKindT ty _)  = go acc ty
+#endif
+    go acc ty               = (ty, acc)
 
 ------------------------------------------------------------------------
 -- Manually quoted names
