@@ -401,7 +401,7 @@ type AReview t b = Optic' Tagged Identity t b
 -- 'Control.Lens.Fold.lengthOf' l x '<=' 1
 -- @
 --
--- It may help to think of this as a 'Iso' that can be partial in one direction.
+-- It may help to think of this as an 'Iso' that can be partial in one direction.
 --
 -- Every 'Prism' is a valid 'Traversal'.
 --
