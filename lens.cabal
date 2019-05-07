@@ -138,26 +138,6 @@ flag benchmark-uniplate
   default: False
   manual: True
 
--- Generate inline pragmas when using template-haskell. This defaults to enabled, but you can
---
--- > cabal install lens -f-inlining
---
--- to shut it off to benchmark the relative performance impact, or as last ditch effort to address compile
--- errors resulting from the myriad versions of template-haskell that all purport to be 2.8.
-flag inlining
-  manual: True
-  default: True
-
--- Some 7.6.1-rc1 users report their TH still uses old style inline pragmas. This lets them turn on inlining.
-flag old-inline-pragmas
-  default: False
-  manual: True
-
--- Make the test suites dump their template-haskell splices.
-flag dump-splices
-  default: False
-  manual: True
-
 -- You can disable the doctests test suite with -f-test-doctests
 flag test-doctests
   default: True
@@ -170,10 +150,6 @@ flag test-hunit
 
 -- Build the properties test if we're building tests
 flag test-properties
-  default: True
-  manual: True
-
-flag test-templates
   default: True
   manual: True
 
@@ -216,8 +192,6 @@ library
     reflection                >= 2.1      && < 3,
     semigroupoids             >= 5        && < 6,
     tagged                    >= 0.4.4    && < 1,
-    template-haskell          >= 2.4      && < 2.15,
-    th-abstraction            >= 0.2.1    && < 0.3,
     text                      >= 0.11     && < 1.3,
     transformers              >= 0.2      && < 0.6,
     transformers-compat       >= 0.4      && < 1,
@@ -255,8 +229,6 @@ library
     Control.Lens.Internal.CTypes
     Control.Lens.Internal.Deque
     Control.Lens.Internal.Exception
-    Control.Lens.Internal.FieldTH
-    Control.Lens.Internal.PrismTH
     Control.Lens.Internal.Fold
     Control.Lens.Internal.Getter
     Control.Lens.Internal.Indexed
@@ -268,7 +240,6 @@ library
     Control.Lens.Internal.Prism
     Control.Lens.Internal.Review
     Control.Lens.Internal.Setter
-    Control.Lens.Internal.TH
     Control.Lens.Internal.Zoom
     Control.Lens.Iso
     Control.Lens.Lens
@@ -279,7 +250,6 @@ library
     Control.Lens.Reified
     Control.Lens.Review
     Control.Lens.Setter
-    Control.Lens.TH
     Control.Lens.Traversal
     Control.Lens.Tuple
     Control.Lens.Type
@@ -314,7 +284,6 @@ library
     System.Exit.Lens
     System.FilePath.Lens
     System.IO.Error.Lens
-    Language.Haskell.TH.Lens
     Numeric.Lens
     Numeric.Natural.Lens
 
@@ -329,12 +298,6 @@ library
   if flag(trustworthy) && impl(ghc>=7.2)
     other-extensions: Trustworthy
     cpp-options: -DTRUSTWORTHY=1
-
-  if flag(old-inline-pragmas) && impl(ghc>=7.6.0.20120810)
-      cpp-options: -DOLD_INLINE_PRAGMAS=1
-
-  if flag(inlining)
-    cpp-options: -DINLINING
 
   if impl(ghc<7.4)
     ghc-options: -fno-spec-constr-count
@@ -353,23 +316,6 @@ library
   include-dirs: include
 
   default-language: Haskell2010
-
--- Verify that Template Haskell expansion works
-test-suite templates
-  type: exitcode-stdio-1.0
-  main-is: templates.hs
-  other-modules: T799
-  ghc-options: -Wall -threaded
-  hs-source-dirs: tests
-  default-language: Haskell2010
-
-  if flag(dump-splices)
-    ghc-options: -ddump-splices
-
-  if !flag(test-templates)
-    buildable: False
-  else
-    build-depends: base, lens
 
 -- Verify the properties of lenses with QuickCheck
 test-suite properties

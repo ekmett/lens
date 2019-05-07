@@ -17,10 +17,6 @@
 #define OVERLAPPING_PRAGMA {-# OVERLAPPING #-}
 #endif
 
-#ifdef TRUSTWORTHY
-{-# LANGUAGE Trustworthy #-} -- template-haskell
-#endif
-
 #if __GLASGOW_HASKELL__ >= 800
 {-# OPTIONS_GHC -Wno-trustworthy-safe #-}
 #endif
@@ -125,7 +121,6 @@ import Control.Monad.Trans.Free as Trans
 #if !(MIN_VERSION_free(4,6,0))
 import Control.MonadPlus.Free as MonadPlus
 #endif
-import qualified Language.Haskell.TH as TH
 import Data.Data
 import Data.Data.Lens
 import Data.Monoid
@@ -268,18 +263,6 @@ instance Traversable f => Plated (Cofree f a) where
 
 instance Plated (Tree a) where
   plate f (Node a as) = Node a <$> traverse f as
-
-{- Default uniplate instances -}
-instance Plated TH.Exp
-instance Plated TH.Dec
-instance Plated TH.Con
-instance Plated TH.Type
-#if !(MIN_VERSION_template_haskell(2,8,0))
-instance Plated TH.Kind -- in 2.8 Kind is an alias for Type
-#endif
-instance Plated TH.Stmt
-instance Plated TH.Pat
-
 
 infixr 9 ...
 -- | Compose through a plate

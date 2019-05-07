@@ -60,9 +60,6 @@ module Control.Lens
   , module Control.Lens.Reified
   , module Control.Lens.Review
   , module Control.Lens.Setter
-#ifndef DISABLE_TEMPLATE_HASKELL
-  , module Control.Lens.TH
-#endif
   , module Control.Lens.Traversal
   , module Control.Lens.Tuple
   , module Control.Lens.Type
@@ -86,9 +83,6 @@ import Control.Lens.Prism
 import Control.Lens.Reified
 import Control.Lens.Review
 import Control.Lens.Setter
-#ifndef DISABLE_TEMPLATE_HASKELL
-import Control.Lens.TH
-#endif
 import Control.Lens.Traversal
 import Control.Lens.Tuple
 import Control.Lens.Type
