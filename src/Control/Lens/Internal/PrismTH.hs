@@ -28,7 +28,6 @@ module Control.Lens.Internal.PrismTH
   ) where
 
 import Control.Applicative
-import Control.Lens.Fold
 import Control.Lens.Getter
 import Control.Lens.Internal.TH
 import Control.Lens.Lens
@@ -36,13 +35,10 @@ import Control.Lens.Setter
 import Control.Monad
 import Data.Char (isUpper)
 import Data.List
-import Data.Set.Lens
 import Data.Traversable
 import Language.Haskell.TH
 import qualified Language.Haskell.TH.Datatype as D
-import Language.Haskell.TH.Lens
 import qualified Data.Map as Map
-import qualified Data.Set as Set
 import Prelude
 
 -- | Generate a 'Prism' for each constructor of a data type.
@@ -173,16 +169,26 @@ stabSimple :: Stab -> Bool
 stabSimple (Stab _ _ s t a b) = s == t && a == b
 
 stabToType :: Stab -> Type
-stabToType stab@(Stab cx ty s t a b) = ForallT vs cx $
+stabToType stab@(Stab cx ty s t a b) = ForallT tvbs cx $
   case ty of
     PrismType  | stabSimple stab -> prism'TypeName  `conAppsT` [t,b]
                | otherwise       -> prismTypeName   `conAppsT` [s,t,a,b]
     ReviewType                   -> reviewTypeName  `conAppsT` [t,b]
 
   where
-  vs = map PlainTV
-     $ nub -- stable order
-     $ toListOf typeVars cx
+  tvbs = D.freeVariablesWellScoped (map predToType cx) -- stable order
+
+  predToType :: Pred -> Type
+#if MIN_VERSION_template_haskell(2,10,0)
+  predToType = id
+#else
+  predToType (ClassP cls ts) = foldl' AppT (ConT cls) ts
+  predToType (EqualP t1 t2) = TupleT 0 `AppT` t1 `AppT` t2
+    -- It's awkward to encode (~) in old versions of template-haskell.
+    -- Thankfully, we don't actually need to do so, since all we care about
+    -- are the free variables of the argument types. Therefore, just pick
+    -- () as a placeholder type, since the choice of tycon doesn't matter.
+#endif
 
 stabType :: Stab -> OpticType
 stabType (Stab _ o _ _ _ _) = o
@@ -209,22 +215,24 @@ computeReviewType s' cx tys =
 -- return 'True' if the resulting type is a "simple" prism.
 computePrismType :: Type -> Cxt -> [NCon] -> NCon -> Q Stab
 computePrismType t cx cons con =
-  do let ts      = view nconTypes con
-         unbound = setOf typeVars t Set.\\ setOf typeVars cons
-     sub <- sequenceA (fromSet (newName . nameBase) unbound)
+  do let ts       = view nconTypes con
+         tNames   = D.freeVariables t
+         conNames = D.freeVariables cons
+         unbound  = tNames \\ conNames
+     sub <- freshMap unbound
      b   <- toTupleT (map return ts)
-     a   <- toTupleT (map return (substTypeVars sub ts))
-     let s = substTypeVars sub t
+     a   <- toTupleT (map return (D.applySubstitution sub ts))
+     let s = D.applySubstitution sub t
      return (Stab cx PrismType s t a b)
 
 
 computeIsoType :: Type -> [Type] -> TypeQ
 computeIsoType t' fields =
-  do sub <- sequenceA (fromSet (newName . nameBase) (setOf typeVars t'))
-     let t = return                    t'
-         s = return (substTypeVars sub t')
-         b = toTupleT (map return                    fields)
-         a = toTupleT (map return (substTypeVars sub fields))
+  do sub <- freshMap (D.freeVariables t')
+     let t = return                          t'
+         s = return (D.applySubstitution sub t')
+         b = toTupleT (map return                          fields)
+         a = toTupleT (map return (D.applySubstitution sub fields))
 
 #ifndef HLINT
          ty | Map.null sub = appsT (conT iso'TypeName) [t,b]
@@ -387,7 +395,7 @@ makeClassyPrismClass t className methodName cons =
      let methodType = appsT (conT prism'TypeName) [varT r,return t]
 #endif
      methodss <- traverse (mkMethod (VarT r)) cons'
-     classD (cxt[]) className (map PlainTV (r : vs)) (fds r)
+     classD (cxt[]) className (PlainTV r : tvbs) (fds r)
        ( sigD methodName methodType
        : map return (concat methodss)
        )
@@ -404,10 +412,10 @@ makeClassyPrismClass t className methodName cons =
          ]
 
   cons'         = map (over nconName prismName) cons
-  vs            = Set.toList (setOf typeVars t)
+  tvbs          = D.freeVariablesWellScoped [t]
   fds r
-    | null vs   = []
-    | otherwise = [FunDep [r] vs]
+    | null tvbs = []
+    | otherwise = [FunDep [r] $ map D.tvName tvbs]
 
 
 
@@ -423,7 +431,7 @@ makeClassyPrismInstance ::
   [NCon] {- Constructors    -} ->
   DecQ
 makeClassyPrismInstance s className methodName cons =
-  do let vs = Set.toList (setOf typeVars s)
+  do let vs = map D.tvName $ D.freeVariablesWellScoped [s]
          cls = className `conAppsT` (s : map VarT vs)
 
      instanceD (cxt[]) (return cls)
@@ -453,9 +461,14 @@ data NCon = NCon
   }
   deriving (Eq)
 
-instance HasTypeVars NCon where
-  typeVarsEx s f (NCon x vars y z) = NCon x vars <$> typeVarsEx s' f y <*> typeVarsEx s' f z
-    where s' = foldl' (flip Set.insert) s vars
+instance D.TypeSubstitution NCon where
+  freeVariables (NCon _ vars ctxt tys) =
+    (D.freeVariables ctxt `union` D.freeVariables tys) \\ vars
+  applySubstitution subst ncon =
+    let subst' = foldl' (flip Map.delete) subst (_nconVars ncon) in
+    ncon { _nconCxt   = D.applySubstitution subst' (_nconCxt ncon)
+         , _nconTypes = D.applySubstitution subst' (_nconTypes ncon)
+         }
 
 nconName :: Lens' NCon Name
 nconName f x = fmap (\y -> x {_nconName = y}) (f (_nconName x))
@@ -486,6 +499,4 @@ prismName n = case nameBase n of
 
 -- | Quantify all the free variables in a type.
 close :: Type -> TypeQ
-close t = forallT (map PlainTV (Set.toList vs)) (cxt[]) (return t)
-  where
-  vs = setOf typeVars t
+close = pure . D.quantifyType

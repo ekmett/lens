@@ -34,10 +34,15 @@
 ----------------------------------------------------------------------------
 module Control.Lens.Internal.TH where
 
+#if !(MIN_VERSION_base(4,8,0))
+import Control.Applicative ((<$>))
+#endif
 import Data.Functor.Contravariant
+import Data.Traversable (for)
 import Language.Haskell.TH
 import Language.Haskell.TH.Syntax
 import qualified Data.Map as Map
+import Data.Map (Map)
 import qualified Data.Set as Set
 #ifndef CURRENT_PACKAGE_KEY
 import Data.Version (showVersion)
@@ -115,6 +120,11 @@ unfoldType = go []
     go acc (AppKindT ty _)  = go acc ty
 #endif
     go acc ty               = (ty, acc)
+
+-- | Given a list of names, build a map from those names to a list of fresh names
+-- based on them.
+freshMap :: [Name] -> Q (Map Name Type)
+freshMap ns = Map.fromList <$> for ns (\ n -> (,) n <$> (VarT <$> newName (nameBase n)))
 
 ------------------------------------------------------------------------
 -- Manually quoted names

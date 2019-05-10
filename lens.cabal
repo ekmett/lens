@@ -218,7 +218,7 @@ library
     semigroupoids             >= 5        && < 6,
     tagged                    >= 0.4.4    && < 1,
     template-haskell          >= 2.4      && < 2.16,
-    th-abstraction            >= 0.2.1    && < 0.4,
+    th-abstraction            >= 0.2.10   && < 0.4,
     text                      >= 0.11     && < 1.3,
     transformers              >= 0.2      && < 0.6,
     transformers-compat       >= 0.4      && < 1,
@@ -315,7 +315,6 @@ library
     System.Exit.Lens
     System.FilePath.Lens
     System.IO.Error.Lens
-    Language.Haskell.TH.Lens
     Numeric.Lens
     Numeric.Natural.Lens
 

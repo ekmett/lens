@@ -108,16 +108,12 @@ import Data.Char (toLower, toUpper, isUpper)
 import Data.Foldable hiding (concat, any)
 import Data.List as List
 import qualified Data.Map as Map
-import Data.Map (Map)
 import Data.Maybe (maybeToList)
 import Data.Monoid
 import qualified Data.Set as Set
 import Data.Set (Set)
-import Data.Set.Lens
-import Data.Traversable hiding (mapM)
 import Language.Haskell.TH
 import Language.Haskell.TH.Datatype
-import Language.Haskell.TH.Lens
 import Language.Haskell.TH.Syntax hiding (lift)
 
 #ifdef HLINT
@@ -490,12 +486,6 @@ deNewtype (NewtypeInstD ctx tyName args c d) = DataInstD ctx tyName args [c] d
 deNewtype d = d
 
 
--- | Given a set of names, build a map from those names to a set of fresh names
--- based on them.
-freshMap :: Set Name -> Q (Map Name Name)
-freshMap ns = Map.fromList <$> for (toList ns) (\ n -> (,) n <$> newName (nameBase n))
-
-
 apps :: Type -> [Type] -> Type
 apps = Prelude.foldl AppT
 
@@ -525,9 +515,9 @@ makeDataDecl dec = case deNewtype dec of
                     -> Just DataDecl
     { dataContext = ctx
     , tyConName = Nothing
-    , dataParameters = map PlainTV vars
+    , dataParameters = tvbs
     , fullType = \tys -> apps (ConT familyName) $
-        substType (Map.fromList $ zip vars tys) args
+        applySubstitution (Map.fromList $ zip vars tys) args
     , constructors = cons
     }
     where
@@ -538,7 +528,8 @@ makeDataDecl dec = case deNewtype dec of
       -- data instance F a Int (Maybe (a, b)) = G
       --
       -- has 2 type parameters: a and b.
-      vars = toList $ setOf typeVars args
+      tvbs = freeVariablesWellScoped args
+      vars = map tvName tvbs
 
 #if MIN_VERSION_template_haskell(2,15,0)
       (familyName, args) =
@@ -576,7 +567,7 @@ makeWrapped nm = do
 makeWrappedForDec :: Dec -> Q (Maybe [Dec])
 makeWrappedForDec decl = case makeDataDecl decl of
   Just dataDecl | [con]   <- constructors dataDecl
-                , [field] <- toListOf (conFields._2) con
+                , [field] <- toListOf (constrFields._2) con
     -> do wrapped   <- makeWrappedInstance dataDecl con field
           rewrapped <- makeRewrappedInstance dataDecl
           return (Just [rewrapped, wrapped])
@@ -587,17 +578,18 @@ makeRewrappedInstance dataDecl = do
 
    t <- varT <$> newName "t"
 
-   let typeArgs = map (view name) (dataParameters dataDecl)
+   let typeArgNames = map tvName (dataParameters dataDecl)
+       typeArgs     = map VarT typeArgNames
 
    typeArgs' <- do
-     m <- freshMap (Set.fromList typeArgs)
-     return (substTypeVars m typeArgs)
+     m <- freshMap typeArgNames
+     return (applySubstitution m typeArgs)
 
        -- Con a b c...
-   let appliedType  = return (fullType dataDecl (map VarT typeArgs))
+   let appliedType  = return (fullType dataDecl typeArgs)
 
        -- Con a' b' c'...
-       appliedType' = return (fullType dataDecl (map VarT typeArgs'))
+       appliedType' = return (fullType dataDecl typeArgs')
 
        -- Con a' b' c'... ~ t
 #if MIN_VERSION_template_haskell(2,10,0)
@@ -615,8 +607,8 @@ makeRewrappedInstance dataDecl = do
 makeWrappedInstance :: DataDecl-> Con -> Type -> DecQ
 makeWrappedInstance dataDecl con fieldType = do
 
-  let conName = view name con
-  let typeArgs = toListOf typeVars (dataParameters dataDecl)
+  let conName = view constrName con
+  let typeArgs = map tvName (dataParameters dataDecl)
 
   -- Con a b c...
   let appliedType  = fullType dataDecl (map VarT typeArgs)
@@ -922,3 +914,40 @@ dropFieldName :: VarBangType   -> BangType
 dropFieldName :: VarStrictType -> StrictType
 #endif
 dropFieldName (_, str, typ) = (str, typ)
+
+constrName :: Lens' Con Name
+constrName f (NormalC n tys)       = (`NormalC` tys) <$> f n
+constrName f (RecC n tys)          = (`RecC` tys) <$> f n
+constrName f (InfixC l n r)        = (\n' -> InfixC l n' r) <$> f n
+constrName f (ForallC bds ctx con) = ForallC bds ctx <$> constrName f con
+#if MIN_VERSION_template_haskell(2,11,0)
+constrName f (GadtC ns argTys retTy) =
+  (\n -> GadtC [n] argTys retTy) <$> f (head ns)
+constrName f (RecGadtC ns argTys retTy) =
+  (\n -> RecGadtC [n] argTys retTy) <$> f (head ns)
+#endif
+
+-- | Provides a 'Traversal' of the types of each field of a constructor.
+constrFields :: Traversal' Con
+#if MIN_VERSION_template_haskell(2,11,0)
+                               BangType
+#else
+                               StrictType
+#endif
+constrFields f (NormalC n fs)      = NormalC n <$> traverse f fs
+constrFields f (RecC n fs)         = RecC n <$> traverse (sansVar f) fs
+constrFields f (InfixC l n r)      = InfixC <$> f l <*> pure n <*> f r
+constrFields f (ForallC bds ctx c) = ForallC bds ctx <$> constrFields f c
+#if MIN_VERSION_template_haskell(2,11,0)
+constrFields f (GadtC ns argTys retTy) =
+  GadtC ns <$> traverse f argTys <*> pure retTy
+constrFields f (RecGadtC ns argTys retTy) =
+  RecGadtC ns <$> traverse (sansVar f) argTys <*> pure retTy
+#endif
+
+#if MIN_VERSION_template_haskell(2,11,0)
+sansVar :: Traversal' VarBangType   BangType
+#else
+sansVar :: Traversal' VarStrictType StrictType
+#endif
+sansVar f (fn,s,t) = (\(s', t') -> (fn,s',t')) <$> f (s, t)

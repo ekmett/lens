@@ -43,11 +43,10 @@ import Control.Lens.Traversal
 import Control.Applicative
 import Control.Monad
 import Control.Monad.State
-import Language.Haskell.TH.Lens
 import Language.Haskell.TH
 import qualified Language.Haskell.TH.Datatype as D
 import Data.Maybe (isJust,maybeToList)
-import Data.List (nub, findIndices)
+import Data.List ((\\), nub, findIndices)
 import Data.Either (partitionEithers)
 import Data.Semigroup
 import Data.Set.Lens
@@ -128,7 +127,7 @@ normalizeConstructor con =
       | any (\tv -> D.tvName tv `Set.member` used) unallowable
       = (Nothing, fieldtype)
       where
-        used        = setOf typeVars fieldtype
+        used        = Set.fromList $ D.freeVariables fieldtype
         unallowable = D.constructorVars con
     checkForExistentials fieldname fieldtype = (fieldname, fieldtype)
 
@@ -240,15 +239,15 @@ buildStab s categorizedFields =
      let s' = applyTypeSubst subA s
 
      -- compute possible type changes
-     sub <- T.sequenceA (fromSet (newName . nameBase) unfixedTypeVars)
-     let (t,b) = over both (substTypeVars sub) (s',a)
+     sub <- freshMap unfixedTypeVarNames
+     let (t,b) = over both (D.applySubstitution sub) (s',a)
 
      return (s',t,a,b)
 
   where
   (fixedFields, targetFields) = partitionEithers categorizedFields
-  fixedTypeVars               = setOf typeVars fixedFields
-  unfixedTypeVars             = setOf typeVars s Set.\\ fixedTypeVars
+  fixedTypeVarNames           = D.freeVariables fixedFields
+  unfixedTypeVarNames         = D.freeVariables s \\ fixedTypeVarNames
 
 
 -- | Build the signature and definition for a single field optic.
@@ -318,12 +317,13 @@ makeClassyClass className methodName s defs = do
   let ss   = map (stabToS . view (_2 . _2)) defs
   (sub,s') <- unifyTypes (s : ss)
   c <- newName "c"
-  let vars = toListOf typeVars s'
-      fd   | null vars = []
-           | otherwise = [FunDep [c] vars]
+  let tvbs     = D.freeVariablesWellScoped [s']
+      tvbNames = map D.tvName tvbs
+      fd   | null tvbs = []
+           | otherwise = [FunDep [c] tvbNames]
 
 
-  classD (cxt[]) className (map PlainTV (c:vars)) fd
+  classD (cxt[]) className (PlainTV c:tvbs) fd
     $ sigD methodName (return (lens'TypeName `conAppsT` [VarT c, s']))
     : concat
       [ [sigD defName (return ty)
@@ -332,7 +332,7 @@ makeClassyClass className methodName s defs = do
         inlinePragma defName
       | (TopName defName, (_, stab, _)) <- defs
       , let body = appsE [varE composeValName, varE methodName, varE defName]
-      , let ty   = quantifyType' (Set.fromList (c:vars))
+      , let ty   = quantifyType' (Set.fromList (c:tvbNames))
                                  (stabToContext stab)
                  $ stabToOptic stab `conAppsT`
                        [VarT c, applyTypeSubst sub (stabToA stab)]
@@ -355,7 +355,7 @@ makeClassyInstance rules className methodName s defs = do
 
   where
   instanceHead = className `conAppsT` (s : map VarT vars)
-  vars         = toListOf typeVars s
+  vars         = map D.tvName $ D.freeVariablesWellScoped [s]
   rules'       = rules { _generateSigs    = False
                        , _generateClasses = False
                        }
@@ -538,7 +538,7 @@ unify1 sub (AppT f1 x1) (AppT f2 x2) =
      (sub2, x) <- unify1 sub1 x1 x2
      return (sub2, AppT (applyTypeSubst sub2 f) x)
 unify1 sub x (VarT y)
-  | elemOf typeVars y (applyTypeSubst sub x) =
+  | y `elem` D.freeVariables (D.applySubstitution sub x) =
       fail "Failed to unify types: occurs check"
   | otherwise = return (Map.insert y x sub, x)
 unify1 sub (VarT x) y = unify1 sub y (VarT x)
@@ -639,10 +639,93 @@ quantifyType = quantifyType' Set.empty
 
 -- | This function works like 'quantifyType' except that it takes
 -- a list of variables to exclude from quantification.
+
+-- The implementation of this function is largely cargo-culted from the
+-- quantifyTyVars function in the th-abstraction package.
 quantifyType' :: Set Name -> Cxt -> Type -> Type
-quantifyType' exclude c t = ForallT vs c t
+quantifyType' exclude c t
+  | null tvbs
+  = t
+  | ForallT tvbs' c' t' <- t -- Collapse two consecutive foralls
+  = ForallT (tvbs ++ tvbs') (c ++ c') t'
+  | otherwise
+  = ForallT tvbs c t
   where
-  vs = map PlainTV
-     $ filter (`Set.notMember` exclude)
-     $ nub -- stable order
-     $ toListOf typeVars t
+    tvbs = filter (\tvb -> D.tvName tvb `Set.notMember` exclude) $
+           D.freeVariablesWellScoped [t] -- stable order
+
+------------------------------------------------------------------------
+-- TH Prisms
+------------------------------------------------------------------------
+
+_ForallT :: Prism' Type ([TyVarBndr], Cxt, Type)
+_ForallT
+  = prism' reviewer remitter
+  where
+      reviewer (x, y, z) = ForallT x y z
+      remitter (ForallT x y z) = Just (x, y, z)
+      remitter _ = Nothing
+
+#if MIN_VERSION_template_haskell(2,11,0)
+_ClosedTypeFamilyD :: Prism' Dec (TypeFamilyHead, [TySynEqn])
+_ClosedTypeFamilyD
+  = prism' reviewer remitter
+  where
+      reviewer (x, y) = ClosedTypeFamilyD x y
+      remitter (ClosedTypeFamilyD x y) = Just (x, y)
+      remitter _ = Nothing
+#elif MIN_VERSION_template_haskell(2,9,0)
+_ClosedTypeFamilyD :: Prism' Dec (Name, [TyVarBndr], Maybe Kind, [TySynEqn])
+_ClosedTypeFamilyD
+  = prism' reviewer remitter
+  where
+      reviewer (x, y, z, w) = ClosedTypeFamilyD x y z w
+      remitter (ClosedTypeFamilyD x y z w) = Just (x, y, z, w)
+      remitter _ = Nothing
+#else
+_ClosedTypeFamilyD :: Getting Any Dec a
+_ClosedTypeFamilyD = ignored
+#endif
+
+#if MIN_VERSION_template_haskell(2,11,0)
+_FamilyI :: Prism' Info (Dec, [InstanceDec])
+#else
+_FamilyI :: Prism' Info (Dec, [Dec])
+#endif
+_FamilyI
+  = prism' reviewer remitter
+  where
+      reviewer (x, y) = FamilyI x y
+      remitter (FamilyI x y) = Just (x, y)
+      remitter _ = Nothing
+
+#if MIN_VERSION_template_haskell(2,11,0)
+_OpenTypeFamilyD :: Prism' Dec TypeFamilyHead
+_OpenTypeFamilyD
+  = prism' reviewer remitter
+  where
+      reviewer = OpenTypeFamilyD
+      remitter (OpenTypeFamilyD x) = Just x
+      remitter _ = Nothing
+#else
+_OpenTypeFamilyD :: Getting Any Dec ()
+_OpenTypeFamilyD = _FamilyD . _1 . _TypeFam
+
+_FamilyD :: Prism' Dec (FamFlavour, Name, [TyVarBndr], Maybe Kind)
+_FamilyD
+  = prism' reviewer remitter
+  where
+      reviewer (x, y, z, w) = FamilyD x y z w
+      remitter (FamilyD x y z w) = Just (x, y, z, w)
+      remitter _ = Nothing
+#endif
+
+#if !(MIN_VERSION_template_haskell(2,13,0))
+_TypeFam :: Prism' FamFlavour ()
+_TypeFam
+  = prism' reviewer remitter
+  where
+      reviewer () = TypeFam
+      remitter TypeFam = Just ()
+      remitter _ = Nothing
+#endif

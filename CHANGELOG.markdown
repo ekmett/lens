@@ -1,6 +1,8 @@
 4.18 [????.??.??]
 -----------------
 * Support building with GHC 8.8.
+* The `Language.Haskell.TH.Lens` is no longer present in `lens` as it has
+  been migrated to the `template-haskell-lens` package.
 * Add additional bifunctor instances for `Swapped`.
 * New lenses `head1` and `last1`, to access the first/last elements of
   a `Traversable1` container.
