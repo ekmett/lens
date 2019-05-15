@@ -59,13 +59,11 @@ import Foreign.Ptr
 import Foreign.Storable
 #if MIN_VERSION_base(4,8,0)
 import Foreign.ForeignPtr
-#elif MIN_VERSION_base(4,4,0)
+#else
 import Foreign.ForeignPtr.Safe
+#endif
 #if !MIN_VERSION_bytestring(0,10,4)
 import Foreign.ForeignPtr.Unsafe (unsafeForeignPtrToPtr)
-#endif
-#else
-import Foreign.ForeignPtr
 #endif
 import GHC.Base (unsafeChr)
 import GHC.ForeignPtr (mallocPlainForeignPtrBytes)
