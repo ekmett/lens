@@ -444,27 +444,27 @@ instance (Functor f, Swapped p) => Swapped (Tannen f p) where
 instance Swapped ((,,) x) where
   swapped = iso f f
     where
-      f ~(x,a,b) = (x,b,a)
+      f (x,a,b) = (x,b,a)
 
 instance Swapped ((,,,) x y) where
   swapped = iso f f
     where
-      f ~(x,y,a,b) = (x,y,b,a)
+      f (x,y,a,b) = (x,y,b,a)
 
 instance Swapped ((,,,,) x y z) where
   swapped = iso f f
     where
-      f ~(x,y,z,a,b) = (x,y,z,b,a)
+      f (x,y,z,a,b) = (x,y,z,b,a)
 
 instance Swapped ((,,,,,) x y z w) where
   swapped = iso f f
     where
-      f ~(x,y,z,w,a,b) = (x,y,z,w,b,a)
+      f (x,y,z,w,a,b) = (x,y,z,w,b,a)
 
 instance Swapped ((,,,,,,) x y z w v) where
   swapped = iso f f
     where
-      f ~(x,y,z,w,v,a,b) = (x,y,z,w,v,b,a)
+      f (x,y,z,w,v,a,b) = (x,y,z,w,v,b,a)
 
 -- | Ad hoc conversion between \"strict\" and \"lazy\" versions of a structure,
 -- such as 'StrictT.Text' or 'StrictB.ByteString'.
