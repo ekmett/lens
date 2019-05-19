@@ -6,7 +6,7 @@
   a `Traversable1` container.
 * Weaken `holeInOne`'s `Category p` constraint to `Comonad (Corep p)`.
 * Add `filteredBy`.
-* Add `traversalUnion` to `Control.Lens.Unsound`.
+* Add `adjoin` to `Control.Lens.Unsound`.
 
 4.17.1 [2019.04.26]
 -------------------

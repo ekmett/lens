@@ -26,15 +26,15 @@
 --
 -- One commonly asked question is: can we combine two lenses,
 -- @`Lens'` a b@ and @`Lens'` a c@ into @`Lens'` a (b, c)@.
--- This is fair thing to ask, but such operation is unsound in general. 
+-- This is fair thing to ask, but such operation is unsound in general.
 -- See `lensProduct`.
 --
 -------------------------------------------------------------------------------
 module Control.Lens.Unsound
-  ( 
+  (
     lensProduct
   , prismSum
-  , traversalUnion
+  , adjoin
   ) where
 
 import Control.Applicative
@@ -42,7 +42,7 @@ import Control.Lens
 import Prelude
 
 -- | A lens product. There is no law-abiding way to do this in general.
--- Result is only a valid 'Lens' if the input lenses project disjoint parts of 
+-- Result is only a valid 'Lens' if the input lenses project disjoint parts of
 -- the structure @s@. Otherwise "you get what you put in" law
 --
 -- @
@@ -78,7 +78,7 @@ lensProduct l1 l2 f s =
 -- Just (Left 'x')
 --
 -- We put in 'Right' value, but get back 'Left'.
--- 
+--
 -- Are you looking for 'Control.Lens.Prism.without'?
 --
 prismSum :: APrism s t a b
@@ -91,7 +91,7 @@ prismSum k =
     f (Left <$> seta s) (Right <$> setb s)
   where
     f a@(Right _) _ = a
-    f (Left _)    b = b 
+    f (Left _)    b = b
 
 -- | A generalization of `mappend`ing folds: A union of disjoint traversals.
 --
@@ -99,6 +99,6 @@ prismSum k =
 --
 -- Are you looking for 'Control.Lens.Traversal.failing'?
 --
-traversalUnion :: Traversal' s a -> Traversal' s a -> Traversal' s a
-traversalUnion t1 t2 =
+adjoin :: Traversal' s a -> Traversal' s a -> Traversal' s a
+adjoin t1 t2 =
     lensProduct (partsOf t1) (partsOf t2) . both . each
