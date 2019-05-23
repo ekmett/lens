@@ -1,5 +1,14 @@
-- arguments: [--cpp-define=HLINT, --cpp-ansi]
-- ignore: { name: Use camelCase }
+- arguments: [--cpp-define=HLINT, --cpp-ansi, --cpp-include=include]
+
+- ignore: {name: Reduce duplication}
+- ignore: {name: Redundant lambda}
+- ignore: {name: Use >=>}
+- ignore: {name: Use const}
+- ignore: {name: Use module export list}
+- ignore: {name: Use lambda-case}
+- ignore: {name: Use tuple-section}
+- ignore: {name: Use fewer imports}
+
 - fixity: "infixl 9 :>"
 - fixity: "infixr 9 <.>, <., .>, ..."
 - fixity: "infixr 9 #."

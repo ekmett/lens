@@ -1,5 +1,5 @@
 - arguments: [--cpp-define=HLINT, --cpp-ansi]
-- ignore: { name: Use camelCase }
+
 - fixity: "infixl 9 :>"
 - fixity: "infixr 9 <.>, <., .>, ..."
 - fixity: "infixr 9 #."

@@ -171,9 +171,9 @@ script:
   # Testing...
   - ${CABAL} v2-test -w ${HC} ${TEST} ${BENCH} all | color_cabal_output
   # HLint..
-  - if [ $HCNUMVER -eq 80801 ] ; then (cd lens-* && hlint --cpp-ansi --cpp-define=HLINT src) ; fi
-  - if [ $HCNUMVER -eq 80801 ] ; then (cd lens-examples-* && hlint --cpp-ansi --cpp-define=HLINT .) ; fi
-  - if [ $HCNUMVER -eq 80801 ] ; then (cd lens-properties-* && hlint --cpp-ansi --cpp-define=HLINT src) ; fi
+  - if [ $HCNUMVER -eq 80801 ] ; then (cd lens-* && hlint src) ; fi
+  - if [ $HCNUMVER -eq 80801 ] ; then (cd lens-examples-* && hlint .) ; fi
+  - if [ $HCNUMVER -eq 80801 ] ; then (cd lens-properties-* && hlint src) ; fi
   # cabal check...
   - (cd lens-* && ${CABAL} -vnormal check)
   - (cd lens-examples-* && ${CABAL} -vnormal check)
