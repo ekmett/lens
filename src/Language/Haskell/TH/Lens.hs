@@ -20,7 +20,13 @@
 -- Stability   :  experimental
 -- Portability :  TemplateHaskell
 --
--- Lenses, Prisms, and Traversals for working with Template Haskell
+-- Lenses, Prisms, and Traversals for working with Template Haskell.
+--
+-- Beware that the API offered in this module is subject to change, as it
+-- mirrors the API exposed by the @template-haskell@ package, which
+-- frequently changes between different releases of GHC. An effort is made
+-- to identify the functions in this module which have different type
+-- signatures when compiled with different versions of @template-haskell@.
 ----------------------------------------------------------------------------
 module Language.Haskell.TH.Lens
   (
@@ -645,6 +651,11 @@ instance SubstType Pred where
 #endif
 
 -- | Provides a 'Traversal' of the types of each field of a constructor.
+--
+-- @
+-- conFields :: 'Traversal'' 'Con' 'BangType'   -- template-haskell-2.11+
+-- conFields :: 'Traversal'' 'Con' 'StrictType' -- Earlier versions
+-- @
 conFields :: Traversal' Con
 #if MIN_VERSION_template_haskell(2,11,0)
                             BangType
@@ -662,6 +673,11 @@ conFields f (RecGadtC ns argTys retTy) =
   RecGadtC ns <$> traverse (sansVar f) argTys <*> pure retTy
 #endif
 
+-- |
+-- @
+-- sansVar :: 'Traversal'' 'VarBangType'   'BangType'   -- template-haskell-2.11+
+-- sansVar :: 'Traversal'' 'VarStrictType' 'StrictType' -- Earlier versions
+-- @
 #if MIN_VERSION_template_haskell(2,11,0)
 sansVar :: Traversal' VarBangType   BangType
 #else
@@ -670,6 +686,11 @@ sansVar :: Traversal' VarStrictType StrictType
 sansVar f (fn,s,t) = (\(s', t') -> (fn,s',t')) <$> f (s, t)
 
 -- | 'Traversal' of the types of the /named/ fields of a constructor.
+--
+-- @
+-- conNamedFields :: 'Traversal'' 'Con' 'VarBangType'   -- template-haskell-2.11+
+-- conNamedFields :: 'Traversal'' 'Con' 'VarStrictType' -- Earlier versions
+-- @
 conNamedFields :: Traversal' Con
 #if MIN_VERSION_template_haskell(2,11,0)
                                  VarBangType
@@ -833,6 +854,12 @@ _ClassI
       remitter (ClassI x y) = Just (x, y)
       remitter _ = Nothing
 
+-- |
+-- @
+-- _ClassOpI :: 'Prism'' 'Info' ('Name', 'Type', 'ParentName')         -- template-haskell-2.11+
+-- _ClassOpI :: 'Prism'' 'Info' ('Name', 'Type', 'ParentName', 'Fixity') -- template-haskell-2.8 through 2.10
+-- _ClassOpI :: 'Prism'' 'Info' ('Name', 'Type', 'Name',       'Fixity') -- Earlier versions
+-- @
 #if MIN_VERSION_template_haskell(2,11,0)
 _ClassOpI :: Prism' Info (Name, Type, ParentName)
 _ClassOpI
@@ -887,6 +914,12 @@ _PrimTyConI
       remitter (PrimTyConI x y z) = Just (x, y, z)
       remitter _ = Nothing
 
+-- |
+-- @
+-- _DataConI :: 'Prism'' 'Info' ('Name', 'Type', 'ParentName')         -- template-haskell-2.11+
+-- _DataConI :: 'Prism'' 'Info' ('Name', 'Type', 'ParentName', 'Fixity') -- template-haskell-2.8 through 2.10
+-- _DataConI :: 'Prism'' 'Info' ('Name', 'Type', 'Name',       'Fixity') -- Earlier versions
+-- @
 #if MIN_VERSION_template_haskell(2,11,0)
 _DataConI :: Prism' Info (Name, Type, ParentName)
 _DataConI
@@ -909,6 +942,11 @@ _DataConI
       remitter _ = Nothing
 #endif
 
+-- |
+-- @
+-- _VarI :: 'Prism'' 'Info' ('Name', 'Type', 'Maybe' 'Dec')         -- template-haskell-2.11+
+-- _VarI :: 'Prism'' 'Info' ('Name', 'Type', 'Maybe' 'Dec', 'Fixity') -- Earlier versions
+-- @
 #if MIN_VERSION_template_haskell(2,11,0)
 _VarI :: Prism' Info (Name, Type, Maybe Dec)
 _VarI
@@ -977,6 +1015,11 @@ _ClassD
       remitter (ClassD x y z w u) = Just (x, y, z, w, u)
       remitter _ = Nothing
 
+-- |
+-- @
+-- _InstanceD :: 'Prism'' 'Dec' ('Maybe' 'Overlap', 'Cxt', 'Type', ['Dec']) -- template-haskell-2.11+
+-- _InstanceD :: 'Prism'' 'Dec'                ('Cxt', 'Type', ['Dec']) -- Earlier versions
+-- @
 #if MIN_VERSION_template_haskell(2,11,0)
 _InstanceD :: Prism' Dec (Maybe Overlap, Cxt, Type, [Dec])
 #else
@@ -1058,6 +1101,12 @@ _PragmaD
       remitter (PragmaD x) = Just x
       remitter _ = Nothing
 
+-- |
+-- @
+-- _TySynInstD :: 'Prism'' 'Dec' 'TySynEqn'             -- template-haskell-2.15+
+-- _TySynInstD :: 'Prism'' 'Dec' ('Name', 'TySynEqn')     -- template-haskell-2.9 through 2.14
+-- _TySynInstD :: 'Prism'' 'Dec' ('Name', ['Type'], 'Type') -- Earlier versions
+-- @
 #if MIN_VERSION_template_haskell(2,15,0)
 _TySynInstD :: Prism' Dec TySynEqn
 _TySynInstD
@@ -1094,6 +1143,11 @@ _RoleAnnotD
       remitter _ = Nothing
 #endif
 
+-- |
+-- @
+-- _StandaloneDerivD :: 'Prism'' 'Dec' ('Maybe' 'DerivStrategy', 'Cxt', 'Type') -- template-haskell-2.12+
+-- _StandaloneDerivD :: 'Prism'' 'Dec'                      ('Cxt', 'Type') -- Earlier versions
+-- @
 #if MIN_VERSION_template_haskell(2,12,0)
 _StandaloneDerivD :: Prism' Dec (Maybe DerivStrategy, Cxt, Type)
 _StandaloneDerivD
@@ -1128,6 +1182,13 @@ type DataPrism' tys cons = Prism' Dec (Cxt, Name, tys, Maybe Kind, cons, [DerivC
 type DataPrism' tys cons = Prism' Dec (Cxt, Name, tys, Maybe Kind, cons, Cxt)
 # endif
 
+-- |
+-- @
+-- _DataInstD :: 'Prism'' 'Dec' ('Cxt', 'Maybe' ['TyVarBndr'], 'Type', 'Maybe' 'Kind', ['Con'], ['DerivClause']) -- template-haskell-2.15+
+-- _DataInstD :: 'Prism'' 'Dec' ('Cxt', 'Name', ['Type'],            'Maybe' 'Kind', ['Con'], ['DerivClause']) -- template-haskell-2.12 through 2.14
+-- _DataInstD :: 'Prism'' 'Dec' ('Cxt', 'Name', ['Type'],            'Maybe' 'Kind', ['Con'], 'Cxt')           -- template-haskell-2.11
+-- _DataInstD :: 'Prism'' 'Dec' ('Cxt', 'Name', ['Type'],                        ['Con'], ['Name'])        -- Earlier versions
+-- @
 #if MIN_VERSION_template_haskell(2,15,0)
 _DataInstD :: Prism' Dec (Cxt, Maybe [TyVarBndr], Type, Maybe Kind, [Con], [DerivClause])
 _DataInstD
@@ -1135,14 +1196,6 @@ _DataInstD
   where
       reviewer (x, y, z, w, u, v) = DataInstD x y z w u v
       remitter (DataInstD x y z w u v) = Just (x, y, z, w, u, v)
-      remitter _ = Nothing
-
-_NewtypeInstD :: Prism' Dec (Cxt, Maybe [TyVarBndr], Type, Maybe Kind, Con, [DerivClause])
-_NewtypeInstD
-  = prism' reviewer remitter
-  where
-      reviewer (x, y, z, w, u, v) = NewtypeInstD x y z w u v
-      remitter (NewtypeInstD x y z w u v) = Just (x, y, z, w, u, v)
       remitter _ = Nothing
 #elif MIN_VERSION_template_haskell(2,11,0)
 _DataInstD :: DataPrism' [Type] [Con]
@@ -1152,14 +1205,6 @@ _DataInstD
       reviewer (x, y, z, w, u, v) = DataInstD x y z w u v
       remitter (DataInstD x y z w u v) = Just (x, y, z, w, u, v)
       remitter _ = Nothing
-
-_NewtypeInstD :: DataPrism' [Type] Con
-_NewtypeInstD
-  = prism' reviewer remitter
-  where
-      reviewer (x, y, z, w, u, v) = NewtypeInstD x y z w u v
-      remitter (NewtypeInstD x y z w u v) = Just (x, y, z, w, u, v)
-      remitter _ = Nothing
 #else
 _DataInstD :: Prism' Dec (Cxt, Name, [Type], [Con], [Name])
 _DataInstD
@@ -1168,7 +1213,32 @@ _DataInstD
       reviewer (x, y, z, w, u) = DataInstD x y z w u
       remitter (DataInstD x y z w u) = Just (x, y, z, w, u)
       remitter _ = Nothing
+#endif
 
+-- |
+-- @
+-- _NewtypeInstD :: 'Prism'' 'Dec' ('Cxt', 'Maybe' ['TyVarBndr'], 'Type', 'Maybe' 'Kind', 'Con', ['DerivClause']) -- template-haskell-2.15+
+-- _NewtypeInstD :: 'Prism'' 'Dec' ('Cxt', 'Name', ['Type'],            'Maybe' 'Kind', 'Con', ['DerivClause']) -- template-haskell-2.12 through 2.14
+-- _NewtypeInstD :: 'Prism'' 'Dec' ('Cxt', 'Name', ['Type'],            'Maybe' 'Kind', 'Con', 'Cxt')           -- template-haskell-2.11
+-- _NewtypeInstD :: 'Prism'' 'Dec' ('Cxt', 'Name', ['Type'],                        'Con', ['Name'])        -- Earlier versions
+-- @
+#if MIN_VERSION_template_haskell(2,15,0)
+_NewtypeInstD :: Prism' Dec (Cxt, Maybe [TyVarBndr], Type, Maybe Kind, Con, [DerivClause])
+_NewtypeInstD
+  = prism' reviewer remitter
+  where
+      reviewer (x, y, z, w, u, v) = NewtypeInstD x y z w u v
+      remitter (NewtypeInstD x y z w u v) = Just (x, y, z, w, u, v)
+      remitter _ = Nothing
+#elif MIN_VERSION_template_haskell(2,11,0)
+_NewtypeInstD :: DataPrism' [Type] Con
+_NewtypeInstD
+  = prism' reviewer remitter
+  where
+      reviewer (x, y, z, w, u, v) = NewtypeInstD x y z w u v
+      remitter (NewtypeInstD x y z w u v) = Just (x, y, z, w, u, v)
+      remitter _ = Nothing
+#else
 _NewtypeInstD :: Prism' Dec (Cxt, Name, [Type], Con, [Name])
 _NewtypeInstD
   = prism' reviewer remitter
@@ -1196,6 +1266,12 @@ _ClosedTypeFamilyD
       remitter _ = Nothing
 #endif
 
+-- |
+-- @
+-- _DataD :: 'Prism'' 'Dec' ('Cxt', 'Name', ['TyVarBndr'], 'Maybe' 'Kind', ['Con'], ['DerivClause']) -- template-haskell-2.12+
+-- _DataD :: 'Prism'' 'Dec' ('Cxt', 'Name', ['Type'],      'Maybe' 'Kind', ['Con'], 'Cxt')           -- template-haskell-2.11
+-- _DataD :: 'Prism'' 'Dec' ('Cxt', 'Name', ['Type'],                  ['Con'], ['Name'])        -- Earlier versions
+-- @
 #if MIN_VERSION_template_haskell(2,11,0)
 _DataD :: DataPrism' [TyVarBndr] [Con]
 _DataD
@@ -1204,7 +1280,23 @@ _DataD
       reviewer (x, y, z, w, u, v) = DataD x y z w u v
       remitter (DataD x y z w u v) = Just (x, y, z, w, u, v)
       remitter _ = Nothing
+#else
+_DataD :: Prism' Dec (Cxt, Name, [TyVarBndr], [Con], [Name])
+_DataD
+  = prism' reviewer remitter
+  where
+      reviewer (x, y, z, w, u) = DataD x y z w u
+      remitter (DataD x y z w u) = Just (x, y, z, w, u)
+      remitter _ = Nothing
+#endif
 
+-- |
+-- @
+-- _NewtypeD :: 'Prism'' 'Dec' ('Cxt', 'Name', ['TyVarBndr'], 'Maybe' 'Kind', 'Con', ['DerivClause']) -- template-haskell-2.12+
+-- _NewtypeD :: 'Prism'' 'Dec' ('Cxt', 'Name', ['Type'],      'Maybe' 'Kind', 'Con', 'Cxt')           -- template-haskell-2.11
+-- _NewtypeD :: 'Prism'' 'Dec' ('Cxt', 'Name', ['Type'],                  'Con', ['Name'])        -- Earlier versions
+-- @
+#if MIN_VERSION_template_haskell(2,11,0)
 _NewtypeD :: DataPrism' [TyVarBndr] Con
 _NewtypeD
   = prism' reviewer remitter
@@ -1212,7 +1304,17 @@ _NewtypeD
       reviewer (x, y, z, w, u, v) = NewtypeD x y z w u v
       remitter (NewtypeD x y z w u v) = Just (x, y, z, w, u, v)
       remitter _ = Nothing
+#else
+_NewtypeD :: Prism' Dec (Cxt, Name, [TyVarBndr], Con, [Name])
+_NewtypeD
+  = prism' reviewer remitter
+  where
+      reviewer (x, y, z, w, u) = NewtypeD x y z w u
+      remitter (NewtypeD x y z w u) = Just (x, y, z, w, u)
+      remitter _ = Nothing
+#endif
 
+#if MIN_VERSION_template_haskell(2,11,0)
 _DataFamilyD :: Prism' Dec (Name, [TyVarBndr], Maybe Kind)
 _DataFamilyD
   = prism' reviewer remitter
@@ -1229,22 +1331,6 @@ _OpenTypeFamilyD
       remitter (OpenTypeFamilyD x) = Just x
       remitter _ = Nothing
 #else
-_DataD :: Prism' Dec (Cxt, Name, [TyVarBndr], [Con], [Name])
-_DataD
-  = prism' reviewer remitter
-  where
-      reviewer (x, y, z, w, u) = DataD x y z w u
-      remitter (DataD x y z w u) = Just (x, y, z, w, u)
-      remitter _ = Nothing
-
-_NewtypeD :: Prism' Dec (Cxt, Name, [TyVarBndr], Con, [Name])
-_NewtypeD
-  = prism' reviewer remitter
-  where
-      reviewer (x, y, z, w, u) = NewtypeD x y z w u
-      remitter (NewtypeD x y z w u) = Just (x, y, z, w, u)
-      remitter _ = Nothing
-
 _FamilyD :: Prism' Dec (FamFlavour, Name, [TyVarBndr], Maybe Kind)
 _FamilyD
   = prism' reviewer remitter
@@ -1332,6 +1418,11 @@ _RecordPatSyn
       remitter _ = Nothing
 #endif
 
+-- |
+-- @
+-- _NormalC :: 'Prism'' 'Con' ('Name', ['BangType'])   -- template-haskell-2.11+
+-- _NormalC :: 'Prism'' 'Con' ('Name', ['StrictType']) -- Earlier versions
+-- @
 _NormalC ::
   Prism' Con ( Name
 #if MIN_VERSION_template_haskell(2,11,0)
@@ -1347,6 +1438,11 @@ _NormalC
       remitter (NormalC x y) = Just (x, y)
       remitter _ = Nothing
 
+-- |
+-- @
+-- _RecC :: 'Prism'' 'Con' ('Name', ['VarBangType'])   -- template-haskell-2.11+
+-- _RecC :: 'Prism'' 'Con' ('Name', ['VarStrictType']) -- Earlier versions
+-- @
 _RecC ::
   Prism' Con ( Name
 #if MIN_VERSION_template_haskell(2,11,0)
@@ -1362,6 +1458,11 @@ _RecC
       remitter (RecC x y) = Just (x, y)
       remitter _ = Nothing
 
+-- |
+-- @
+-- _InfixC :: 'Prism'' 'Con' ('BangType',   'Name', 'BangType')   -- template-haskell-2.11+
+-- _InfixC :: 'Prism'' 'Con' ('StrictType', 'Name', 'StrictType') -- Earlier versions
+-- @
 _InfixC ::
   Prism' Con
 #if MIN_VERSION_template_haskell(2,11,0)
@@ -1582,6 +1683,11 @@ _Interruptible
       remitter Interruptible = Just ()
       remitter _ = Nothing
 
+-- |
+-- @
+-- _InlineP :: 'Prism'' 'Pragma' ('Name', 'Inline', 'RuleMatch', 'Phases') -- template-haskell-2.8+
+-- _InlineP :: 'Prism'' 'Pragma' ('Name', 'Inline')                    -- Earlier versions
+-- @
 #if MIN_VERSION_template_haskell(2,8,0)
 _InlineP :: Prism' Pragma (Name, Inline, RuleMatch, Phases)
 _InlineP
@@ -1589,14 +1695,6 @@ _InlineP
   where
       reviewer (x, y, z, w) = InlineP x y z w
       remitter (InlineP x y z w) = Just (x, y, z, w)
-      remitter _ = Nothing
-
-_SpecialiseP :: Prism' Pragma (Name, Type, Maybe Inline, Phases)
-_SpecialiseP
-  = prism' reviewer remitter
-  where
-      reviewer (x, y, z, w) = SpecialiseP x y z w
-      remitter (SpecialiseP x y z w) = Just (x, y, z, w)
       remitter _ = Nothing
 #else
 _InlineP :: Prism' Pragma (Name, InlineSpec)
@@ -1606,7 +1704,22 @@ _InlineP
       reviewer (x, y) = InlineP x y
       remitter (InlineP x y) = Just (x, y)
       remitter _ = Nothing
+#endif
 
+-- |
+-- @
+-- _SpecialiseP :: 'Prism'' 'Pragma' ('Name', 'Type', 'Maybe' 'Inline', 'Phases') -- template-haskell-2.8+
+-- _SpecialiseP :: 'Prism'' 'Pragma' ('Name', 'Type', 'Maybe' 'InlineSpec')     -- Earlier versions
+-- @
+#if MIN_VERSION_template_haskell(2,8,0)
+_SpecialiseP :: Prism' Pragma (Name, Type, Maybe Inline, Phases)
+_SpecialiseP
+  = prism' reviewer remitter
+  where
+      reviewer (x, y, z, w) = SpecialiseP x y z w
+      remitter (SpecialiseP x y z w) = Just (x, y, z, w)
+      remitter _ = Nothing
+#else
 _SpecialiseP :: Prism' Pragma (Name, Type, Maybe InlineSpec)
 _SpecialiseP
   = prism' reviewer remitter
@@ -1614,9 +1727,9 @@ _SpecialiseP
       reviewer (x, y, z) = SpecialiseP x y z
       remitter (SpecialiseP x y z) = Just (x, y, z)
       remitter _ = Nothing
+#endif
 
 -- TODO add lenses for InlineSpec
-#endif
 
 #if MIN_VERSION_template_haskell(2,8,0)
 _SpecialiseInstP :: Prism' Pragma Type
@@ -1627,6 +1740,11 @@ _SpecialiseInstP
       remitter (SpecialiseInstP x) = Just x
       remitter _ = Nothing
 
+-- |
+-- @
+-- _RuleP :: 'Prism'' 'Pragma' ('String', 'Maybe' ['TyVarBndr'], ['RuleBndr'], 'Exp', 'Exp', 'Phases') -- template-haskell-2.15+
+-- _RuleP :: 'Prism'' 'Pragma' ('String',                    ['RuleBndr'], 'Exp', 'Exp', 'Phases') -- Earlier versions
+-- @
 #if MIN_VERSION_template_haskell(2,15,0)
 _RuleP :: Prism' Pragma (String, Maybe [TyVarBndr], [RuleBndr], Exp, Exp, Phases)
 _RuleP
