@@ -518,7 +518,7 @@ instance HasTypes TySynEqn where
                                               <*> types f lhs
                                               <*> types f rhs
     where
-      go tvb@(PlainTV{}) = pure tvb
+      go tvb@PlainTV{} = pure tvb
       go (KindedTV n k)  = KindedTV n <$> f k
 #else
   types f (TySynEqn lhss rhs) = TySynEqn <$> traverse (types f) lhss
