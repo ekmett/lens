@@ -7,6 +7,9 @@
 * Weaken `holeInOne`'s `Category p` constraint to `Comonad (Corep p)`.
 * Add `filteredBy`.
 * Add `adjoin` to `Control.Lens.Unsound`.
+* Added `xplat` and `xplatf`.
+* Flipped `auf` to take the `Iso` in the same direction as `au`.
+  Use the new `auf` or just call `coerce` for the old form.
 
 4.17.1 [2019.04.26]
 -------------------

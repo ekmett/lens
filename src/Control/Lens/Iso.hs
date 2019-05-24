@@ -38,6 +38,8 @@ module Control.Lens.Iso
   -- * Working with isomorphisms
   , au
   , auf
+  , xplat
+  , xplatf
   , under
   , mapping
   -- ** Common Isomorphisms
@@ -178,7 +180,7 @@ iso sa bt = dimap sa (fmap bt)
 -- 'from' ('from' l) ≡ l
 -- @
 from :: AnIso s t a b -> Iso b a t s
-from l = withIso l $ \ sa bt -> iso bt sa
+from l = withIso l $ flip iso
 {-# INLINE from #-}
 
 -- | Extract the two functions, one from @s -> a@ and
@@ -214,6 +216,10 @@ cloneIso k = withIso k iso
 -- @
 -- au :: AnIso s t a b -> ((b -> t) -> e -> s) -> e -> a
 -- @
+--
+-- @
+-- au = xplat . from
+-- @
 au :: Functor f => AnIso s t a b -> ((b -> t) -> f s) -> f a
 au k = withIso k $ \ sa bt f -> fmap sa (f bt)
 {-# INLINE au #-}
@@ -224,20 +230,40 @@ au k = withIso k $ \ sa bt f -> fmap sa (f bt)
 --
 -- For a version you pass the name of the @newtype@ constructor to, see 'Control.Lens.Wrapped.alaf'.
 --
--- >>> auf (_Unwrapping Sum) (foldMapOf both) Prelude.length ("hello","world")
+-- >>> auf (_Wrapping Sum) (foldMapOf both) Prelude.length ("hello","world")
 -- 10
 --
 -- Mnemonically, the German /auf/ plays a similar role to /à la/, and the combinator
 -- is 'au' with an extra function argument:
 --
 -- @
--- 'auf' :: 'Iso' s t a b -> ((r ->  a) -> e -> b) -> (r -> s) -> e -> t
+-- 'auf' :: 'Iso' s t a b -> ((r -> t) -> e -> s) -> (r -> b) -> e -> a
 -- @
 --
 -- but the signature is general.
-auf :: Optic (Costar f) g s t a b -> (f a -> g b) -> f s -> g t
-auf = coerce
+--
+-- Note: The direction of the 'Iso' required for this function changed in @lens@ 4.18 to match up
+-- with the behavior of 'au'. For the old behavior use 'xplatf' or for a version that is compatible
+-- across both old and new versions of @lens@ you can just use 'coerce'!
+auf :: (Functor f, Functor g) => AnIso s t a b -> (f t -> g s) -> f b -> g a
+auf k ftgs fb = withIso k $ \sa bt -> sa <$> ftgs (bt <$> fb)
 {-# INLINE auf #-}
+
+-- | @'xplat' = 'au' . 'from'@ but with a nicer signature.
+xplat :: Optic (Costar ((->) s)) g s t a b -> ((s -> a) -> g b) -> g t
+xplat f g = xplatf f g id
+
+-- | @'xplatf' = 'auf' . 'from'@ but with a nicer signature.
+--
+-- >>> xplatf (_Unwrapping Sum) (foldMapOf both) Prelude.length ("hello","world")
+-- 10
+--
+-- @
+-- 'xplatf' :: 'Iso' s t a b -> ((r -> a) -> e -> b) -> (r -> s) -> e -> t
+-- @
+xplatf :: Optic (Costar f) g s t a b -> (f a -> g b) -> f s -> g t
+xplatf = coerce
+{-# INLINE xplat #-}
 
 -- | The opposite of working 'Control.Lens.Setter.over' a 'Setter' is working 'under' an isomorphism.
 --
