@@ -198,6 +198,11 @@ below k =
 --
 -- >>> isn't _Empty []
 -- False
+--
+-- @
+-- 'isn't' = 'not' . 'Control.Lens.Extra.is'
+-- 'isn't' = 'hasn't'
+-- @
 isn't :: APrism s t a b -> s -> Bool
 isn't k s =
   case matching k s of
