@@ -203,8 +203,8 @@ l <<.|.~ b = l $ \a -> (a, a .|. b)
 -- (31,(15,0))
 --
 -- @
--- ('<<.&.=') :: ('MonadState' s m, 'Bits' a)           => Lens'' s a      -> a -> m a
--- ('<<.&.=') :: ('MonadState' s m, 'Bits' a, 'Data.Monoid.Monoid' a) => Traversal'' s a -> a -> m a
+-- ('<<.&.=') :: ('MonadState' s m, 'Bits' a)           => 'Lens'' s a      -> a -> m a
+-- ('<<.&.=') :: ('MonadState' s m, 'Bits' a, 'Data.Monoid.Monoid' a) => 'Traversal'' s a -> a -> m a
 -- @
 (<<.&.=) :: (MonadState s m, Bits a) => LensLike' ((,) a) s a -> a -> m a
 l <<.&.= b = l %%= \a -> (a, a .&. b)
@@ -220,8 +220,8 @@ l <<.&.= b = l %%= \a -> (a, a .&. b)
 -- (28,(31,0))
 --
 -- @
--- ('<<.|.=') :: ('MonadState' s m, 'Bits' a)           => Lens'' s a      -> a -> m a
--- ('<<.|.=') :: ('MonadState' s m, 'Bits' a, 'Data.Monoid.Monoid' a) => Traversal'' s a -> a -> m a
+-- ('<<.|.=') :: ('MonadState' s m, 'Bits' a)           => 'Lens'' s a      -> a -> m a
+-- ('<<.|.=') :: ('MonadState' s m, 'Bits' a, 'Data.Monoid.Monoid' a) => 'Traversal'' s a -> a -> m a
 -- @
 (<<.|.=) :: (MonadState s m, Bits a) => LensLike' ((,) a) s a -> a -> m a
 l <<.|.= b = l %%= \a -> (a, a .|. b)

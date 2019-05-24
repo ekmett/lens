@@ -108,15 +108,15 @@ l <</>= r = l <%= (</> r)
 {-# INLINE (<</>=) #-}
 
 
--- | Add a path onto the end of the target of a 'Lens' and return the origitnal
+-- | Add a path onto the end of the target of a 'Lens' and return the original
 -- value.
 --
--- When you do not need the result of the operation, ('</>~) is more flexible.
+-- When you do not need the original value, ('</>~') is more flexible.
 (<<</>~) :: Optical' (->) q ((,)FilePath) s FilePath -> FilePath -> q s (FilePath, s)
 l <<</>~ b = l $ \a -> (a, a </> b)
 {-# INLINE (<<</>~) #-}
 
--- | Add a path onto the end of a targert of a 'Lens into your monad's state
+-- | Add a path onto the end of a target of a 'Lens' into your monad's state
 -- and return the old value.
 --
 -- When you do not need the result of the operation, ('</>=') is more flexible.
