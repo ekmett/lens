@@ -125,6 +125,10 @@ import Data.Maybe
 import Data.Profunctor
 import Data.Profunctor.Unsafe
 
+#if !(MIN_VERSION_base(4,8,0))
+import Data.Functor
+#endif
+
 #if __GLASGOW_HASKELL__ >= 708
 import Data.Coerce (Coercible)
 #if __GLASGOW_HASKELL__ < 710
