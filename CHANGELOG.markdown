@@ -1,15 +1,15 @@
 4.18 [????.??.??]
 -----------------
 * Support building with GHC 8.8.
+* Add `xplat` and `xplatf`.
+* Flip `auf` to take the `Iso` in the same direction as `au`.
+  Use the new `xplatf` or just call `coerce` for the old form.
+* Weaken `holeInOne`'s `Category p` constraint to `Comonad (Corep p)`.
 * Add additional bifunctor instances for `Swapped`.
 * New lenses `head1` and `last1`, to access the first/last elements of
   a `Traversable1` container.
-* Weaken `holeInOne`'s `Category p` constraint to `Comonad (Corep p)`.
 * Add `filteredBy`.
 * Add `adjoin` to `Control.Lens.Unsound`.
-* Added `xplat` and `xplatf`.
-* Flipped `auf` to take the `Iso` in the same direction as `au`.
-  Use the new `auf` or just call `coerce` for the old form.
 
 4.17.1 [2019.04.26]
 -------------------
