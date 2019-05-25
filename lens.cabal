@@ -51,7 +51,7 @@ description:
   .
   <<http://i.imgur.com/ALlbPRa.png>>
   .
-  <Hierarchy.png (Local Copy)>
+  <images/Hierarchy.png (Local Copy)>
   .
   You can compose any two elements of the hierarchy above using @(.)@ from the @Prelude@, and you can
   use any element of the hierarchy as any type it linked to above it.
