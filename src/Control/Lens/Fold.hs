@@ -344,7 +344,7 @@ iterated f g a0 = go a0 where
 --
 -- Note: This is /not/ a legal 'Traversal', unless you are very careful not to invalidate the predicate on the target.
 --
--- Note: This is also /not/ a legal 'Prism', unless you are very careful not to inject a value that matches the predicate.
+-- Note: This is also /not/ a legal 'Prism', unless you are very careful not to inject a value that fails the predicate.
 --
 -- As a counter example, consider that given @evens = 'filtered' 'even'@ the second 'Traversal' law is violated:
 --
