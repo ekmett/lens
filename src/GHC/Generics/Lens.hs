@@ -74,7 +74,7 @@ generic = iso Generic.from Generic.to
 {-# INLINE generic #-}
 
 -- | Convert from the data type to its representation (or back)
-generic1 :: Generic1 f => Iso' (f a) (Rep1 f a)
+generic1 :: Generic1 f => Iso (f a) (f b) (Rep1 f a) (Rep1 f b)
 generic1 = iso from1 to1
 {-# INLINE generic1 #-}
 

@@ -5,6 +5,8 @@
 * Flip `auf` to take the `Iso` in the same direction as `au`.
   Use the new `xplatf` or just call `coerce` for the old form.
 * Weaken `holeInOne`'s `Category p` constraint to `Comonad (Corep p)`.
+* Generalize the type of `GHC.Generics.Lens.generic1` from
+  `Iso' (f a) (Rep1 f a)` to `Iso (f a) (f b) (Rep1 f a) (Rep1 f b)`.
 * Add additional bifunctor instances for `Swapped`.
 * New lenses `head1` and `last1`, to access the first/last elements of
   a `Traversable1` container.
