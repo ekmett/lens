@@ -160,6 +160,14 @@ instance Each (Identity a) (Identity b) a b
 -- | @'each' :: 'Traversal' ('Maybe' a) ('Maybe' b) a b@
 instance Each (Maybe a) (Maybe b) a b
 
+-- | @'each' :: 'Traversal' ('Either' a a) ('Either' b b) a b@
+--
+-- @since 4.18
+instance (a~a', b~b') => Each (Either a a') (Either b b') a b where
+  each f (Left a)   = Left <$> f a
+  each f (Right a ) = Right <$> f a
+  {-# INLINE each #-}
+
 -- | @'each' :: 'Traversal' ('Seq' a) ('Seq' b) a b@
 instance Each (Seq a) (Seq b) a b where
   each = traversed

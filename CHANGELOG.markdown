@@ -12,6 +12,7 @@
   a `Traversable1` container.
 * Add `filteredBy`.
 * Add `adjoin` to `Control.Lens.Unsound`.
+* Add `Each (Either a a) (Either b b) a b` instance.
 
 4.17.1 [2019.04.26]
 -------------------
