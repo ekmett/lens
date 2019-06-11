@@ -269,7 +269,7 @@ makeConPrismExp stab cons con = appsE [varE prismValName, reviewer, remitter]
   conName = view nconName con
 
   reviewer                   = makeReviewer       conName fields
-  remitter | stabSimple stab = makeSimpleRemitter conName fields
+  remitter | stabSimple stab = makeSimpleRemitter conName (length cons) fields
            | otherwise       = makeFullRemitter cons conName
 
 
@@ -320,15 +320,21 @@ makeReviewer conName fields =
 --          Con x y z -> Right (x,y,z)
 --          _         -> Left x
 -- ) :: s -> Either s a
-makeSimpleRemitter :: Name -> Int -> ExpQ
-makeSimpleRemitter conName fields =
+makeSimpleRemitter :: Name -- The name of the constructor on which this prism focuses
+                   -> Int  -- The number of constructors the parent data type has
+                   -> Int  -- The number of fields the constructor has
+                   -> ExpQ
+makeSimpleRemitter conName numCons fields =
   do x  <- newName "x"
      xs <- newNames "y" fields
      let matches =
            [ match (conP conName (map varP xs))
                    (normalB (appE (conE rightDataName) (toTupleE (map varE xs))))
                    []
-           , match wildP (normalB (appE (conE leftDataName) (varE x))) []
+           ] ++
+           [ match wildP (normalB (appE (conE leftDataName) (varE x))) []
+           | numCons > 1 -- Only generate a catch-all case if there is at least
+                         -- one constructor besides the one being focused on.
            ]
      lam1E (varP x) (caseE (varE x) matches)
 
