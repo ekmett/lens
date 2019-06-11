@@ -441,6 +441,9 @@ makeLensesWith (defaultFieldRules & lensField .~ abbreviatedNamer ) ''CheckAbbre
 checkAbbreviatedNamer :: Lens' CheckAbbreviatedNamer Int
 checkAbbreviatedNamer = fieldAbbreviatedNamer
 
+-- Ensure that `makeClassyPrisms` doesn't generate a redundant catch-all case (#866)
+data T866 = MkT866
+$(makeClassyPrisms ''T866)
 
 main :: IO ()
 main = putStrLn "test/templates.hs: ok"
