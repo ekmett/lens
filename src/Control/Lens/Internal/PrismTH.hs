@@ -320,10 +320,11 @@ makeReviewer conName fields =
 --          Con x y z -> Right (x,y,z)
 --          _         -> Left x
 -- ) :: s -> Either s a
-makeSimpleRemitter :: Name -- The name of the constructor on which this prism focuses
-                   -> Int  -- The number of constructors the parent data type has
-                   -> Int  -- The number of fields the constructor has
-                   -> ExpQ
+makeSimpleRemitter ::
+  Name {- The name of the constructor on which this prism focuses -} ->
+  Int  {- The number of constructors the parent data type has     -} ->
+  Int  {- The number of fields the constructor has                -} ->
+  ExpQ
 makeSimpleRemitter conName numCons fields =
   do x  <- newName "x"
      xs <- newNames "y" fields
