@@ -514,18 +514,24 @@ normalizeCon info = NCon (D.constructorName info)
 prismName :: Name -> Name
 prismName = prismName' False
 
-prismName' :: Bool -- ^ This is 'True' in the event that:
-                   --
-                   -- 1. We are generating the name of a classy prism for a
-                   --    data type, and
-                   -- 2. The data type shares a name with one of its
-                   --    constructors (e.g., @data A = A@).
-                   --
-                   -- In such a scenario, we take care not to generate the same
-                   -- prism name that the constructor receives (e.g., @_A@).
-                   -- For prefix names, we accomplish this by adding an extra
-                   -- underscore; for infix names, an extra dot.
-           -> Name -> Name
+-- | Compute a prism's name with a special case for when the type
+-- constructor matches one of the value constructors.
+--
+-- The overlapping flag wil be 'True' in the event that:
+--
+-- 1. We are generating the name of a classy prism for a
+--    data type, and
+-- 2. The data type shares a name with one of its
+--    constructors (e.g., @data A = A@).
+--
+-- In such a scenario, we take care not to generate the same
+-- prism name that the constructor receives (e.g., @_A@).
+-- For prefix names, we accomplish this by adding an extra
+-- underscore; for infix names, an extra dot.
+prismName' ::
+  Bool {- ^ overlapping constructor -} ->
+  Name {- ^ type constructor        -} ->
+  Name {- ^ prism name              -}
 prismName' sameNameAsCon n =
   case nameBase n of
     [] -> error "prismName: empty name base?"
