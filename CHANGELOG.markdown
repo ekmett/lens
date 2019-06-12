@@ -12,6 +12,16 @@
   classy prism for the data type will be prefixed with an extra `_` (for
   prefix names) or `.` (for infix names) to disambiguate it from the prism
   for the constructor.
+* Several type classes in `Control.Exception.Lens` now have additional
+  prisms corresponding to the data type that they focus on, in accordance
+  with the new convention established in the bullet point above. For example,
+  `AsNonTermination` now has an additional
+  `__NonTermination :: Prism' t NonTermination` method, and the existing
+  `_NonTermination :: Prism' t ()` method now has a default implementation in
+  terms of `__NonTermination`.
+
+  As a consequence of this change, you may need to update instances of these
+  classes to implement the new prisms.
 * Add additional bifunctor instances for `Swapped`.
 * New lenses `head1` and `last1`, to access the first/last elements of
   a `Traversable1` container.
