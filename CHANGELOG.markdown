@@ -7,6 +7,11 @@
 * Weaken `holeInOne`'s `Category p` constraint to `Comonad (Corep p)`.
 * Generalize the type of `GHC.Generics.Lens.generic1` from
   `Iso' (f a) (Rep1 f a)` to `Iso (f a) (f b) (Rep1 f a) (Rep1 f b)`.
+* `makeClassyPrisms` now supports generating prisms for data types that share
+  a name with one of its constructors. In such a scenario, the name of the
+  classy prism for the data type will be prefixed with an extra `_` (for
+  prefix names) or `.` (for infix names) to disambiguate it from the prism
+  for the constructor.
 * Add additional bifunctor instances for `Swapped`.
 * New lenses `head1` and `last1`, to access the first/last elements of
   a `Traversable1` container.
