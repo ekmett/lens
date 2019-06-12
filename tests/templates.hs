@@ -445,5 +445,12 @@ checkAbbreviatedNamer = fieldAbbreviatedNamer
 data T866 = MkT866
 $(makeClassyPrisms ''T866)
 
+-- Ensure that `makeClassyPrisms` doesn't generate duplicate prism names for
+-- data types that share a name with one of its constructors (#865)
+data T865 = T865 | T865a | T865b T866
+$(makeClassyPrisms ''T865)
+instance AsT866 T865 where
+  _T866 = __T865 . _T866
+
 main :: IO ()
 main = putStrLn "test/templates.hs: ok"

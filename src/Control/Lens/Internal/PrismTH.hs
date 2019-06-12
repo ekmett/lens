@@ -105,6 +105,31 @@ makePrisms = makePrisms' True
 -- Generate an "As" class of prisms. Names are selected by prefixing the constructor
 -- name with an underscore.  Constructors with multiple fields will
 -- construct Prisms to tuples of those fields.
+--
+-- In the event that the name of a data type is also the name of one of its
+-- constructors, the name of the 'Prism' generated for the data type will be
+-- prefixed with an extra @_@ (if the data type name is prefix) or @.@ (if the
+-- name is infix) to disambiguate it from the 'Prism' for the corresponding
+-- constructor. For example, this code:
+--
+-- @
+-- data Quux = Quux Int | Fred Bool
+-- makeClassyPrisms ''Quux
+-- @
+--
+-- will create:
+--
+-- @
+-- class AsQuux s where
+--   __Quux :: Prism' s Quux -- Data type prism
+--   _Quux :: Prism' s Int   -- Constructor prism
+--   _Fred :: Prism' s Bool
+--
+--   _Quux = __Quux . _Quux
+--   _Fred = __Quux . _Fred
+--
+-- instance AsQuux Quux
+-- @
 makeClassyPrisms :: Name {- ^ Type constructor name -} -> DecsQ
 makeClassyPrisms = makePrisms' False
 
@@ -157,8 +182,10 @@ makeConsPrisms t cons (Just typeName) =
     , makeClassyPrismInstance t className methodName cons
     ]
   where
-  className = mkName ("As" ++ nameBase typeName)
-  methodName = prismName typeName
+  typeNameBase = nameBase typeName
+  className = mkName ("As" ++ typeNameBase)
+  sameNameAsCon = any (\con -> nameBase (view nconName con) == typeNameBase) cons
+  methodName = prismName' sameNameAsCon typeName
 
 
 data OpticType = PrismType | ReviewType
@@ -485,11 +512,29 @@ normalizeCon info = NCon (D.constructorName info)
 -- | Compute a prism's name by prefixing an underscore for normal
 -- constructors and period for operators.
 prismName :: Name -> Name
-prismName n = case nameBase n of
-                [] -> error "prismName: empty name base?"
-                x:xs | isUpper x -> mkName ('_':x:xs)
-                     | otherwise -> mkName ('.':x:xs) -- operator
+prismName = prismName' False
 
+prismName' :: Bool -- ^ This is 'True' in the event that:
+                   --
+                   -- 1. We are generating the name of a classy prism for a
+                   --    data type, and
+                   -- 2. The data type shares a name with one of its
+                   --    constructors (e.g., @data A = A@).
+                   --
+                   -- In such a scenario, we take care not to generate the same
+                   -- prism name that the constructor receives (e.g., @_A@).
+                   -- For prefix names, we accomplish this by adding an extra
+                   -- underscore; for infix names, an extra dot.
+           -> Name -> Name
+prismName' sameNameAsCon n =
+  case nameBase n of
+    [] -> error "prismName: empty name base?"
+    nb@(x:_) | isUpper x -> mkName (prefix '_' nb)
+             | otherwise -> mkName (prefix '.' nb) -- operator
+  where
+    prefix :: Char -> String -> String
+    prefix char str | sameNameAsCon = char:char:str
+                    | otherwise     =      char:str
 
 -- | Quantify all the free variables in a type.
 close :: Type -> TypeQ
