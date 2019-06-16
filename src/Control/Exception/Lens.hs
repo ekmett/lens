@@ -97,6 +97,7 @@ module Control.Exception.Lens
   -- ** Assertion Failed
   , AsAssertionFailed(..)
 #if __GLASGOW_HASKELL__ >= 710
+  , pattern AssertionFailed__
   , pattern AssertionFailed_
 #endif
   -- ** Async Exceptions
@@ -115,37 +116,44 @@ module Control.Exception.Lens
   -- ** Non-Termination
   , AsNonTermination(..)
 #if __GLASGOW_HASKELL__ >= 710
+  , pattern NonTermination__
   , pattern NonTermination_
 #endif
   -- ** Nested Atomically
   , AsNestedAtomically(..)
 #if __GLASGOW_HASKELL__ >= 710
+  , pattern NestedAtomically__
   , pattern NestedAtomically_
 #endif
   -- ** Blocked Indefinitely
   -- *** on MVar
   , AsBlockedIndefinitelyOnMVar(..)
 #if __GLASGOW_HASKELL__ >= 710
+  , pattern BlockedIndefinitelyOnMVar__
   , pattern BlockedIndefinitelyOnMVar_
 #endif
   -- *** on STM
   , AsBlockedIndefinitelyOnSTM(..)
 #if __GLASGOW_HASKELL__ >= 710
+  , pattern BlockedIndefinitelyOnSTM__
   , pattern BlockedIndefinitelyOnSTM_
 #endif
   -- ** Deadlock
   , AsDeadlock(..)
 #if __GLASGOW_HASKELL__ >= 710
+  , pattern Deadlock__
   , pattern Deadlock_
 #endif
   -- ** No Such Method
   , AsNoMethodError(..)
 #if __GLASGOW_HASKELL__ >= 710
+  , pattern NoMethodError__
   , pattern NoMethodError_
 #endif
   -- ** Pattern Match Failure
   , AsPatternMatchFail(..)
 #if __GLASGOW_HASKELL__ >= 710
+  , pattern PatternMatchFail__
   , pattern PatternMatchFail_
 #endif
   -- ** Record
@@ -153,33 +161,41 @@ module Control.Exception.Lens
   , AsRecSelError(..)
   , AsRecUpdError(..)
 #if __GLASGOW_HASKELL__ >= 710
+  , pattern RecConError__
   , pattern RecConError_
+  , pattern RecSelError__
   , pattern RecSelError_
+  , pattern RecUpdError__
   , pattern RecUpdError_
 #endif
   -- ** Error Call
   , AsErrorCall(..)
 #if __GLASGOW_HASKELL__ >= 710
+  , pattern ErrorCall__
   , pattern ErrorCall_
 #endif
 #if MIN_VERSION_base(4,8,0)
   -- ** Allocation Limit Exceeded
   , AsAllocationLimitExceeded(..)
+  , pattern AllocationLimitExceeded__
   , pattern AllocationLimitExceeded_
 #endif
 #if MIN_VERSION_base(4,9,0)
   -- ** Type Error
   , AsTypeError(..)
+  , pattern TypeError__
   , pattern TypeError_
 #endif
 #if MIN_VERSION_base(4,10,0)
   -- ** Compaction Failed
   , AsCompactionFailed(..)
+  , pattern CompactionFailed__
   , pattern CompactionFailed_
 #endif
   -- * Handling Exceptions
   , AsHandlingException(..)
 #if __GLASGOW_HASKELL__ >= 710
+  , pattern HandlingException__
   , pattern HandlingException_
 #endif
   ) where
@@ -496,8 +512,11 @@ pattern IOException_ a <- (preview _IOException -> Just a) where
 
 -- | Arithmetic exceptions.
 class AsArithException t where
+  -- |
+  -- @
   -- '_ArithException' :: 'Prism'' 'ArithException' 'ArithException'
   -- '_ArithException' :: 'Prism'' 'SomeException'  'ArithException'
+  -- @
   _ArithException :: Prism' t ArithException
 
 #if __GLASGOW_HASKELL__ >= 710
@@ -719,6 +738,13 @@ pattern UndefinedElement_ e <- (preview _UndefinedElement -> Just e) where
 
 -- | 'assert' was applied to 'Prelude.False'.
 class AsAssertionFailed t where
+  -- |
+  -- @
+  -- '__AssertionFailed' :: 'Prism'' 'AssertionFailed' 'AssertionFailed'
+  -- '__AssertionFailed' :: 'Prism'' 'SomeException'   'AssertionFailed'
+  -- @
+  __AssertionFailed :: Prism' t AssertionFailed
+
   -- | This 'Exception' contains provides information about what assertion failed in the 'String'.
   --
   -- >>> handling _AssertionFailed (\ xs -> "caught" <$ guard ("<interactive>" `isInfixOf` xs) ) $ assert False (return "uncaught")
@@ -729,16 +755,24 @@ class AsAssertionFailed t where
   -- '_AssertionFailed' :: 'Prism'' 'SomeException'   'String'
   -- @
   _AssertionFailed :: Prism' t String
+  _AssertionFailed = __AssertionFailed._AssertionFailed
+  {-# INLINE _AssertionFailed #-}
 
 instance AsAssertionFailed AssertionFailed where
+  __AssertionFailed = id
+  {-# INLINE __AssertionFailed #-}
+
   _AssertionFailed = _Wrapping AssertionFailed
   {-# INLINE _AssertionFailed #-}
 
 instance AsAssertionFailed SomeException where
-  _AssertionFailed = exception._Wrapping AssertionFailed
-  {-# INLINE _AssertionFailed #-}
+  __AssertionFailed = exception
+  {-# INLINE __AssertionFailed #-}
 
 #if __GLASGOW_HASKELL__ >= 710
+pattern AssertionFailed__ e <- (preview __AssertionFailed -> Just e) where
+  AssertionFailed__ e = review __AssertionFailed e
+
 pattern AssertionFailed_ e <- (preview _AssertionFailed -> Just e) where
   AssertionFailed_ e = review _AssertionFailed e
 #endif
@@ -859,6 +893,13 @@ pattern UserInterrupt_ <- (has _UserInterrupt -> True) where
 -- not to terminate. Note that there is no guarantee that the runtime system
 -- will notice whether any given computation is guaranteed to terminate or not.
 class AsNonTermination t where
+  -- |
+  -- @
+  -- '__NonTermination' :: 'Prism'' 'NonTermination' 'NonTermination'
+  -- '__NonTermination' :: 'Prism'' 'SomeException'  'NonTermination'
+  -- @
+  __NonTermination :: Prism' t NonTermination
+
   -- | There is no additional information carried in a 'NonTermination' 'Exception'.
   --
   -- @
@@ -866,16 +907,24 @@ class AsNonTermination t where
   -- '_NonTermination' :: 'Prism'' 'SomeException'  ()
   -- @
   _NonTermination :: Prism' t ()
+  _NonTermination = __NonTermination._NonTermination
+  {-# INLINE _NonTermination #-}
 
 instance AsNonTermination NonTermination where
+  __NonTermination = id
+  {-# INLINE __NonTermination #-}
+
   _NonTermination = trivial NonTermination
   {-# INLINE _NonTermination #-}
 
 instance AsNonTermination SomeException where
-  _NonTermination = exception.trivial NonTermination
-  {-# INLINE _NonTermination #-}
+  __NonTermination = exception
+  {-# INLINE __NonTermination #-}
 
 #if __GLASGOW_HASKELL__ >= 710
+pattern NonTermination__ e <- (preview __NonTermination -> Just e) where
+  NonTermination__ e = review __NonTermination e
+
 pattern NonTermination_ <- (has _NonTermination -> True) where
   NonTermination_ = review _NonTermination ()
 #endif
@@ -887,6 +936,13 @@ pattern NonTermination_ <- (has _NonTermination -> True) where
 -- | Thrown when the program attempts to call atomically, from the
 -- 'Control.Monad.STM' package, inside another call to atomically.
 class AsNestedAtomically t where
+  -- |
+  -- @
+  -- '__NestedAtomically' :: 'Prism'' 'NestedAtomically' 'NestedAtomically'
+  -- '__NestedAtomically' :: 'Prism'' 'SomeException'    'NestedAtomically'
+  -- @
+  __NestedAtomically :: Prism' t NestedAtomically
+
   -- | There is no additional information carried in a 'NestedAtomically' 'Exception'.
   --
   -- @
@@ -894,16 +950,24 @@ class AsNestedAtomically t where
   -- '_NestedAtomically' :: 'Prism'' 'SomeException'    ()
   -- @
   _NestedAtomically :: Prism' t ()
+  _NestedAtomically = __NestedAtomically._NestedAtomically
+  {-# INLINE _NestedAtomically #-}
 
 instance AsNestedAtomically NestedAtomically where
+  __NestedAtomically = id
+  {-# INLINE __NestedAtomically #-}
+
   _NestedAtomically = trivial NestedAtomically
   {-# INLINE _NestedAtomically #-}
 
 instance AsNestedAtomically SomeException where
-  _NestedAtomically = exception.trivial NestedAtomically
-  {-# INLINE _NestedAtomically #-}
+  __NestedAtomically = exception
+  {-# INLINE __NestedAtomically #-}
 
 #if __GLASGOW_HASKELL__ >= 710
+pattern NestedAtomically__ e <- (preview __NestedAtomically -> Just e) where
+  NestedAtomically__ e = review __NestedAtomically e
+
 pattern NestedAtomically_ <- (has _NestedAtomically -> True) where
   NestedAtomically_ = review _NestedAtomically ()
 #endif
@@ -916,6 +980,13 @@ pattern NestedAtomically_ <- (has _NestedAtomically -> True) where
 -- are no other references to the 'Control.Concurrent.MVar.MVar' so it can't
 -- ever continue.
 class AsBlockedIndefinitelyOnMVar t where
+  -- |
+  -- @
+  -- '__BlockedIndefinitelyOnMVar' :: 'Prism'' 'BlockedIndefinitelyOnMVar' 'BlockedIndefinitelyOnMVar'
+  -- '__BlockedIndefinitelyOnMVar' :: 'Prism'' 'SomeException'             'BlockedIndefinitelyOnMVar'
+  -- @
+  __BlockedIndefinitelyOnMVar :: Prism' t BlockedIndefinitelyOnMVar
+
   -- | There is no additional information carried in a 'BlockedIndefinitelyOnMVar' 'Exception'.
   --
   -- @
@@ -923,16 +994,24 @@ class AsBlockedIndefinitelyOnMVar t where
   -- '_BlockedIndefinitelyOnMVar' :: 'Prism'' 'SomeException'             ()
   -- @
   _BlockedIndefinitelyOnMVar :: Prism' t ()
+  _BlockedIndefinitelyOnMVar = __BlockedIndefinitelyOnMVar._BlockedIndefinitelyOnMVar
+  {-# INLINE _BlockedIndefinitelyOnMVar #-}
 
 instance AsBlockedIndefinitelyOnMVar BlockedIndefinitelyOnMVar where
+  __BlockedIndefinitelyOnMVar = id
+  {-# INLINE __BlockedIndefinitelyOnMVar #-}
+
   _BlockedIndefinitelyOnMVar = trivial BlockedIndefinitelyOnMVar
   {-# INLINE _BlockedIndefinitelyOnMVar #-}
 
 instance AsBlockedIndefinitelyOnMVar SomeException where
-  _BlockedIndefinitelyOnMVar = exception.trivial BlockedIndefinitelyOnMVar
-  {-# INLINE _BlockedIndefinitelyOnMVar #-}
+  __BlockedIndefinitelyOnMVar = exception
+  {-# INLINE __BlockedIndefinitelyOnMVar #-}
 
 #if __GLASGOW_HASKELL__ >= 710
+pattern BlockedIndefinitelyOnMVar__ e <- (preview __BlockedIndefinitelyOnMVar -> Just e) where
+  BlockedIndefinitelyOnMVar__ e = review __BlockedIndefinitelyOnMVar e
+
 pattern BlockedIndefinitelyOnMVar_ <- (has _BlockedIndefinitelyOnMVar -> True) where
   BlockedIndefinitelyOnMVar_ = review _BlockedIndefinitelyOnMVar ()
 #endif
@@ -945,6 +1024,13 @@ pattern BlockedIndefinitelyOnMVar_ <- (has _BlockedIndefinitelyOnMVar -> True) w
 -- but there are no other references to any TVars involved, so it can't ever
 -- continue.
 class AsBlockedIndefinitelyOnSTM t where
+  -- |
+  -- @
+  -- '__BlockedIndefinitelyOnSTM' :: 'Prism'' 'BlockedIndefinitelyOnSTM' 'BlockedIndefinitelyOnSTM'
+  -- '__BlockedIndefinitelyOnSTM' :: 'Prism'' 'SomeException'            'BlockedIndefinitelyOnSTM'
+  -- @
+  __BlockedIndefinitelyOnSTM :: Prism' t BlockedIndefinitelyOnSTM
+
   -- | There is no additional information carried in a 'BlockedIndefinitelyOnSTM' 'Exception'.
   --
   -- @
@@ -952,16 +1038,24 @@ class AsBlockedIndefinitelyOnSTM t where
   -- '_BlockedIndefinitelyOnSTM' :: 'Prism'' 'SomeException'            ()
   -- @
   _BlockedIndefinitelyOnSTM :: Prism' t ()
+  _BlockedIndefinitelyOnSTM = __BlockedIndefinitelyOnSTM._BlockedIndefinitelyOnSTM
+  {-# INLINE _BlockedIndefinitelyOnSTM #-}
 
 instance AsBlockedIndefinitelyOnSTM BlockedIndefinitelyOnSTM where
+  __BlockedIndefinitelyOnSTM = id
+  {-# INLINE __BlockedIndefinitelyOnSTM #-}
+
   _BlockedIndefinitelyOnSTM = trivial BlockedIndefinitelyOnSTM
   {-# INLINE _BlockedIndefinitelyOnSTM #-}
 
 instance AsBlockedIndefinitelyOnSTM SomeException where
-  _BlockedIndefinitelyOnSTM = exception.trivial BlockedIndefinitelyOnSTM
-  {-# INLINE _BlockedIndefinitelyOnSTM #-}
+  __BlockedIndefinitelyOnSTM = exception
+  {-# INLINE __BlockedIndefinitelyOnSTM #-}
 
 #if __GLASGOW_HASKELL__ >= 710
+pattern BlockedIndefinitelyOnSTM__ e <- (preview __BlockedIndefinitelyOnSTM -> Just e) where
+  BlockedIndefinitelyOnSTM__ e = review __BlockedIndefinitelyOnSTM e
+
 pattern BlockedIndefinitelyOnSTM_ <- (has _BlockedIndefinitelyOnSTM -> True) where
   BlockedIndefinitelyOnSTM_ = review _BlockedIndefinitelyOnSTM ()
 #endif
@@ -973,6 +1067,13 @@ pattern BlockedIndefinitelyOnSTM_ <- (has _BlockedIndefinitelyOnSTM -> True) whe
 -- | There are no runnable threads, so the program is deadlocked. The
 -- 'Deadlock' 'Exception' is raised in the main thread only.
 class AsDeadlock t where
+  -- |
+  -- @
+  -- '__Deadlock' :: 'Prism'' 'Deadlock'      'Deadlock'
+  -- '__Deadlock' :: 'Prism'' 'SomeException' 'Deadlock'
+  -- @
+  __Deadlock :: Prism' t Deadlock
+
   -- | There is no information carried in a 'Deadlock' 'Exception'.
   --
   -- @
@@ -980,16 +1081,24 @@ class AsDeadlock t where
   -- '_Deadlock' :: 'Prism'' 'SomeException' ()
   -- @
   _Deadlock :: Prism' t ()
+  _Deadlock = __Deadlock._Deadlock
+  {-# INLINE _Deadlock #-}
 
 instance AsDeadlock Deadlock where
+  __Deadlock = id
+  {-# INLINE __Deadlock #-}
+
   _Deadlock = trivial Deadlock
   {-# INLINE _Deadlock #-}
 
 instance AsDeadlock SomeException where
-  _Deadlock = exception.trivial Deadlock
-  {-# INLINE _Deadlock #-}
+  __Deadlock = exception
+  {-# INLINE __Deadlock #-}
 
 #if __GLASGOW_HASKELL__ >= 710
+pattern Deadlock__ e <- (preview __Deadlock -> Just e) where
+  Deadlock__ e = review __Deadlock e
+
 pattern Deadlock_ <- (has _Deadlock -> True) where
   Deadlock_ = review _Deadlock ()
 #endif
@@ -1001,6 +1110,13 @@ pattern Deadlock_ <- (has _Deadlock -> True) where
 -- | A class method without a definition (neither a default definition,
 -- nor a definition in the appropriate instance) was called.
 class AsNoMethodError t where
+  -- |
+  -- @
+  -- '__NoMethodError' :: 'Prism'' 'NoMethodError' 'NoMethodError'
+  -- '__NoMethodError' :: 'Prism'' 'SomeException' 'NoMethodError'
+  -- @
+  __NoMethodError :: Prism' t NoMethodError
+
   -- | Extract a description of the missing method.
   --
   -- @
@@ -1008,16 +1124,24 @@ class AsNoMethodError t where
   -- '_NoMethodError' :: 'Prism'' 'SomeException' 'String'
   -- @
   _NoMethodError :: Prism' t String
+  _NoMethodError = __NoMethodError._NoMethodError
+  {-# INLINE _NoMethodError #-}
 
 instance AsNoMethodError NoMethodError where
+  __NoMethodError = id
+  {-# INLINE __NoMethodError #-}
+
   _NoMethodError = _Wrapping NoMethodError
   {-# INLINE _NoMethodError #-}
 
 instance AsNoMethodError SomeException where
-  _NoMethodError = exception._Wrapping NoMethodError
-  {-# INLINE _NoMethodError #-}
+  __NoMethodError = exception
+  {-# INLINE __NoMethodError #-}
 
 #if __GLASGOW_HASKELL__ >= 710
+pattern NoMethodError__ e <- (preview __NoMethodError -> Just e) where
+  NoMethodError__ e = review __NoMethodError e
+
 pattern NoMethodError_ e <- (preview _NoMethodError -> Just e) where
   NoMethodError_ e = review _NoMethodError e
 #endif
@@ -1028,6 +1152,13 @@ pattern NoMethodError_ e <- (preview _NoMethodError -> Just e) where
 
 -- | A pattern match failed.
 class AsPatternMatchFail t where
+  -- |
+  -- @
+  -- '__PatternMatchFail' :: 'Prism'' 'PatternMatchFail' 'PatternMatchFail'
+  -- '__PatternMatchFail' :: 'Prism'' 'SomeException'    'PatternMatchFail'
+  -- @
+  __PatternMatchFail :: Prism' t PatternMatchFail
+
   -- | Information about the source location of the pattern.
   --
   -- @
@@ -1035,16 +1166,24 @@ class AsPatternMatchFail t where
   -- '_PatternMatchFail' :: 'Prism'' 'SomeException'    'String'
   -- @
   _PatternMatchFail :: Prism' t String
+  _PatternMatchFail = __PatternMatchFail._PatternMatchFail
+  {-# INLINE _PatternMatchFail #-}
 
 instance AsPatternMatchFail PatternMatchFail where
+  __PatternMatchFail = id
+  {-# INLINE __PatternMatchFail #-}
+
   _PatternMatchFail = _Wrapping PatternMatchFail
   {-# INLINE _PatternMatchFail #-}
 
 instance AsPatternMatchFail SomeException where
-  _PatternMatchFail = exception._Wrapping PatternMatchFail
-  {-# INLINE _PatternMatchFail #-}
+  __PatternMatchFail = exception
+  {-# INLINE __PatternMatchFail #-}
 
 #if __GLASGOW_HASKELL__ >= 710
+pattern PatternMatchFail__ e <- (preview __PatternMatchFail -> Just e) where
+  PatternMatchFail__ e = review __PatternMatchFail e
+
 pattern PatternMatchFail_ e <- (preview _PatternMatchFail -> Just e) where
   PatternMatchFail_ e = review _PatternMatchFail e
 #endif
@@ -1055,6 +1194,13 @@ pattern PatternMatchFail_ e <- (preview _PatternMatchFail -> Just e) where
 
 -- | An uninitialised record field was used.
 class AsRecConError t where
+  -- |
+  -- @
+  -- '__RecConError' :: 'Prism'' 'RecConError'   'RecConError'
+  -- '__RecConError' :: 'Prism'' 'SomeException' 'RecConError'
+  -- @
+  __RecConError :: Prism' t RecConError
+
   -- | Information about the source location where the record was
   -- constructed.
   --
@@ -1063,16 +1209,24 @@ class AsRecConError t where
   -- '_RecConError' :: 'Prism'' 'SomeException' 'String'
   -- @
   _RecConError :: Prism' t String
+  _RecConError = __RecConError._RecConError
+  {-# INLINE _RecConError #-}
 
 instance AsRecConError RecConError where
+  __RecConError = id
+  {-# INLINE __RecConError #-}
+
   _RecConError = _Wrapping RecConError
   {-# INLINE _RecConError #-}
 
 instance AsRecConError SomeException where
-  _RecConError = exception._Wrapping RecConError
-  {-# INLINE _RecConError #-}
+  __RecConError = exception
+  {-# INLINE __RecConError #-}
 
 #if __GLASGOW_HASKELL__ >= 710
+pattern RecConError__ e <- (preview __RecConError -> Just e) where
+  RecConError__ e = review __RecConError e
+
 pattern RecConError_ e <- (preview _RecConError -> Just e) where
   RecConError_ e = review _RecConError e
 #endif
@@ -1085,18 +1239,38 @@ pattern RecConError_ e <- (preview _RecConError -> Just e) where
 -- field. This can only happen with a datatype with multiple constructors,
 -- where some fields are in one constructor but not another.
 class AsRecSelError t where
+  -- |
+  -- @
+  -- '__RecSelError' :: 'Prism'' 'RecSelError'   'RecSelError'
+  -- '__RecSelError' :: 'Prism'' 'SomeException' 'RecSelError'
+  -- @
+  __RecSelError :: Prism' t RecSelError
+
   -- | Information about the source location where the record selection occurred.
+  --
+  -- @
+  -- '_RecSelError' :: 'Prism'' 'RecSelError'   'String'
+  -- '_RecSelError' :: 'Prism'' 'SomeException' 'String'
+  -- @
   _RecSelError :: Prism' t String
+  _RecSelError = __RecSelError._RecSelError
+  {-# INLINE _RecSelError #-}
 
 instance AsRecSelError RecSelError where
+  __RecSelError = id
+  {-# INLINE __RecSelError #-}
+
   _RecSelError = _Wrapping RecSelError
   {-# INLINE _RecSelError #-}
 
 instance AsRecSelError SomeException where
-  _RecSelError = exception._Wrapping RecSelError
-  {-# INLINE _RecSelError #-}
+  __RecSelError = exception
+  {-# INLINE __RecSelError #-}
 
 #if __GLASGOW_HASKELL__ >= 710
+pattern RecSelError__ e <- (preview __RecSelError -> Just e) where
+  RecSelError__ e = review __RecSelError e
+
 pattern RecSelError_ e <- (preview _RecSelError -> Just e) where
   RecSelError_ e = review _RecSelError e
 #endif
@@ -1109,18 +1283,38 @@ pattern RecSelError_ e <- (preview _RecSelError -> Just e) where
 -- appropriate field. This can only happen with a datatype with multiple
 -- constructors, where some fields are in one constructor but not another.
 class AsRecUpdError t where
+  -- |
+  -- @
+  -- '__RecUpdError' :: 'Prism'' 'RecUpdError'   'RecUpdError'
+  -- '__RecUpdError' :: 'Prism'' 'SomeException' 'RecUpdError'
+  -- @
+  __RecUpdError :: Prism' t RecUpdError
+
   -- | Information about the source location where the record was updated.
+  --
+  -- @
+  -- '_RecUpdError' :: 'Prism'' 'RecUpdError'   'String'
+  -- '_RecUpdError' :: 'Prism'' 'SomeException' 'String'
+  -- @
   _RecUpdError :: Prism' t String
+  _RecUpdError = __RecUpdError._RecUpdError
+  {-# INLINE _RecUpdError #-}
 
 instance AsRecUpdError RecUpdError where
+  __RecUpdError = id
+  {-# INLINE __RecUpdError #-}
+
   _RecUpdError = _Wrapping RecUpdError
   {-# INLINE _RecUpdError #-}
 
 instance AsRecUpdError SomeException where
-  _RecUpdError = exception._Wrapping RecUpdError
-  {-# INLINE _RecUpdError #-}
+  __RecUpdError = exception
+  {-# INLINE __RecUpdError #-}
 
 #if __GLASGOW_HASKELL__ >= 710
+pattern RecUpdError__ e <- (preview __RecUpdError -> Just e) where
+  RecUpdError__ e = review __RecUpdError e
+
 pattern RecUpdError_ e <- (preview _RecUpdError -> Just e) where
   RecUpdError_ e = review _RecUpdError e
 #endif
@@ -1131,23 +1325,43 @@ pattern RecUpdError_ e <- (preview _RecUpdError -> Just e) where
 
 -- | This is thrown when the user calls 'Prelude.error'.
 class AsErrorCall t where
+  -- |
+  -- @
+  -- '__ErrorCall' :: 'Prism'' 'ErrorCall'     'ErrorCall'
+  -- '__ErrorCall' :: 'Prism'' 'SomeException' 'ErrorCall'
+  -- @
+  __ErrorCall :: Prism' t ErrorCall
+
   -- | Retrieve the argument given to 'Prelude.error'.
   --
   -- 'ErrorCall' is isomorphic to a 'String'.
   --
   -- >>> catching _ErrorCall (error "touch down!") return
   -- "touch down!"
+  --
+  -- @
+  -- '_ErrorCall' :: 'Prism'' 'ErrorCall'     'String'
+  -- '_ErrorCall' :: 'Prism'' 'SomeException' 'String'
+  -- @
   _ErrorCall :: Prism' t String
+  _ErrorCall = __ErrorCall._ErrorCall
+  {-# INLINE _ErrorCall #-}
 
 instance AsErrorCall ErrorCall where
+  __ErrorCall = id
+  {-# INLINE __ErrorCall #-}
+
   _ErrorCall = _Wrapping ErrorCall
   {-# INLINE _ErrorCall #-}
 
 instance AsErrorCall SomeException where
-  _ErrorCall = exception._Wrapping ErrorCall
-  {-# INLINE _ErrorCall #-}
+  __ErrorCall = exception
+  {-# INLINE __ErrorCall #-}
 
 #if __GLASGOW_HASKELL__ >= 710
+pattern ErrorCall__ e <- (preview __ErrorCall -> Just e) where
+  ErrorCall__ e = review __ErrorCall e
+
 pattern ErrorCall_ e <- (preview _ErrorCall -> Just e) where
   ErrorCall_ e = review _ErrorCall e
 #endif
@@ -1159,6 +1373,13 @@ pattern ErrorCall_ e <- (preview _ErrorCall -> Just e) where
 
 -- | This thread has exceeded its allocation limit.
 class AsAllocationLimitExceeded t where
+  -- |
+  -- @
+  -- '__AllocationLimitExceeded' :: 'Prism'' 'AllocationLimitExceeded' 'AllocationLimitExceeded'
+  -- '__AllocationLimitExceeded' :: 'Prism'' 'SomeException'           'AllocationLimitExceeded'
+  -- @
+  __AllocationLimitExceeded :: Prism' t AllocationLimitExceeded
+
   -- | There is no additional information carried in an
   -- 'AllocationLimitExceeded' 'Exception'.
   --
@@ -1167,14 +1388,22 @@ class AsAllocationLimitExceeded t where
   -- '_AllocationLimitExceeded' :: 'Prism'' 'SomeException'           ()
   -- @
   _AllocationLimitExceeded :: Prism' t ()
+  _AllocationLimitExceeded = __AllocationLimitExceeded._AllocationLimitExceeded
+  {-# INLINE _AllocationLimitExceeded #-}
 
 instance AsAllocationLimitExceeded AllocationLimitExceeded where
+  __AllocationLimitExceeded = id
+  {-# INLINE __AllocationLimitExceeded #-}
+
   _AllocationLimitExceeded = trivial AllocationLimitExceeded
   {-# INLINE _AllocationLimitExceeded #-}
 
 instance AsAllocationLimitExceeded SomeException where
-  _AllocationLimitExceeded = exception.trivial AllocationLimitExceeded
-  {-# INLINE _AllocationLimitExceeded #-}
+  __AllocationLimitExceeded = exception
+  {-# INLINE __AllocationLimitExceeded #-}
+
+pattern AllocationLimitExceeded__ e <- (preview __AllocationLimitExceeded -> Just e) where
+  AllocationLimitExceeded__ e = review __AllocationLimitExceeded e
 
 pattern AllocationLimitExceeded_ <- (has _AllocationLimitExceeded -> True) where
   AllocationLimitExceeded_ = review _AllocationLimitExceeded ()
@@ -1188,21 +1417,36 @@ pattern AllocationLimitExceeded_ <- (has _AllocationLimitExceeded -> True) where
 -- | An expression that didn't typecheck during compile time was called.
 -- This is only possible with @-fdefer-type-errors@.
 class AsTypeError t where
+  -- |
+  -- @
+  -- '__TypeError' :: 'Prism'' 'TypeError'     'TypeError'
+  -- '__TypeError' :: 'Prism'' 'SomeException' 'TypeError'
+  -- @
+  __TypeError :: Prism' t TypeError
+
   -- | Details about the failed type check.
   --
   -- @
-  -- '_TypeError' :: 'Prism'' 'TypeError'     ()
-  -- '_TypeError' :: 'Prism'' 'SomeException' ()
+  -- '_TypeError' :: 'Prism'' 'TypeError'     'String'
+  -- '_TypeError' :: 'Prism'' 'SomeException' 'String'
   -- @
   _TypeError :: Prism' t String
+  _TypeError = __TypeError._TypeError
+  {-# INLINE _TypeError #-}
 
 instance AsTypeError TypeError where
+  __TypeError = id
+  {-# INLINE __TypeError #-}
+
   _TypeError = _Wrapping TypeError
   {-# INLINE _TypeError #-}
 
 instance AsTypeError SomeException where
-  _TypeError = exception._Wrapping TypeError
-  {-# INLINE _TypeError #-}
+  __TypeError = exception
+  {-# INLINE __TypeError #-}
+
+pattern TypeError__ e <- (preview __TypeError -> Just e) where
+  TypeError__ e = review __TypeError e
 
 pattern TypeError_ e <- (preview _TypeError -> Just e) where
   TypeError_ e = review _TypeError e
@@ -1216,21 +1460,36 @@ pattern TypeError_ e <- (preview _TypeError -> Just e) where
 -- | Compaction found an object that cannot be compacted.
 -- Functions cannot be compacted, nor can mutable objects or pinned objects.
 class AsCompactionFailed t where
+  -- |
+  -- @
+  -- '__CompactionFailed' :: 'Prism'' 'CompactionFailed' 'CompactionFailed'
+  -- '__CompactionFailed' :: 'Prism'' 'SomeException'    'CompactionFailed'
+  -- @
+  __CompactionFailed :: Prism' t CompactionFailed
+
   -- | Information about why a compaction failed.
   --
   -- @
-  -- '_CompactionFailed' :: 'Prism'' 'CompactionFailed' ()
-  -- '_CompactionFailed' :: 'Prism'' 'SomeException'    ()
+  -- '_CompactionFailed' :: 'Prism'' 'CompactionFailed' 'String'
+  -- '_CompactionFailed' :: 'Prism'' 'SomeException'    'String'
   -- @
   _CompactionFailed :: Prism' t String
+  _CompactionFailed = __CompactionFailed._CompactionFailed
+  {-# INLINE _CompactionFailed #-}
 
 instance AsCompactionFailed CompactionFailed where
+  __CompactionFailed = id
+  {-# INLINE __CompactionFailed #-}
+
   _CompactionFailed = _Wrapping CompactionFailed
   {-# INLINE _CompactionFailed #-}
 
 instance AsCompactionFailed SomeException where
-  _CompactionFailed = exception._Wrapping CompactionFailed
-  {-# INLINE _CompactionFailed #-}
+  __CompactionFailed = exception
+  {-# INLINE __CompactionFailed #-}
+
+pattern CompactionFailed__ e <- (preview __CompactionFailed -> Just e) where
+  CompactionFailed__ e = review __CompactionFailed e
 
 pattern CompactionFailed_ e <- (preview _CompactionFailed -> Just e) where
   CompactionFailed_ e = review _CompactionFailed e
@@ -1243,6 +1502,13 @@ pattern CompactionFailed_ e <- (preview _CompactionFailed -> Just e) where
 -- | This 'Exception' is thrown by @lens@ when the user somehow manages to rethrow
 -- an internal 'HandlingException'.
 class AsHandlingException t where
+  -- |
+  -- @
+  -- '__HandlingException' :: 'Prism'' 'HandlingException' 'HandlingException'
+  -- '__HandlingException' :: 'Prism'' 'SomeException'     'HandlingException'
+  -- @
+  __HandlingException :: Prism' t HandlingException
+
   -- | There is no information carried in a 'HandlingException'.
   --
   -- @
@@ -1250,16 +1516,24 @@ class AsHandlingException t where
   -- '_HandlingException' :: 'Prism'' 'SomeException'     ()
   -- @
   _HandlingException :: Prism' t ()
+  _HandlingException = __HandlingException._HandlingException
+  {-# INLINE _HandlingException #-}
 
 instance AsHandlingException HandlingException where
+  __HandlingException = id
+  {-# INLINE __HandlingException #-}
+
   _HandlingException = trivial HandlingException
   {-# INLINE _HandlingException #-}
 
 instance AsHandlingException SomeException where
-  _HandlingException = exception.trivial HandlingException
-  {-# INLINE _HandlingException #-}
+  __HandlingException = exception
+  {-# INLINE __HandlingException #-}
 
 #if __GLASGOW_HASKELL__ >= 710
+pattern HandlingException__ e <- (preview __HandlingException -> Just e) where
+  HandlingException__ e = review __HandlingException e
+
 pattern HandlingException_ <- (has _HandlingException -> True) where
   HandlingException_ = review _HandlingException ()
 #endif
