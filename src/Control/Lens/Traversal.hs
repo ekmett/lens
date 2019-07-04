@@ -185,6 +185,7 @@ import Data.Semigroup (Semigroup (..))
 -- >>> import Control.Lens
 -- >>> import Control.DeepSeq (NFData (..), force)
 -- >>> import Control.Exception (evaluate,try,ErrorCall(..))
+-- >>> import Data.List.NonEmpty (NonEmpty (..))
 -- >>> import Data.Maybe (fromMaybe)
 -- >>> import Debug.SimpleReflect.Vars
 -- >>> import Data.Void

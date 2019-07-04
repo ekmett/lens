@@ -76,6 +76,7 @@ import           Prelude
 -- $setup
 -- >>> :set -XNoOverloadedStrings
 -- >>> import Control.Lens
+-- >>> import Data.Data.Lens
 
 -------------------------------------------------------------------------------
 -- Generic Traversal

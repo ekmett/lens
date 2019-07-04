@@ -161,10 +161,12 @@ import Data.Functor ((<&>))
 
 -- $setup
 -- >>> :set -XNoOverloadedStrings
+-- >>> import Control.Arrow
 -- >>> import Control.Lens
 -- >>> import Control.Monad.State
 -- >>> import Data.Char (chr)
 -- >>> import Data.List.NonEmpty (NonEmpty ((:|)))
+-- >>> import Data.Monoid
 -- >>> import Data.Tree (Tree (Node))
 -- >>> import Debug.SimpleReflect.Expr
 -- >>> import Debug.SimpleReflect.Vars as Vars hiding (f,g,h)

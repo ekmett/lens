@@ -107,7 +107,9 @@ import Prelude
 -- >>> import Control.Lens
 -- >>> import Control.Monad.State
 -- >>> import Data.Char
+-- >>> import Data.Functor.Contravariant
 -- >>> import Data.Map as Map
+-- >>> import Data.Monoid
 -- >>> import Debug.SimpleReflect.Expr as Expr
 -- >>> import Debug.SimpleReflect.Vars as Vars
 -- >>> let f :: Expr -> Expr; f = Debug.SimpleReflect.Vars.f
