@@ -51,7 +51,6 @@ import Control.Monad.Trans.List
 import Control.Monad.Trans.Identity
 import Control.Monad.Trans.Maybe
 import Control.Monad.Trans.Free
-import Data.Functor.Contravariant (Contravariant)
 import Data.Monoid
 import Data.Profunctor.Unsafe
 import Prelude
