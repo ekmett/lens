@@ -28,6 +28,9 @@
 * Add `filteredBy`.
 * Add `adjoin` to `Control.Lens.Unsound`.
 * Add `Each (Either a a) (Either b b) a b` instance.
+* Make `magnify` offer its getter argument the `Contravariant` and `Functor`
+  instances it will require. This allows `magnify` to be used without
+  knowing the concrete monad being magnified.
 
 4.17.1 [2019.04.26]
 -------------------

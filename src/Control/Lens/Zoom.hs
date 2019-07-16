@@ -1,8 +1,10 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE RankNTypes #-}
 {-# OPTIONS_GHC -fno-warn-warnings-deprecations #-}
 
 #ifndef MIN_VERSION_mtl
@@ -49,6 +51,7 @@ import Control.Monad.Trans.List
 import Control.Monad.Trans.Identity
 import Control.Monad.Trans.Maybe
 import Control.Monad.Trans.Free
+import Data.Functor.Contravariant (Contravariant)
 import Data.Monoid
 import Data.Profunctor.Unsafe
 import Prelude
@@ -227,6 +230,15 @@ class (Magnified m ~ Magnified n, MonadReader b m, MonadReader a n) => Magnify m
   -- >>> flip Reader.runReader (1,2,[10..20]) $ magnify (_3._tail) Reader.ask
   -- [11,12,13,14,15,16,17,18,19,20]
   --
+  -- The type can be read as
+  --
+  -- @
+  --   magnify :: LensLike' (Magnified m c) a b -> m c -> n c
+  -- @
+  --
+  -- but the higher-rank constraints make it easier to apply @magnify@ to a
+  -- 'Getter' in highly-polymorphic code.
+  --
   -- @
   -- 'magnify' :: 'Getter' s a -> (a -> r) -> s -> r
   -- 'magnify' :: 'Monoid' r => 'Fold' s a   -> (a -> r) -> s -> r
@@ -237,7 +249,10 @@ class (Magnified m ~ Magnified n, MonadReader b m, MonadReader a n) => Magnify m
   -- 'magnify' :: ('Monoid' w, 'Monoid' c) => 'Fold' s a   -> 'RWS' a w st c -> 'RWS' s w st c
   -- ...
   -- @
-  magnify :: LensLike' (Magnified m c) a b -> m c -> n c
+  magnify :: ((Functor (Magnified m c), Contravariant (Magnified m c))
+                => LensLike' (Magnified m c) a b)
+          -> m c -> n c
+
 
 instance Monad m => Magnify (ReaderT b m) (ReaderT a m) b a where
   magnify l (ReaderT m) = ReaderT $ getEffect #. l (Effect #. m)
@@ -247,7 +262,7 @@ instance Monad m => Magnify (ReaderT b m) (ReaderT a m) b a where
 -- 'magnify' = 'views'
 -- @
 instance Magnify ((->) b) ((->) a) b a where
-  magnify = views
+  magnify l = views l
   {-# INLINE magnify #-}
 
 instance (Monad m, Monoid w) => Magnify (Strict.RWST b w s m) (Strict.RWST a w s m) b a where
