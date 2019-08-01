@@ -31,6 +31,11 @@
 * Make `magnify` offer its getter argument the `Contravariant` and `Functor`
   instances it will require. This allows `magnify` to be used without
   knowing the concrete monad being magnified.
+* Add `equality`, `equality'`, `withEquality`, `underEquality`, `overEquality`,
+  `fromLeibniz`, `fromLeibniz'` and `cloneEquality` to `Control.Lens.Equality`.
+* Add `withLens` to `Control.Lens.Lens`.
+* Make `substEq` and `simply` in `Control.Lens.Equality`
+  and `withIso` in `Control.Lens.Iso` levity polymorphic.
 
 4.17.1 [2019.04.26]
 -------------------

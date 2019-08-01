@@ -5,6 +5,7 @@
 {-# LANGUAGE UnboxedTuples #-}
 #endif
 {-# LANGUAGE PatternGuards #-}
+{-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -48,6 +49,7 @@ module Data.Data.Lens
 import           Control.Applicative
 import           Control.Exception as E
 import           Control.Lens.Internal.Context
+import           Control.Lens.Internal.Equality ((:~:)(..), eqT)
 import           Control.Lens.Internal.Indexed
 import           Control.Lens.Lens
 import           Control.Lens.Setter
@@ -102,8 +104,8 @@ tinplate f = gfoldl (step f) pure
 {-# INLINE tinplate #-}
 
 step :: forall s a f r. (Applicative f, Typeable a, Data s) => (a -> f a) -> f (s -> r) -> s -> f r
-step f w s = w <*> case mightBe :: Maybe (Is s a) of
-  Just Data.Data.Lens.Refl -> f s
+step f w s = w <*> case eqT :: Maybe (s :~: a) of
+  Just Refl -> f s
   Nothing   -> tinplate f s
 {-# INLINE step #-}
 
@@ -263,17 +265,6 @@ onceUpon' field f s = k <$> indexed f i (field s) where
 {-# INLINE onceUpon' #-}
 
 -------------------------------------------------------------------------------
--- Type equality
--------------------------------------------------------------------------------
-
-data Is a b where
-  Refl :: Is a a
-
-mightBe :: (Typeable a, Typeable b) => Maybe (Is a b)
-mightBe = gcast Data.Data.Lens.Refl
-{-# INLINE mightBe #-}
-
--------------------------------------------------------------------------------
 -- Data Box
 -------------------------------------------------------------------------------
 
@@ -389,8 +380,8 @@ newtype Oracle a = Oracle { fromOracle :: forall t. Typeable t => t -> Answer t 
 
 hitTest :: forall a b. (Data a, Typeable b) => a -> b -> Oracle b
 hitTest a b = Oracle $ \(c :: c) ->
-  case mightBe :: Maybe (Is c b) of
-    Just Data.Data.Lens.Refl -> Hit c
+  case eqT :: Maybe (c :~: b) of
+    Just Refl -> Hit c
     Nothing ->
       case readCacheFollower (dataBox a) (typeOf b) of
         Just p | not (p (typeOf c)) -> Miss

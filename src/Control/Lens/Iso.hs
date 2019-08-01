@@ -10,6 +10,10 @@
 {-# LANGUAGE Trustworthy #-}
 #endif
 
+#if __GLASGOW_HASKELL__ >= 800
+{-# LANGUAGE TypeInType #-}
+#endif
+
 #ifndef MIN_VERSION_bytestring
 #define MIN_VERSION_bytestring(x,y,z) 1
 #endif
@@ -140,6 +144,10 @@ import Data.Type.Coercion
 import qualified GHC.Exts as Exts
 #endif
 
+#if __GLASGOW_HASKELL__ >= 800
+import GHC.Exts (TYPE)
+#endif
+
 #ifdef HLINT
 {-# ANN module "HLint: ignore Use on" #-}
 #endif
@@ -189,7 +197,12 @@ from l = withIso l $ flip iso
 
 -- | Extract the two functions, one from @s -> a@ and
 -- one from @b -> t@ that characterize an 'Iso'.
+#if __GLASGOW_HASKELL__ >= 800
+withIso :: forall s t a b rep (r :: TYPE rep).
+             AnIso s t a b -> ((s -> a) -> (b -> t) -> r) -> r
+#else
 withIso :: AnIso s t a b -> ((s -> a) -> (b -> t) -> r) -> r
+#endif
 withIso ai k = case ai (Exchange id Identity) of
   Exchange sa bt -> k sa (runIdentity #. bt)
 {-# INLINE withIso #-}

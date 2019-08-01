@@ -2,9 +2,14 @@
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
 #if __GLASGOW_HASKELL__ >= 706
 {-# LANGUAGE PolyKinds #-}
 #endif
+#if __GLASGOW_HASKELL__ >= 800
+{-# LANGUAGE TypeInType #-}
+#endif
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Equality
@@ -20,6 +25,7 @@ module Control.Lens.Equality
   -- * Type Equality
     Equality, Equality'
   , AnEquality, AnEquality'
+  , (:~:)(..)
   , runEq
   , substEq
   , mapEq
@@ -27,12 +33,26 @@ module Control.Lens.Equality
   , simply
   -- * The Trivial Equality
   , simple
+  -- * 'Iso'-like functions
+  , equality
+  , equality'
+  , withEquality
+  , underEquality
+  , overEquality
+  , fromLeibniz
+  , fromLeibniz'
+  , cloneEquality
   -- * Implementation Details
   , Identical(..)
   ) where
 
 import Control.Lens.Type
 import Data.Proxy (Proxy)
+import Control.Lens.Internal.Equality ((:~:)(..))
+#if __GLASGOW_HASKELL__ >= 800
+import GHC.Exts (TYPE)
+import Data.Kind (Type)
+#endif
 
 #ifdef HLINT
 {-# ANN module "HLint: ignore Use id" #-}
@@ -68,14 +88,21 @@ runEq l = case l Identical of Identical -> Identical
 {-# INLINE runEq #-}
 
 -- | Substituting types with 'Equality'.
+#if __GLASGOW_HASKELL__ >= 800
+substEq :: forall s t a b rep (r :: TYPE rep).
+           AnEquality s t a b -> ((s ~ a, t ~ b) => r) -> r
+#else
 substEq :: AnEquality s t a b -> ((s ~ a, t ~ b) => r) -> r
+#endif
 substEq l = case runEq l of
   Identical -> \r -> r
 {-# INLINE substEq #-}
 
 -- | We can use 'Equality' to do substitution into anything.
-#if __GLASGOW_HASKELL__ >= 706
-mapEq :: forall KVS(k1 k2) (s :: k1) (t :: k2) (a :: k1) (b :: k2) (f :: k1 -> *) . AnEquality s t a b -> f s -> f a
+#if __GLASGOW_HASKELL__ >= 800
+mapEq :: forall k1 k2 (s :: k1) (t :: k2) (a :: k1) (b :: k2) (f :: k1 -> Type) . AnEquality s t a b -> f s -> f a
+#elif __GLASGOW_HASKELL__ >= 706
+mapEq :: forall (s :: k1) (t :: k2) (a :: k1) (b :: k2) (f :: k1 -> *) . AnEquality s t a b -> f s -> f a
 #else
 mapEq :: AnEquality s t a b -> f s -> f a
 #endif
@@ -89,7 +116,12 @@ fromEq l = substEq l id
 
 -- | This is an adverb that can be used to modify many other 'Lens' combinators to make them require
 -- simple lenses, simple traversals, simple prisms or simple isos as input.
+#if __GLASGOW_HASKELL__ >= 800
+simply :: forall p f s a rep (r :: TYPE rep).
+  (Optic' p f s a -> r) -> Optic' p f s a -> r
+#else
 simply :: (Optic' p f s a -> r) -> Optic' p f s a -> r
+#endif
 simply = id
 {-# INLINE simply #-}
 
@@ -100,3 +132,60 @@ simply = id
 simple :: Equality' a a
 simple = id
 {-# INLINE simple #-}
+
+cloneEquality :: AnEquality s t a b -> Equality s t a b
+cloneEquality an = substEq an id
+{-# INLINE cloneEquality #-}
+
+-- | Construct an 'Equality' from explicit equality evidence.
+equality :: s :~: a -> b :~: t -> Equality s t a b
+equality Refl Refl = id
+{-# INLINE equality #-}
+
+-- | A 'Simple' version of 'equality'
+equality' :: a :~: b -> Equality' a b
+equality' Refl = id
+{-# INLINE equality' #-}
+
+-- | Recover a "profunctor lens" form of equality. Reverses 'fromLeibniz'.
+overEquality :: AnEquality s t a b -> p a b -> p s t
+overEquality an = substEq an id
+{-# INLINE overEquality #-}
+
+-- | The opposite of working 'overEquality' is working 'underEquality'.
+underEquality :: AnEquality s t a b -> p t s -> p b a
+underEquality an = substEq an id
+{-# INLINE underEquality #-}
+
+-- | Convert a "profunctor lens" form of equality to an equality. Reverses
+-- 'overEquality'.
+--
+-- The type should be understood as
+--
+-- @fromLeibniz :: (forall p. p a b -> p s t) -> Equality s t a b@
+fromLeibniz :: (Identical a b a b -> Identical a b s t) -> Equality s t a b
+fromLeibniz f = case f Identical of Identical -> id
+{-# INLINE fromLeibniz #-}
+
+-- | Convert Leibniz equality to equality. Reverses 'mapEq' in 'Simple' cases.
+--
+-- The type should be understood as
+--
+-- @fromLeibniz' :: (forall f. f s -> f a) -> Equality' s a@
+fromLeibniz' :: (s :~: s -> s :~: a) -> Equality' s a
+-- Note: even though its type signature mentions (:~:), this function works just
+-- fine in base versions before 4.7.0; it just requires a polymorphic argument!
+fromLeibniz' f = case f Refl of Refl -> id
+{-# INLINE fromLeibniz' #-}
+
+-- | A version of 'substEq' that provides explicit, rather than implicit,
+-- equality evidence.
+#if __GLASGOW_HASKELL__ >= 800
+withEquality :: forall s t a b rep (r :: TYPE rep).
+   AnEquality s t a b -> (s :~: a -> b :~: t -> r) -> r
+#else
+withEquality :: forall s t a b r.
+   AnEquality s t a b -> (s :~: a -> b :~: t -> r) -> r
+#endif
+withEquality an = substEq an (\f -> f Refl Refl)
+{-# INLINE withEquality #-}

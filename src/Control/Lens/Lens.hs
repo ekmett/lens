@@ -6,6 +6,9 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE Trustworthy #-}
+#if __GLASGOW_HASKELL__ >= 800
+{-# LANGUAGE TypeInType #-}
+#endif
 
 #ifndef MIN_VERSION_mtl
 #define MIN_VERSION_mtl(x,y,z) 1
@@ -70,7 +73,7 @@ module Control.Lens.Lens
   , AnIndexedLens, AnIndexedLens'
 
   -- * Combinators
-  , lens, ilens, iplens
+  , lens, ilens, iplens, withLens
   , (%%~), (%%=)
   , (%%@~), (%%@=)
   , (<%@~), (<%@=)
@@ -154,6 +157,10 @@ import Data.Function ((&))
 #if MIN_VERSION_base(4,11,0)
 import Data.Functor ((<&>))
 #endif
+#if __GLASGOW_HASKELL__ >= 800
+import GHC.Exts (TYPE)
+import Data.Kind -- For *
+#endif
 
 #ifdef HLINT
 {-# ANN module "HLint: ignore Use ***" #-}
@@ -231,6 +238,16 @@ type AnIndexedLens' i s a  = AnIndexedLens i s s a a
 lens :: (s -> a) -> (s -> b -> t) -> Lens s t a b
 lens sa sbt afb s = sbt s <$> afb (sa s)
 {-# INLINE lens #-}
+
+-- | Obtain a getter and a setter from a lens, reversing 'lens'.
+#if __GLASGOW_HASKELL__ >= 800
+withLens :: forall s t a b rep (r :: TYPE rep).
+            ALens s t a b -> ((s -> a) -> (s -> b -> t) -> r) -> r
+#else
+withLens :: ALens s t a b -> ((s -> a) -> (s -> b -> t) -> r) -> r
+#endif
+withLens l f = f (^# l) (flip (storing l))
+{-# INLINE withLens #-}
 
 -- | Build an index-preserving 'Lens' from a 'Control.Lens.Getter.Getter' and a
 -- 'Control.Lens.Setter.Setter'.
