@@ -159,7 +159,6 @@ import Data.Functor ((<&>))
 #endif
 #if __GLASGOW_HASKELL__ >= 800
 import GHC.Exts (TYPE)
-import Data.Kind -- For *
 #endif
 
 #ifdef HLINT

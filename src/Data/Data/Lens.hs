@@ -49,7 +49,6 @@ module Data.Data.Lens
 import           Control.Applicative
 import           Control.Exception as E
 import           Control.Lens.Internal.Context
-import           Control.Lens.Internal.Equality ((:~:)(..), eqT)
 import           Control.Lens.Internal.Indexed
 import           Control.Lens.Lens
 import           Control.Lens.Setter
@@ -67,6 +66,10 @@ import           Data.IORef
 import           Data.Monoid
 import           GHC.Exts (realWorld#)
 import           Prelude
+
+#if !(MIN_VERSION_base(4,7,0))
+import           Control.Lens.Internal.Equality ((:~:)(..), eqT)
+#endif
 
 #ifdef HLINT
 {-# ANN module "HLint: ignore Eta reduce" #-}
