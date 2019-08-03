@@ -4,7 +4,7 @@
 #
 # For more information, see https://github.com/haskell-CI/haskell-ci
 #
-# version: 0.3.20190814.1
+# version: 0.3.20190815
 #
 language: c
 dist: xenial
@@ -33,6 +33,8 @@ before_cache:
   - rm -rfv $CABALHOME/packages/head.hackage
 matrix:
   include:
+    - compiler: ghcjs-8.4
+      addons: {"apt":{"sources":["hvr-ghc"],"packages":["cabal-install-3.0","freeglut3-dev"]}}
     - compiler: ghc-8.8.1
       addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-8.8.1","cabal-install-3.0","freeglut3-dev"]}}
     - compiler: ghc-8.6.5
@@ -57,8 +59,27 @@ matrix:
     - compiler: ghc-head
     - compiler: ghc-8.8.1
 before_install:
+  - |
+    if echo $CC | grep -q ghcjs; then
+        GHCJS=true;
+    else
+        GHCJS=false;
+    fi
+  - |
+    if [ "$TRAVIS_OS_NAME" = "linux" ]; then
+      if $GHCJS ; then sudo add-apt-repository -y ppa:hvr/ghcjs ; fi;
+      if $GHCJS ; then curl -s https://deb.nodesource.com/gpgkey/nodesource.gpg.key | sudo apt-key add - ; fi;
+      if $GHCJS ; then sudo apt-add-repository 'https://deb.nodesource.com/node_8.x xenial main' ; fi;
+      if $GHCJS ; then sudo apt-get update ; fi;
+      sudo apt-get install $CC freeglut3-dev;
+      if $GHCJS ; then sudo apt-get install -y nodejs cabal-install-3.0 ; fi;
+    fi
   - HC=$(echo "/opt/$CC/bin/ghc" | sed 's/-/\//')
   - WITHCOMPILER="-w $HC"
+  - if $GHCJS ; then HC=${HC}js ; fi
+  - if $GHCJS ; then WITHCOMPILER="--ghcjs ${WITHCOMPILER}js" ; fi
+  - if $GHCJS ; then sudo apt-get install -y ghc-8.4.4 ; fi
+  - if $GHCJS ; then PATH="/opt/ghc/8.4.4/bin:$PATH" ; fi
   - HCPKG="$HC-pkg"
   - unset CC
   - CABAL=/opt/ghc/bin/cabal
@@ -90,10 +111,12 @@ before_install:
 install:
   - ${CABAL} --version
   - echo "$(${HC} --version) [$(${HC} --print-project-git-commit-id 2> /dev/null || echo '?')]"
+  - node --version
+  - echo $GHCJS
   - TEST=--enable-tests
   - BENCH=--enable-benchmarks
   - HEADHACKAGE=false
-  - if [ $HCNUMVER -ge 80800 ] ; then HEADHACKAGE=true ; fi
+  - if ! $GHCJS && [ $HCNUMVER -ge 80800 ] ; then HEADHACKAGE=true ; fi
   - rm -f $CABALHOME/config
   - |
     echo "verbose: normal +nowrap +markoutput"          >> $CABALHOME/config
@@ -125,7 +148,8 @@ install:
   - cat $CABALHOME/config
   - rm -fv cabal.project cabal.project.local cabal.project.freeze
   - travis_retry ${CABAL} v2-update -v
-  - if [ $HCNUMVER -ge 80600 ] && [ $HCNUMVER -lt 80800 ] ; then ${CABAL} v2-install $WITHCOMPILER -j2 hlint --constraint='hlint ==2.1.*' | color_cabal_output ; fi
+  - if ! $GHCJS && [ $HCNUMVER -ge 80600 ] && [ $HCNUMVER -lt 80800 ] ; then ${CABAL} v2-install $WITHCOMPILER -j2 hlint --constraint='hlint ==2.1.*' | color_cabal_output ; fi
+  - if $GHCJS ; then (cd /tmp && ${CABAL} v2-install -w ghc-8.4.4 happy) ; fi
   # Generate cabal.project
   - rm -rf cabal.project cabal.project.local cabal.project.freeze
   - touch cabal.project
@@ -171,17 +195,17 @@ script:
   # build & run tests, build benchmarks
   - ${CABAL} v2-build $WITHCOMPILER ${TEST} ${BENCH} all | color_cabal_output
   # Testing...
-  - ${CABAL} v2-test $WITHCOMPILER ${TEST} ${BENCH} all | color_cabal_output
+  - if ! $GHCJS ; then ${CABAL} v2-test $WITHCOMPILER ${TEST} ${BENCH} all | color_cabal_output ; fi
   # HLint..
-  - if [ $HCNUMVER -ge 80600 ] && [ $HCNUMVER -lt 80800 ] ; then (cd ${PKGDIR_lens} && hlint src) ; fi
-  - if [ $HCNUMVER -ge 80600 ] && [ $HCNUMVER -lt 80800 ] ; then (cd ${PKGDIR_lens_examples} && hlint .) ; fi
-  - if [ $HCNUMVER -ge 80600 ] && [ $HCNUMVER -lt 80800 ] ; then (cd ${PKGDIR_lens_properties} && hlint src) ; fi
+  - if ! $GHCJS && [ $HCNUMVER -ge 80600 ] && [ $HCNUMVER -lt 80800 ] ; then (cd ${PKGDIR_lens} && hlint src) ; fi
+  - if ! $GHCJS && [ $HCNUMVER -ge 80600 ] && [ $HCNUMVER -lt 80800 ] ; then (cd ${PKGDIR_lens_examples} && hlint .) ; fi
+  - if ! $GHCJS && [ $HCNUMVER -ge 80600 ] && [ $HCNUMVER -lt 80800 ] ; then (cd ${PKGDIR_lens_properties} && hlint src) ; fi
   # cabal check...
   - (cd ${PKGDIR_lens} && ${CABAL} -vnormal check)
   - (cd ${PKGDIR_lens_examples} && ${CABAL} -vnormal check)
   - (cd ${PKGDIR_lens_properties} && ${CABAL} -vnormal check)
   # haddock...
-  - ${CABAL} v2-haddock $WITHCOMPILER ${TEST} ${BENCH} all | color_cabal_output
+  - if ! $GHCJS ; then ${CABAL} v2-haddock $WITHCOMPILER ${TEST} ${BENCH} all | color_cabal_output ; fi
 
 # REGENDATA ["--output=.travis.yml","--config=cabal.haskell-ci","cabal.project"]
 # EOF

@@ -25,6 +25,7 @@ tested-with:   GHC == 7.4.2
              , GHC == 8.4.4
              , GHC == 8.6.5
              , GHC == 8.8.1
+             , GHCJS == 8.4
 
 source-repository head
   type: git
@@ -49,7 +50,7 @@ library
   ghc-options: -Wall
 
 executable lens-pong
-  if !flag(pong)
+  if !flag(pong) || impl(ghcjs)
     buildable: False
 
   build-depends:

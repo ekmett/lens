@@ -21,6 +21,7 @@ tested-with:   GHC == 7.4.2
              , GHC == 8.4.4
              , GHC == 8.6.5
              , GHC == 8.8.1
+             , GHCJS == 8.4
 synopsis:      Lenses, Folds and Traversals
 description:
   This package comes \"Batteries Included\" with many useful lenses for the types
@@ -387,7 +388,8 @@ test-suite properties
     lens-properties/src
   include-dirs: include
   default-language: Haskell2010
-  if !flag(test-properties)
+
+  if !flag(test-properties) || impl(ghcjs)
     buildable: False
   else
     build-depends:
@@ -406,7 +408,8 @@ test-suite hunit
   hs-source-dirs: tests
   default-language: Haskell2010
 
-  if !flag(test-hunit)
+  -- test-framework-th doesn't work due regex-posix
+  if !flag(test-hunit) || impl(ghcjs)
     buildable: False
   else
     build-depends:
@@ -427,6 +430,9 @@ test-suite doctests
   hs-source-dirs:    tests
   default-language:  Haskell2010
   x-doctest-options: --fast
+
+  if impl(ghcjs)
+    buildable: False
 
   if flag(trustworthy) && impl(ghc>=7.2)
     other-extensions: Trustworthy
