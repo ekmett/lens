@@ -4,7 +4,7 @@
 #
 # For more information, see https://github.com/haskell-CI/haskell-ci
 #
-# version: 0.3.20190425
+# version: 0.3.20190814.1
 #
 language: c
 dist: xenial
@@ -35,7 +35,6 @@ matrix:
   include:
     - compiler: ghc-8.8.1
       addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-8.8.1","cabal-install-3.0","freeglut3-dev"]}}
-      env: GHCHEAD=true
     - compiler: ghc-8.6.5
       addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-8.6.5","cabal-install-2.4","freeglut3-dev"]}}
     - compiler: ghc-8.4.4
@@ -54,19 +53,19 @@ matrix:
       addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-7.4.2","cabal-install-2.4","freeglut3-dev"]}}
     - compiler: ghc-head
       addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-head","cabal-install-head","freeglut3-dev"]}}
-      env: GHCHEAD=true
   allow_failures:
     - compiler: ghc-head
     - compiler: ghc-8.8.1
 before_install:
   - HC=$(echo "/opt/$CC/bin/ghc" | sed 's/-/\//')
+  - WITHCOMPILER="-w $HC"
   - HCPKG="$HC-pkg"
   - unset CC
   - CABAL=/opt/ghc/bin/cabal
   - CABALHOME=$HOME/.cabal
   - export PATH="$CABALHOME/bin:$PATH"
   - TOP=$(pwd)
-  - HCNUMVER=$(( $(${HC} --numeric-version|sed -E 's/([0-9]+)\.([0-9]+)\.([0-9]+).*/\1 * 10000 + \2 * 100 + \3/') ))
+  - "HCNUMVER=$(${HC} --numeric-version|perl -ne '/^(\\d+)\\.(\\d+)\\.(\\d+)(\\.(\\d+))?$/; print(10000 * $1 + 100 * $2 + ($3 == 0 ? $5 != 1 : $3))')"
   - echo $HCNUMVER
   - CABAL="$CABAL -vnormal+nowrap+markoutput"
   - set -o pipefail
@@ -93,11 +92,13 @@ install:
   - echo "$(${HC} --version) [$(${HC} --print-project-git-commit-id 2> /dev/null || echo '?')]"
   - TEST=--enable-tests
   - BENCH=--enable-benchmarks
-  - GHCHEAD=${GHCHEAD-false}
+  - HEADHACKAGE=false
+  - if [ $HCNUMVER -ge 80800 ] ; then HEADHACKAGE=true ; fi
   - rm -f $CABALHOME/config
   - |
     echo "verbose: normal +nowrap +markoutput"          >> $CABALHOME/config
     echo "remote-build-reporting: anonymous"            >> $CABALHOME/config
+    echo "write-ghc-environment-files: always"          >> $CABALHOME/config
     echo "remote-repo-cache: $CABALHOME/packages"       >> $CABALHOME/config
     echo "logs-dir:          $CABALHOME/logs"           >> $CABALHOME/config
     echo "world-file:        $CABALHOME/world"          >> $CABALHOME/config
@@ -111,40 +112,38 @@ install:
     echo "repository hackage.haskell.org"               >> $CABALHOME/config
     echo "  url: http://hackage.haskell.org/"           >> $CABALHOME/config
   - |
-    if $GHCHEAD; then
+    if $HEADHACKAGE; then
     echo "allow-newer: $($HCPKG list --simple-output | sed -E 's/([a-zA-Z-]+)-[0-9.]+/*:\1/g')" >> $CABALHOME/config
-    
-    echo "repository head.hackage"                                                        >> $CABALHOME/config
-    echo "   url: http://head.hackage.haskell.org/"                                       >> $CABALHOME/config
+    echo "repository head.hackage.ghc.haskell.org"                                        >> $CABALHOME/config
+    echo "   url: https://ghc.gitlab.haskell.org/head.hackage/"                           >> $CABALHOME/config
     echo "   secure: True"                                                                >> $CABALHOME/config
-    echo "   root-keys: 07c59cb65787dedfaef5bd5f987ceb5f7e5ebf88b904bbd4c5cbdeb2ff71b740" >> $CABALHOME/config
-    echo "              2e8555dde16ebd8df076f1a8ef13b8f14c66bad8eafefd7d9e37d0ed711821fb" >> $CABALHOME/config
-    echo "              8f79fd2389ab2967354407ec852cbe73f2e8635793ac446d09461ffb99527f6e" >> $CABALHOME/config
+    echo "   root-keys: 7541f32a4ccca4f97aea3b22f5e593ba2c0267546016b992dfadcd2fe944e55d" >> $CABALHOME/config
+    echo "              26021a13b401500c8eb2761ca95c61f2d625bfef951b939a8124ed12ecf07329" >> $CABALHOME/config
+    echo "              f76d08be13e9a61a377a85e2fb63f4c5435d40f8feb3e12eb05905edb8cdea89" >> $CABALHOME/config
     echo "   key-threshold: 3"                                                            >> $CABALHOME/config
     fi
   - cat $CABALHOME/config
   - rm -fv cabal.project cabal.project.local cabal.project.freeze
   - travis_retry ${CABAL} v2-update -v
-  - if [ $HCNUMVER -eq 80801 ] ; then ${CABAL} v2-install -w ${HC} -j2 hlint --constraint='hlint ==2.1.*' | color_cabal_output ; fi
+  - if [ $HCNUMVER -ge 80600 ] && [ $HCNUMVER -lt 80800 ] ; then ${CABAL} v2-install $WITHCOMPILER -j2 hlint --constraint='hlint ==2.1.*' | color_cabal_output ; fi
   # Generate cabal.project
   - rm -rf cabal.project cabal.project.local cabal.project.freeze
   - touch cabal.project
   - |
-    echo 'packages: "."' >> cabal.project
-    echo 'packages: "./examples"' >> cabal.project
-    echo 'packages: "./lens-properties"' >> cabal.project
+    echo "packages: ." >> cabal.project
+    echo "packages: ./examples" >> cabal.project
+    echo "packages: ./lens-properties" >> cabal.project
   - |
-    echo "write-ghc-environment-files: always" >> cabal.project
-  - "for pkg in $($HCPKG list --simple-output); do echo $pkg | sed 's/-[^-]*$//' | grep -vE -- '^(lens|lens-examples|lens-properties)$' | sed 's/^/constraints: /' | sed 's/$/ installed/' >> cabal.project.local; done"
+  - "for pkg in $($HCPKG list --simple-output); do echo $pkg | sed 's/-[^-]*$//' | (grep -vE -- '^(lens|lens-examples|lens-properties)$' || true) | sed 's/^/constraints: /' | sed 's/$/ installed/' >> cabal.project.local; done"
   - cat cabal.project || true
   - cat cabal.project.local || true
   - if [ -f "./configure.ac" ]; then (cd "." && autoreconf -i); fi
   - if [ -f "./examples/configure.ac" ]; then (cd "./examples" && autoreconf -i); fi
   - if [ -f "./lens-properties/configure.ac" ]; then (cd "./lens-properties" && autoreconf -i); fi
-  - ${CABAL} v2-freeze -w ${HC} ${TEST} ${BENCH} | color_cabal_output
+  - ${CABAL} v2-freeze $WITHCOMPILER ${TEST} ${BENCH} | color_cabal_output
   - "cat cabal.project.freeze | sed -E 's/^(constraints: *| *)//' | sed 's/any.//'"
   - rm  cabal.project.freeze
-  - ${CABAL} v2-build -w ${HC} ${TEST} ${BENCH} --dep -j2 all | color_cabal_output
+  - ${CABAL} v2-build $WITHCOMPILER ${TEST} ${BENCH} --dep -j2 all | color_cabal_output
 script:
   - DISTDIR=$(mktemp -d /tmp/dist-test.XXXX)
   # Packaging...
@@ -152,34 +151,37 @@ script:
   # Unpacking...
   - mv dist-newstyle/sdist/*.tar.gz ${DISTDIR}/
   - cd ${DISTDIR} || false
-  - find . -maxdepth 1 -name '*.tar.gz' -exec tar -xvf '{}' \;
+  - find . -maxdepth 1 -type f -name '*.tar.gz' -exec tar -xvf '{}' \;
+  - find . -maxdepth 1 -type f -name '*.tar.gz' -exec rm       '{}' \;
+  - PKGDIR_lens="$(find . -maxdepth 1 -type d -regex '.*/lens-[0-9.]*')"
+  - PKGDIR_lens_examples="$(find . -maxdepth 1 -type d -regex '.*/lens-examples-[0-9.]*')"
+  - PKGDIR_lens_properties="$(find . -maxdepth 1 -type d -regex '.*/lens-properties-[0-9.]*')"
   # Generate cabal.project
   - rm -rf cabal.project cabal.project.local cabal.project.freeze
   - touch cabal.project
   - |
-    echo 'packages: "lens-*/*.cabal"' >> cabal.project
-    echo 'packages: "lens-examples-*/*.cabal"' >> cabal.project
-    echo 'packages: "lens-properties-*/*.cabal"' >> cabal.project
+    echo "packages: ${PKGDIR_lens}" >> cabal.project
+    echo "packages: ${PKGDIR_lens_examples}" >> cabal.project
+    echo "packages: ${PKGDIR_lens_properties}" >> cabal.project
   - |
-    echo "write-ghc-environment-files: always" >> cabal.project
-  - "for pkg in $($HCPKG list --simple-output); do echo $pkg | sed 's/-[^-]*$//' | grep -vE -- '^(lens|lens-examples|lens-properties)$' | sed 's/^/constraints: /' | sed 's/$/ installed/' >> cabal.project.local; done"
+  - "for pkg in $($HCPKG list --simple-output); do echo $pkg | sed 's/-[^-]*$//' | (grep -vE -- '^(lens|lens-examples|lens-properties)$' || true) | sed 's/^/constraints: /' | sed 's/$/ installed/' >> cabal.project.local; done"
   - cat cabal.project || true
   - cat cabal.project.local || true
   # Building with tests and benchmarks...
   # build & run tests, build benchmarks
-  - ${CABAL} v2-build -w ${HC} ${TEST} ${BENCH} all | color_cabal_output
+  - ${CABAL} v2-build $WITHCOMPILER ${TEST} ${BENCH} all | color_cabal_output
   # Testing...
-  - ${CABAL} v2-test -w ${HC} ${TEST} ${BENCH} all | color_cabal_output
+  - ${CABAL} v2-test $WITHCOMPILER ${TEST} ${BENCH} all | color_cabal_output
   # HLint..
-  - if [ $HCNUMVER -eq 80801 ] ; then (cd lens-* && hlint src) ; fi
-  - if [ $HCNUMVER -eq 80801 ] ; then (cd lens-examples-* && hlint .) ; fi
-  - if [ $HCNUMVER -eq 80801 ] ; then (cd lens-properties-* && hlint src) ; fi
+  - if [ $HCNUMVER -ge 80600 ] && [ $HCNUMVER -lt 80800 ] ; then (cd ${PKGDIR_lens} && hlint src) ; fi
+  - if [ $HCNUMVER -ge 80600 ] && [ $HCNUMVER -lt 80800 ] ; then (cd ${PKGDIR_lens_examples} && hlint .) ; fi
+  - if [ $HCNUMVER -ge 80600 ] && [ $HCNUMVER -lt 80800 ] ; then (cd ${PKGDIR_lens_properties} && hlint src) ; fi
   # cabal check...
-  - (cd lens-* && ${CABAL} -vnormal check)
-  - (cd lens-examples-* && ${CABAL} -vnormal check)
-  - (cd lens-properties-* && ${CABAL} -vnormal check)
+  - (cd ${PKGDIR_lens} && ${CABAL} -vnormal check)
+  - (cd ${PKGDIR_lens_examples} && ${CABAL} -vnormal check)
+  - (cd ${PKGDIR_lens_properties} && ${CABAL} -vnormal check)
   # haddock...
-  - ${CABAL} v2-haddock -w ${HC} ${TEST} ${BENCH} all | color_cabal_output
+  - ${CABAL} v2-haddock $WITHCOMPILER ${TEST} ${BENCH} all | color_cabal_output
 
 # REGENDATA ["--output=.travis.yml","--config=cabal.haskell-ci","cabal.project"]
 # EOF
