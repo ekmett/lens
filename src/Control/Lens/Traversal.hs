@@ -55,6 +55,7 @@ module Control.Lens.Traversal
   , Traversing1, Traversing1'
 
   -- * Traversing and Lensing
+  , traversal
   , traverseOf, forOf, sequenceAOf
   , mapMOf, forMOf, sequenceOf
   , transposeOf
@@ -243,6 +244,58 @@ type Traversing1' p f s a = Traversing1 p f s s a a
 --------------------------
 -- Traversal Combinators
 --------------------------
+
+-- | Build a 'Traversal' by providing a function which specifies the elements you wish to
+-- focus.
+--
+-- The caller provides a function of type:
+--
+-- @
+-- Applicative f => (a -> f b) -> s -> f t
+-- @
+--
+-- Which is a higher order function which accepts a "focusing function" and applies
+-- it to all desired focuses within @s@, then constructs a @t@ using the Applicative
+-- instance of @f@.
+--
+-- Only elements which are "focused" using the focusing function will be targeted by the
+-- resulting traversal.
+--
+-- For example, we can explicitly write a traversal which targets the first and third elements
+-- of a tuple like this:
+--
+-- @
+-- firstAndThird :: Traversal (a, x, a) (b, x, b) a b
+-- firstAndThird = traversal go
+--   where
+--     go :: Applicative f => (a -> f b) -> (a, x, a) -> f (b, x, b)
+--     go focus (a, x, a') = liftA3 (,,) (focus a) (pure x) (focus a')
+-- @
+--
+-- We can re-use existing 'Traversal's when writing new ones by passing our focusing function
+-- along to them. This example re-uses 'traverse' to focus all elements in a list which is
+-- embedded in a tuple. This traversal could also be written simply as @_2 . traverse@.
+--
+-- @
+-- selectNested :: Traversal (x, [a]) (x, [b]) a b
+-- selectNested = traversal go
+--   where
+--     go :: Applicative f => (a -> f b) -> (x, [a]) -> f (x, [b])
+--     go focus (x, as) = liftA2 (,) (pure x) (traverse focus as)
+-- @
+--
+-- Note that the 'traversal' function actually just returns the same function you pass to
+-- it. The function it accepts is in fact a valid traversal all on its own! The use of
+-- 'traversal' does nothing except verify that the function it is passed matches the signature
+-- of a valid traversal. One could remove the @traversal@ cominator from either of the last
+-- two examples and use the definiton of @go@ directly with no change in behaviour.
+--
+-- This function exists for consistency with the 'lens', 'prism' and 'iso' constructors
+-- as well as to serve as a touchpoint for beginners who wish to construct their own
+-- traversals but are uncertain how to do so.
+traversal :: (forall f. Applicative f => (a -> f b) -> s -> f t) -> Traversal s t a b
+traversal t f s = t f s
+{-# INLINE traversal #-}
 
 -- | Map each element of a structure targeted by a 'Lens' or 'Traversal',
 -- evaluate these actions from left to right, and collect the results.
