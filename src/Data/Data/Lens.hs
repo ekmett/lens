@@ -64,11 +64,12 @@ import qualified Data.HashSet as S
 import           Data.HashSet (HashSet)
 import           Data.IORef
 import           Data.Monoid
+import           Data.Proxy (Proxy (..))
 import           GHC.Exts (realWorld#)
 import           Prelude
 
 #if !(MIN_VERSION_base(4,7,0))
-import           Control.Lens.Internal.Typeable (eqT)
+import           Control.Lens.Internal.Typeable (eqT, typeRep)
 import           Data.Type.Equality ((:~:)(..))
 #endif
 
@@ -278,7 +279,7 @@ data DataBox = forall a. Data a => DataBox
   }
 
 dataBox :: Data a => a -> DataBox
-dataBox a = DataBox (typeOf a) a
+dataBox a = DataBox (typeRep [a]) a
 {-# INLINE dataBox #-}
 
 -- partial, caught elsewhere
@@ -302,8 +303,8 @@ emptyHitMap = M.fromList
   [ (tRational, S.singleton tInteger)
   , (tInteger,  S.empty)
   ] where
-  tRational = typeOf (undefined :: Rational)
-  tInteger  = typeOf (undefined :: Integer )
+  tRational = typeRep (Proxy :: Proxy Rational)
+  tInteger  = typeRep (Proxy :: Proxy Integer )
 
 insertHitMap :: DataBox -> HitMap -> HitMap
 insertHitMap box hit = fixEq trans (populate box) `mappend` hit where

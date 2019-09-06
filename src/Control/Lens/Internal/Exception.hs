@@ -176,7 +176,11 @@ type role Handling representational nominal nominal
 -- the m parameter exists simply to break the Typeable1 pattern, so we can provide this without overlap.
 -- here we simply generate a fresh TypeRep so we'll fail to compare as equal to any other TypeRep.
 instance (Typeable a, Typeable s, Typeable1 m) => Typeable (Handling a s m) where
-  typeOf _ = mkTyConApp handlingTyCon [typeOf (undefined :: a), typeOf (undefined :: s), typeOf1 (undefined :: m a)]
+  typeOf _ = mkTyConApp handlingTyCon
+    [ typeOf (undefined :: a)
+    , typeOf (undefined :: s)
+    , typeOf1 (undefined :: m a)
+    ]
   {-# INLINE typeOf #-}
 
 handlingTyCon :: TyCon
