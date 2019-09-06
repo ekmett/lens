@@ -68,7 +68,8 @@ import           GHC.Exts (realWorld#)
 import           Prelude
 
 #if !(MIN_VERSION_base(4,7,0))
-import           Control.Lens.Internal.Equality ((:~:)(..), eqT)
+import           Control.Lens.Internal.Typeable (eqT)
+import           Data.Type.Equality ((:~:)(..))
 #endif
 
 #ifdef HLINT
