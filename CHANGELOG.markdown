@@ -1,4 +1,4 @@
-4.18 [????.??.??]
+4.18 [2019.09.06]
 -----------------
 * Support building with GHC 8.8.
 * Add `xplat` and `xplatf`.
