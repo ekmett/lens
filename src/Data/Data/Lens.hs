@@ -67,9 +67,9 @@ import           Data.Monoid
 import           GHC.Exts (realWorld#)
 import           Prelude
 
-#if !(MIN_VERSION_base(4,7,0))
-import           Control.Lens.Internal.Equality ((:~:)(..), eqT)
-#endif
+import qualified Data.Proxy as X (Proxy (..))
+import qualified Control.Lens.Internal.Typeable as X
+import qualified Data.Type.Equality as X
 
 #ifdef HLINT
 {-# ANN module "HLint: ignore Eta reduce" #-}
@@ -107,8 +107,8 @@ tinplate f = gfoldl (step f) pure
 {-# INLINE tinplate #-}
 
 step :: forall s a f r. (Applicative f, Typeable a, Data s) => (a -> f a) -> f (s -> r) -> s -> f r
-step f w s = w <*> case eqT :: Maybe (s :~: a) of
-  Just Refl -> f s
+step f w s = w <*> case X.eqT :: Maybe (s X.:~: a) of
+  Just X.Refl -> f s
   Nothing   -> tinplate f s
 {-# INLINE step #-}
 
@@ -277,7 +277,7 @@ data DataBox = forall a. Data a => DataBox
   }
 
 dataBox :: Data a => a -> DataBox
-dataBox a = DataBox (typeOf a) a
+dataBox a = DataBox (X.typeRep [a]) a
 {-# INLINE dataBox #-}
 
 -- partial, caught elsewhere
@@ -301,8 +301,8 @@ emptyHitMap = M.fromList
   [ (tRational, S.singleton tInteger)
   , (tInteger,  S.empty)
   ] where
-  tRational = typeOf (undefined :: Rational)
-  tInteger  = typeOf (undefined :: Integer )
+  tRational = X.typeRep (X.Proxy :: X.Proxy Rational)
+  tInteger  = X.typeRep (X.Proxy :: X.Proxy Integer )
 
 insertHitMap :: DataBox -> HitMap -> HitMap
 insertHitMap box hit = fixEq trans (populate box) `mappend` hit where
@@ -383,8 +383,8 @@ newtype Oracle a = Oracle { fromOracle :: forall t. Typeable t => t -> Answer t 
 
 hitTest :: forall a b. (Data a, Typeable b) => a -> b -> Oracle b
 hitTest a b = Oracle $ \(c :: c) ->
-  case eqT :: Maybe (c :~: b) of
-    Just Refl -> Hit c
+  case X.eqT :: Maybe (c X.:~: b) of
+    Just X.Refl -> Hit c
     Nothing ->
       case readCacheFollower (dataBox a) (typeOf b) of
         Just p | not (p (typeOf c)) -> Miss

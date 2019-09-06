@@ -48,7 +48,7 @@ module Control.Lens.Equality
 
 import Control.Lens.Type
 import Data.Proxy (Proxy)
-import Control.Lens.Internal.Equality ((:~:)(..))
+import Data.Type.Equality ((:~:)(..))
 #if __GLASGOW_HASKELL__ >= 800
 import GHC.Exts (TYPE)
 import Data.Kind (Type)

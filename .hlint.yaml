@@ -9,7 +9,7 @@
 - ignore: {name: Use tuple-section}
 - ignore: {name: Use fewer imports}
 - ignore: {name: "Use :"}
-- ignore: {name: Use typeRep} # typeRep is since base-4.7
+- ignore: {name: Use typeRep, within: [Control.Lens.Internal.Typeable, Control.Lens.Internal.Exception]}
 - ignore: {name: Eta reduce, within: [Control.Lens.Zoom]} # Breaks code
 - ignore: {name: Use camelCase, within: [Control.Lens.Internal.TH]}
 - ignore: {name: Use list comprehension, within: [Control.Lens.Internal.FieldTH]}
