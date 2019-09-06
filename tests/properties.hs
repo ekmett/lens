@@ -30,8 +30,8 @@ import Control.Applicative
 import Control.Lens
 import Test.QuickCheck
 import Test.QuickCheck.Function
-import Test.Framework.TH
-import Test.Framework.Providers.QuickCheck2
+import Test.Tasty.TH
+import Test.Tasty.QuickCheck
 import Data.Char (isAlphaNum, isAscii, toUpper)
 import Data.Text.Strict.Lens
 import Data.Maybe

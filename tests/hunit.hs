@@ -24,9 +24,9 @@ import Data.Char
 import Data.List as List
 import Data.Monoid
 import Data.Map as Map
-import Test.Framework.Providers.HUnit
-import Test.Framework.TH
-import Test.Framework
+import Test.Tasty.HUnit (testCase)
+import Test.Tasty.TH
+import Test.Tasty
 import Test.HUnit hiding (test)
 
 
@@ -276,4 +276,4 @@ case_write_through_list_entry =
                          , Point { _x = 8, _y = 0 } ] }
 
 main :: IO ()
-main = defaultMain [$testGroupGenerator]
+main = defaultMain $testGroupGenerator

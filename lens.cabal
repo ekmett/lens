@@ -395,9 +395,9 @@ test-suite properties
       base,
       lens,
       QuickCheck                 >= 2.4,
-      test-framework             >= 0.6,
-      test-framework-quickcheck2 >= 0.2,
-      test-framework-th          >= 0.2,
+      tasty                      >= 1.2.3,
+      tasty-quickcheck           >= 0.10.1,
+      tasty-th                   >= 0.1.7,
       transformers
 
 test-suite hunit
@@ -416,9 +416,9 @@ test-suite hunit
       HUnit >= 1.2,
       lens,
       mtl,
-      test-framework       >= 0.6,
-      test-framework-hunit >= 0.2,
-      test-framework-th    >= 0.2
+      tasty       >= 1.2.3,
+      tasty-hunit >= 0.10.0.2,
+      tasty-th    >= 0.1.7
 
 -- Verify the results of the examples
 test-suite doctests
