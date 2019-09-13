@@ -1,3 +1,11 @@
+4.18.1 [2019.09.13]
+-------------------
+* Remove the use of `cpp-options: -traditional`. This should be unnecessary
+  on all versions of GHC that `lens` supports, as modern GHCs already use
+  `-traditional` internally during preprocessing. More critically, the use
+  of `cpp-options: -traditional` breaks profiling builds on GHC 8.8
+  (see https://gitlab.haskell.org/ghc/ghc/issues/17185).
+
 4.18 [2019.09.06]
 -----------------
 * Support building with GHC 8.8.
