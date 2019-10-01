@@ -4,4 +4,3 @@ unconstrained:          False
 hlint:                  True
 apt:                    freeglut3-dev
 irc-channels:           irc.freenode.org#haskell-lens
-head-hackage:           >=8.8
