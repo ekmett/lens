@@ -181,7 +181,7 @@ script:
   - (cd ${PKGDIR_lens_examples} && ${CABAL} -vnormal check)
   - (cd ${PKGDIR_lens_properties} && ${CABAL} -vnormal check)
   # haddock...
-  - ${CABAL} v2-haddock $WITHCOMPILER --with-haddock $HADDOCK ${TEST} ${BENCH} all | color_cabal_output
+  - if [ $HCNUMVER -lt 70600 ] || [ $HCNUMVER -ge 70800 ] ; then ${CABAL} v2-haddock $WITHCOMPILER --with-haddock $HADDOCK ${TEST} ${BENCH} all | color_cabal_output ; fi
 
 # REGENDATA ["--output=.travis.yml","--config=cabal.haskell-ci","cabal.project"]
 # EOF
