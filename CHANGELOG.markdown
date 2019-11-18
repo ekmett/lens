@@ -1,9 +1,15 @@
 4.19 [????.??.??]
 -----------------
+* Support building with GHC 8.10.
+* The types of `_TupE` and `_UnboxedTupE` are now `Prism' Exp [Maybe Exp]`
+  when built against `template-haskell-2.16` or later to reflect the new
+  types of `TupE` and `UnboxedTupE`.
+* Add `_ForallVisT` and `_BytesPrimL` prisms when building against
+  `template-haskell-2.16` or later.
+* Make `<>~` and `<>=` and their `<op` and `<<op` state variants require only
+  `Semigroup`, not `Monoid`.
 * Add `{Functor,Foldable,Traversable}WithIndex` instances for
   `Control.Applicative.Const` and `Data.Functor.Constant.Constant`.
-* Make `<>~` and `<>=` and their `<op` and `<<op` state variants require only
-  `Semigroup`, not `Monoid`
 
 4.18.1 [2019.09.13]
 -------------------

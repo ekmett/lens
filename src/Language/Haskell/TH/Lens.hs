@@ -323,6 +323,9 @@ module Language.Haskell.TH.Lens
 #if MIN_VERSION_template_haskell(2,11,0)
   , _CharPrimL
 #endif
+#if MIN_VERSION_template_haskell(2,16,0)
+  , _BytesPrimL
+#endif
   -- ** Pat Prisms
   , _LitP
   , _VarP
@@ -379,6 +382,9 @@ module Language.Haskell.TH.Lens
 #if MIN_VERSION_template_haskell(2,15,0)
   , _AppKindT
   , _ImplicitParamT
+#endif
+#if MIN_VERSION_template_haskell(2,16,0)
+  , _ForallVisT
 #endif
   -- ** TyVarBndr Prisms
   , _PlainTV
@@ -550,14 +556,31 @@ instance HasTypeVars Name where
 instance HasTypeVars Type where
   typeVarsEx s f (VarT n)             = VarT <$> typeVarsEx s f n
   typeVarsEx s f (AppT l r)           = AppT <$> typeVarsEx s f l <*> typeVarsEx s f r
+  typeVarsEx s f (ForallT bs ctx ty)  = ForallT bs <$> typeVarsEx s' f ctx <*> typeVarsEx s' f ty
+       where s' = s `Set.union` setOf typeVars bs
+  typeVarsEx _ _ t@ConT{}             = pure t
+  typeVarsEx _ _ t@TupleT{}           = pure t
+  typeVarsEx _ _ t@ListT{}            = pure t
+  typeVarsEx _ _ t@ArrowT{}           = pure t
+  typeVarsEx _ _ t@UnboxedTupleT{}    = pure t
 #if MIN_VERSION_template_haskell(2,8,0)
   typeVarsEx s f (SigT t k)           = SigT <$> typeVarsEx s f t
                                              <*> typeVarsEx s f k
 #else
   typeVarsEx s f (SigT t k)           = (`SigT` k) <$> typeVarsEx s f t
 #endif
-  typeVarsEx s f (ForallT bs ctx ty)  = ForallT bs <$> typeVarsEx s' f ctx <*> typeVarsEx s' f ty
-       where s' = s `Set.union` setOf typeVars bs
+#if MIN_VERSION_template_haskell(2,8,0)
+  typeVarsEx _ _ t@PromotedT{}        = pure t
+  typeVarsEx _ _ t@PromotedTupleT{}   = pure t
+  typeVarsEx _ _ t@PromotedNilT{}     = pure t
+  typeVarsEx _ _ t@PromotedConsT{}    = pure t
+  typeVarsEx _ _ t@StarT{}            = pure t
+  typeVarsEx _ _ t@ConstraintT{}      = pure t
+  typeVarsEx _ _ t@LitT{}             = pure t
+#endif
+#if MIN_VERSION_template_haskell(2,10,0)
+  typeVarsEx _ _ t@EqualityT{}        = pure t
+#endif
 #if MIN_VERSION_template_haskell(2,11,0)
   typeVarsEx s f (InfixT  t1 n t2)    = InfixT  <$> typeVarsEx s f t1
                                                 <*> pure n
@@ -566,13 +589,20 @@ instance HasTypeVars Type where
                                                 <*> pure n
                                                 <*> typeVarsEx s f t2
   typeVarsEx s f (ParensT t)          = ParensT <$> typeVarsEx s f t
+  typeVarsEx _ _ t@WildCardT{}        = pure t
+#endif
+#if MIN_VERSION_template_haskell(2,12,0)
+  typeVarsEx _ _ t@UnboxedSumT{}      = pure t
 #endif
 #if MIN_VERSION_template_haskell(2,15,0)
   typeVarsEx s f (AppKindT t k)       = AppKindT <$> typeVarsEx s f t
                                                  <*> typeVarsEx s f k
   typeVarsEx s f (ImplicitParamT n t) = ImplicitParamT n <$> typeVarsEx s f t
 #endif
-  typeVarsEx _ _ t                    = pure t
+#if MIN_VERSION_template_haskell(2,16,0)
+  typeVarsEx s f (ForallVisT bs ty)   = ForallVisT bs <$> typeVarsEx s' f ty
+       where s' = s `Set.union` setOf typeVars bs
+#endif
 
 #if !MIN_VERSION_template_haskell(2,10,0)
 instance HasTypeVars Pred where
@@ -619,22 +649,47 @@ instance SubstType Type where
   substType m t@(VarT n)           = fromMaybe t (m^.at n)
   substType m (ForallT bs ctx ty)  = ForallT bs (substType m' ctx) (substType m' ty)
     where m' = foldrOf typeVars Map.delete m bs
-#if MIN_VERSION_template_haskell(2,8,0)
-  substType m (SigT t k)           = SigT (substType m t) (substType m k)
-#else
-  substType m (SigT t k)           = SigT (substType m t) k
-#endif
+  substType _ t@ConT{}             = t
+  substType _ t@TupleT{}           = t
+  substType _ t@ListT{}            = t
+  substType _ t@ArrowT{}           = t
+  substType _ t@UnboxedTupleT{}    = t
   substType m (AppT l r)           = AppT (substType m l) (substType m r)
+  substType m (SigT t k)           = SigT (substType m t)
+#if MIN_VERSION_template_haskell(2,8,0)
+                                          (substType m k)
+#else
+                                          k
+#endif
+#if MIN_VERSION_template_haskell(2,8,0)
+  substType _ t@PromotedT{}        = t
+  substType _ t@PromotedTupleT{}   = t
+  substType _ t@PromotedNilT{}     = t
+  substType _ t@PromotedConsT{}    = t
+  substType _ t@StarT{}            = t
+  substType _ t@ConstraintT{}      = t
+  substType _ t@LitT{}             = t
+#endif
+#if MIN_VERSION_template_haskell(2,10,0)
+  substType _ t@EqualityT{}        = t
+#endif
 #if MIN_VERSION_template_haskell(2,11,0)
   substType m (InfixT  t1 n t2)    = InfixT  (substType m t1) n (substType m t2)
   substType m (UInfixT t1 n t2)    = UInfixT (substType m t1) n (substType m t2)
   substType m (ParensT t)          = ParensT (substType m t)
+  substType _ t@WildCardT{}        = t
+#endif
+#if MIN_VERSION_template_haskell(2,12,0)
+  substType _ t@UnboxedSumT{}      = t
 #endif
 #if MIN_VERSION_template_haskell(2,15,0)
   substType m (AppKindT t k)       = AppKindT (substType m t) (substType m k)
   substType m (ImplicitParamT n t) = ImplicitParamT n (substType m t)
 #endif
-  substType _ t                   = t
+#if MIN_VERSION_template_haskell(2,16,0)
+  substType m (ForallVisT bs ty)   = ForallVisT bs (substType m' ty)
+    where m' = foldrOf typeVars Map.delete m bs
+#endif
 
 instance SubstType t => SubstType [t] where
   substType = map . substType
@@ -692,13 +747,15 @@ conNamedFields :: Traversal' Con
 #else
                                  VarStrictType
 #endif
-conNamedFields f (RecC n fs) = RecC n <$> traverse f fs
+conNamedFields _ c@NormalC{}      = pure c
+conNamedFields _ c@InfixC{}       = pure c
+conNamedFields f (RecC n fs)      = RecC n <$> traverse f fs
 conNamedFields f (ForallC a b fs) = ForallC a b <$> conNamedFields f fs
 #if MIN_VERSION_template_haskell(2,11,0)
+conNamedFields _ c@GadtC{}        = pure c
 conNamedFields f (RecGadtC ns argTys retTy) =
   RecGadtC ns <$> traverse f argTys <*> pure retTy
 #endif
-conNamedFields _ c = pure c
 
 -- Lenses and Prisms
 locFileName :: Lens' Loc String
@@ -2057,15 +2114,32 @@ _LamCaseE
       remitter _ = Nothing
 #endif
 
+-- |
+-- @
+-- _TupE :: 'Prism'' 'Exp' ['Maybe' 'Exp'] -- template-haskell-2.16+
+-- _TupE :: 'Prism'' 'Exp' ['Exp']       -- Earlier versions
+-- @
+#if MIN_VERSION_template_haskell(2,16,0)
+_TupE :: Prism' Exp [Maybe Exp]
+#else
 _TupE :: Prism' Exp [Exp]
+#endif
 _TupE
   = prism' reviewer remitter
   where
       reviewer = TupE
-      remitter (TupE x) = Just x
       remitter _ = Nothing
 
+-- |
+-- @
+-- _UnboxedTupE :: 'Prism'' 'Exp' ['Maybe' 'Exp'] -- template-haskell-2.16+
+-- _UnboxedTupE :: 'Prism'' 'Exp' ['Exp']       -- Earlier versions
+-- @
+#if MIN_VERSION_template_haskell(2,16,0)
+_UnboxedTupE :: Prism' Exp [Maybe Exp]
+#else
 _UnboxedTupE :: Prism' Exp [Exp]
+#endif
 _UnboxedTupE
   = prism' reviewer remitter
   where
@@ -2419,6 +2493,16 @@ _CharPrimL
       remitter _ = Nothing
 #endif
 
+#if MIN_VERSION_template_haskell(2,16,0)
+_BytesPrimL :: Prism' Lit Bytes
+_BytesPrimL
+  = prism' reviewer remitter
+  where
+      reviewer = BytesPrimL
+      remitter (BytesPrimL x) = Just x
+      remitter _ = Nothing
+#endif
+
 _LitP :: Prism' Pat Lit
 _LitP
   = prism' reviewer remitter
@@ -2758,6 +2842,16 @@ _ImplicitParamT
   where
       reviewer (x, y) = ImplicitParamT x y
       remitter (ImplicitParamT x y) = Just (x, y)
+      remitter _ = Nothing
+#endif
+
+#if MIN_VERSION_template_haskell(2,16,0)
+_ForallVisT :: Prism' Type ([TyVarBndr], Type)
+_ForallVisT
+  = prism' reviewer remitter
+  where
+      reviewer (x, y) = ForallVisT x y
+      remitter (ForallVisT x y) = Just (x, y)
       remitter _ = Nothing
 #endif
 

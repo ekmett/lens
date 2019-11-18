@@ -13,6 +13,7 @@
 - ignore: {name: Eta reduce, within: [Control.Lens.Zoom]} # Breaks code
 - ignore: {name: Use camelCase, within: [Control.Lens.Internal.TH]}
 - ignore: {name: Use list comprehension, within: [Control.Lens.Internal.FieldTH]}
+- ignore: {name: Use fmap, within: [Control.Exception.Lens]} # Needed to support pre-AMP GHCs
 
 - fixity: "infixl 9 :>"
 - fixity: "infixr 9 <.>, <., .>, ..."
