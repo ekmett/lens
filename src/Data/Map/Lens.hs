@@ -75,7 +75,7 @@ import qualified Data.Map as Map
 -- | Construct a map from a 'IndexedGetter', 'Control.Lens.Fold.IndexedFold', 'Control.Lens.Traversal.IndexedTraversal' or 'Control.Lens.Lens.IndexedLens'
 --
 -- The construction is left-biased (see 'Data.Map.Lazy.union'), i.e. the first
--- occurences of keys in the fold or traversal order are preferred.
+-- occurrences of keys in the fold or traversal order are preferred.
 --
 -- >>> toMapOf folded ["hello", "world"]
 -- fromList [(0,"hello"),(1,"world")]
