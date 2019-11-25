@@ -268,7 +268,7 @@ catching l = catchJust (preview l)
 {-# INLINE catching #-}
 
 -- | Catch exceptions that match a given 'Prism' (or any 'Getter'), discarding
--- the information about the match. This is particuarly useful when you have
+-- the information about the match. This is particularly useful when you have
 -- a @'Prism'' e ()@ where the result of the 'Prism' or 'Fold' isn't
 -- particularly valuable, just the fact that it matches.
 --

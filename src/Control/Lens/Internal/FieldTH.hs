@@ -608,7 +608,7 @@ type FieldNamer = Name -- ^ Name of the data type that lenses are being generate
 
 -- | Name to give to generated field optics.
 data DefName
-  = TopName Name -- ^ Simple top-level definiton name
+  = TopName Name -- ^ Simple top-level definition name
   | MethodName Name Name -- ^ makeFields-style class name and method name
   deriving (Show, Eq, Ord)
 
