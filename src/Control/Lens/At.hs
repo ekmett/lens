@@ -40,6 +40,7 @@ module Control.Lens.At
   -- * At
     At(at)
     , sans
+    , multi
     , iat
   -- * Ixed
   , Index
@@ -435,6 +436,28 @@ class Ixed m => At m where
 sans :: At m => Index m -> m -> m
 sans k m = m & at k .~ Nothing
 {-# INLINE sans #-}
+
+-- | Chain up sequences of 'at' and 'contains', making multi-maps and
+-- multi-sets easier to deal with.
+--
+-- >>> m0 = Map.fromList [] :: Map Int (Map Int (Set String))
+-- >>> m1 = m0 & at 1 . multi . at 3 . multi . contains "test" .~ True
+-- >>> m1
+-- fromList [(1,fromList [(3,fromList ["test"])])]
+-- >>> m2 = m1 & at 2 . multi . at 4 . multi . contains "what" .~ True
+-- >>> m2
+-- fromList [(1,fromList [(3,fromList ["test"])]),(2,fromList [(4,fromList ["what"])])]
+-- >>> m3 = m2 & at 1 . multi . at 3 . multi . contains "test" .~ False
+-- >>> m3
+-- fromList [(2,fromList [(4,fromList ["what"])])]
+multi
+  :: (Eq t, Monoid t, Monoid s, Functor f)
+  => (s -> f t) -> Maybe s -> f (Maybe t)
+multi f old' =
+  let old = maybe mempty id old'
+      new r = if r == mempty then Nothing else Just r
+  in new <$> f old
+{-# INLINE multi #-}
 
 -- | An indexed version of 'at'.
 --
