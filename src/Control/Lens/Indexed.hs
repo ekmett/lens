@@ -613,7 +613,7 @@ instance TraversableWithIndex () Identity where
   {-# INLINE itraverse #-}
 
 instance FunctorWithIndex Void (Const e) where
-  imap f (Const a) = Const a
+  imap _ (Const a) = Const a
   {-# INLINE imap #-}
 
 instance FoldableWithIndex Void (Const e) where
@@ -621,11 +621,11 @@ instance FoldableWithIndex Void (Const e) where
   {-# INLINE ifoldMap #-}
 
 instance TraversableWithIndex Void (Const e) where
-  itraverse f (Const a) = pure (Const a)
+  itraverse _ (Const a) = pure (Const a)
   {-# INLINE itraverse #-}
 
 instance FunctorWithIndex Void (Constant e) where
-  imap f (Constant a) = Constant a
+  imap _ (Constant a) = Constant a
   {-# INLINE imap #-}
 
 instance FoldableWithIndex Void (Constant e) where
@@ -633,7 +633,7 @@ instance FoldableWithIndex Void (Constant e) where
   {-# INLINE ifoldMap #-}
 
 instance TraversableWithIndex Void (Constant e) where
-  itraverse f (Constant a) = pure (Constant a)
+  itraverse _ (Constant a) = pure (Constant a)
   {-# INLINE itraverse #-}
 
 instance FunctorWithIndex k ((,) k) where
