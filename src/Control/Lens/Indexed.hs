@@ -103,6 +103,7 @@ import Data.Array (Array)
 import qualified Data.Array as Array
 import Data.Foldable
 import Data.Functor.Compose
+import Data.Functor.Constant (Constant (..))
 import Data.Functor.Contravariant
 import Data.Functor.Product
 import Data.Functor.Reverse
@@ -609,6 +610,30 @@ instance FoldableWithIndex () Identity where
 
 instance TraversableWithIndex () Identity where
   itraverse f (Identity a) = Identity <$> f () a
+  {-# INLINE itraverse #-}
+
+instance FunctorWithIndex Void (Const e) where
+  imap f (Const a) = Const a
+  {-# INLINE imap #-}
+
+instance FoldableWithIndex Void (Const e) where
+  ifoldMap _ _ = mempty
+  {-# INLINE ifoldMap #-}
+
+instance TraversableWithIndex Void (Const e) where
+  itraverse f (Const a) = pure (Const a)
+  {-# INLINE itraverse #-}
+
+instance FunctorWithIndex Void (Constant e) where
+  imap f (Constant a) = Constant a
+  {-# INLINE imap #-}
+
+instance FoldableWithIndex Void (Constant e) where
+  ifoldMap _ _ = mempty
+  {-# INLINE ifoldMap #-}
+
+instance TraversableWithIndex Void (Constant e) where
+  itraverse f (Constant a) = pure (Constant a)
   {-# INLINE itraverse #-}
 
 instance FunctorWithIndex k ((,) k) where
