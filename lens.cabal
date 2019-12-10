@@ -345,9 +345,8 @@ library
   if impl(ghc<7.4)
     ghc-options: -fno-spec-constr-count
 
-  -- hack around the buggy unused matches check for class associated types in ghc 8 rc1
   if impl(ghc >= 8)
-    ghc-options: -Wno-missing-pattern-synonym-signatures -Wno-unused-matches
+    ghc-options: -Wno-missing-pattern-synonym-signatures
 
   if flag(j) && impl(ghc>=7.8)
     ghc-options: -j4
