@@ -1,3 +1,8 @@
+next [????.??.??]
+-----------------
+* Add `{Functor,Foldable,Traversable}WithIndex` instances for
+  `Control.Applicative.Const` and `Data.Functor.Constant.Constant`.
+
 4.18.1 [2019.09.13]
 -------------------
 * Remove the use of `cpp-options: -traditional`. This should be unnecessary
