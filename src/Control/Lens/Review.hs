@@ -31,6 +31,7 @@ module Control.Lens.Review
   , Bifunctor(bimap)
   , retagged
   , Reviewable
+  , reviewing
   ) where
 
 import Control.Monad.Reader as Reader
@@ -240,3 +241,13 @@ reuse p = gets (runIdentity #. unTagged #. p .# Tagged .# Identity)
 reuses :: MonadState b m => AReview t b -> (t -> r) -> m r
 reuses p tr = gets (tr . runIdentity #. unTagged #. p .# Tagged .# Identity)
 {-# INLINE reuses #-}
+
+-- | Coerce a polymorphic 'Prism' to a 'Review'.
+--
+-- @
+-- 'reviewing' :: 'Iso' s t a b -> 'Review' t b
+-- 'reviewing' :: 'Prism' s t a b -> 'Review' t b
+-- @
+reviewing :: (Bifunctor p, Functor f) => Optic Tagged Identity s t a b -> Optic' p f t b
+reviewing p = bimap f (fmap f) where
+  f = runIdentity . unTagged . p . Tagged . Identity
