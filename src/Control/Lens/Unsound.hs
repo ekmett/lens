@@ -5,10 +5,6 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# OPTIONS_GHC -fno-warn-warnings-deprecations #-}
 
-#ifndef MIN_VERSION_mtl
-#define MIN_VERSION_mtl(x,y,z) 1
-#endif
-
 #if __GLASGOW_HASKELL__ < 708
 {-# LANGUAGE Trustworthy #-}
 #endif
@@ -37,9 +33,9 @@ module Control.Lens.Unsound
   , adjoin
   ) where
 
-import Control.Applicative
 import Control.Lens
-import Prelude
+import Control.Lens.Internal.Prelude
+import Prelude ()
 
 -- | A lens product. There is no law-abiding way to do this in general.
 -- Result is only a valid 'Lens' if the input lenses project disjoint parts of

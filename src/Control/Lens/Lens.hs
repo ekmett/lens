@@ -132,10 +132,12 @@ module Control.Lens.Lens
   , fusing
   ) where
 
-import Control.Applicative
+import Prelude ()
+
 import Control.Arrow
 import Control.Comonad
 import Control.Lens.Internal.Context
+import Control.Lens.Internal.Prelude
 import Control.Lens.Internal.Getter
 import Control.Lens.Internal.Indexed
 import Control.Lens.Type
@@ -147,16 +149,7 @@ import Data.Profunctor
 import Data.Profunctor.Rep
 import Data.Profunctor.Sieve
 import Data.Profunctor.Unsafe
-import Data.Semigroup (Semigroup (..))
 import Data.Semigroup.Traversable
-import Data.Void
-import Prelude
-#if MIN_VERSION_base(4,8,0)
-import Data.Function ((&))
-#endif
-#if MIN_VERSION_base(4,11,0)
-import Data.Functor ((<&>))
-#endif
 #if __GLASGOW_HASKELL__ >= 800
 import GHC.Exts (TYPE)
 #endif
@@ -352,47 +345,6 @@ l %%= f = do
 -------------------------------------------------------------------------------
 -- General Purpose Combinators
 -------------------------------------------------------------------------------
-
-
-#if !(MIN_VERSION_base(4,8,0))
--- | Passes the result of the left side to the function on the right side (forward pipe operator).
---
--- This is the flipped version of ('$'), which is more common in languages like F# as (@|>@) where it is needed
--- for inference. Here it is supplied for notational convenience and given a precedence that allows it
--- to be nested inside uses of ('$').
---
--- >>> a & f
--- f a
---
--- >>> "hello" & length & succ
--- 6
---
--- This combinator is commonly used when applying multiple 'Lens' operations in sequence.
---
--- >>> ("hello","world") & _1.element 0 .~ 'j' & _1.element 4 .~ 'y'
--- ("jelly","world")
---
--- This reads somewhat similar to:
---
--- >>> flip execState ("hello","world") $ do _1.element 0 .= 'j'; _1.element 4 .= 'y'
--- ("jelly","world")
-(&) :: a -> (a -> b) -> b
-a & f = f a
-{-# INLINE (&) #-}
-infixl 1 &
-#endif
-
-#if !(MIN_VERSION_base(4,11,0))
--- | Infix flipped 'fmap'.
---
--- @
--- ('<&>') = 'flip' 'fmap'
--- @
-(<&>) :: Functor f => f a -> (a -> b) -> f b
-as <&> f = f <$> as
-{-# INLINE (<&>) #-}
-infixl 1 <&>
-#endif
 
 -- | This is convenient to 'flip' argument order of composite functions defined as:
 --

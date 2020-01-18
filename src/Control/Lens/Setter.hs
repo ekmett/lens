@@ -79,9 +79,11 @@ module Control.Lens.Setter
   , mapOf
   ) where
 
-import Control.Applicative
+import Prelude ()
+
 import Control.Arrow
 import Control.Comonad
+import Control.Lens.Internal.Prelude
 import Control.Lens.Internal.Indexed
 import Control.Lens.Internal.Setter
 import Control.Lens.Type
@@ -90,14 +92,10 @@ import Control.Monad.Reader.Class as Reader
 import Control.Monad.State.Class  as State
 import Control.Monad.Writer.Class as Writer
 import Data.Functor.Contravariant
-import Data.Functor.Identity
-import Data.Monoid (Monoid (..))
 import Data.Profunctor
 import Data.Profunctor.Rep
 import Data.Profunctor.Sieve
 import Data.Profunctor.Unsafe
-import Data.Semigroup (Semigroup (..))
-import Prelude
 
 #ifdef HLINT
 {-# ANN module "HLint: ignore Avoid lambda" #-}
@@ -109,6 +107,7 @@ import Prelude
 -- >>> import Control.Monad.State
 -- >>> import Data.Char
 -- >>> import Data.Map as Map
+-- >>> import Data.Semigroup (Sum (..), Product (..))
 -- >>> import Debug.SimpleReflect.Expr as Expr
 -- >>> import Debug.SimpleReflect.Vars as Vars
 -- >>> let f :: Expr -> Expr; f = Debug.SimpleReflect.Vars.f
@@ -117,7 +116,6 @@ import Prelude
 -- >>> let getter :: Expr -> Expr; getter = fun "getter"
 -- >>> let setter :: Expr -> Expr -> Expr; setter = fun "setter"
 -- >>> :set -XNoOverloadedStrings
--- >>> import Data.Semigroup (Sum (..), Product (..))
 
 infixr 4 %@~, .@~, .~, +~, *~, -~, //~, ^~, ^^~, **~, &&~, <>~, ||~, %~, <.~, ?~, <?~
 infix  4 %@=, .@=, .=, +=, *=, -=, //=, ^=, ^^=, **=, &&=, <>=, ||=, %=, <.=, ?=, <?=
