@@ -7,9 +7,8 @@
 #define MIN_VERSION_base(x,y,z) 1
 #endif
 
-#if !(MIN_VERSION_base(4,8,0))
-import           Control.Applicative
-#endif
+import Prelude ()
+import Prelude.Compat
 
 import           Control.Lens
 import           Control.DeepSeq

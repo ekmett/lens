@@ -79,9 +79,11 @@ module Control.Lens.Setter
   , mapOf
   ) where
 
-import Control.Applicative
+import Prelude ()
+
 import Control.Arrow
 import Control.Comonad
+import Control.Lens.Internal.Prelude
 import Control.Lens.Internal.Indexed
 import Control.Lens.Internal.Setter
 import Control.Lens.Type
@@ -90,13 +92,10 @@ import Control.Monad.Reader.Class as Reader
 import Control.Monad.State.Class  as State
 import Control.Monad.Writer.Class as Writer
 import Data.Functor.Contravariant
-import Data.Functor.Identity
-import Data.Monoid
 import Data.Profunctor
 import Data.Profunctor.Rep
 import Data.Profunctor.Sieve
 import Data.Profunctor.Unsafe
-import Prelude
 
 #ifdef HLINT
 {-# ANN module "HLint: ignore Avoid lambda" #-}
@@ -108,6 +107,7 @@ import Prelude
 -- >>> import Control.Monad.State
 -- >>> import Data.Char
 -- >>> import Data.Map as Map
+-- >>> import Data.Semigroup (Sum (..), Product (..))
 -- >>> import Debug.SimpleReflect.Expr as Expr
 -- >>> import Debug.SimpleReflect.Vars as Vars
 -- >>> let f :: Expr -> Expr; f = Debug.SimpleReflect.Vars.f
@@ -1043,7 +1043,7 @@ l <?= b = do
   return b
 {-# INLINE (<?=) #-}
 
--- | Modify the target of a monoidally valued by 'mappend'ing another value.
+-- | Modify the target of a 'Semigroup' value by using @('<>')@.
 --
 -- >>> (Sum a,b) & _1 <>~ Sum c
 -- (Sum {getSum = a + c},b)
@@ -1055,16 +1055,16 @@ l <?= b = do
 -- ("hello!!!","world!!!")
 --
 -- @
--- ('<>~') :: 'Monoid' a => 'Setter' s t a a    -> a -> s -> t
--- ('<>~') :: 'Monoid' a => 'Iso' s t a a       -> a -> s -> t
--- ('<>~') :: 'Monoid' a => 'Lens' s t a a      -> a -> s -> t
--- ('<>~') :: 'Monoid' a => 'Traversal' s t a a -> a -> s -> t
+-- ('<>~') :: 'Semigroup' a => 'Setter' s t a a    -> a -> s -> t
+-- ('<>~') :: 'Semigroup' a => 'Iso' s t a a       -> a -> s -> t
+-- ('<>~') :: 'Semigroup' a => 'Lens' s t a a      -> a -> s -> t
+-- ('<>~') :: 'Semigroup' a => 'Traversal' s t a a -> a -> s -> t
 -- @
-(<>~) :: Monoid a => ASetter s t a a -> a -> s -> t
-l <>~ n = over l (`mappend` n)
+(<>~) :: Semigroup a => ASetter s t a a -> a -> s -> t
+l <>~ n = over l (<> n)
 {-# INLINE (<>~) #-}
 
--- | Modify the target(s) of a 'Lens'', 'Iso', 'Setter' or 'Traversal' by 'mappend'ing a value.
+-- | Modify the target(s) of a 'Lens'', 'Iso', 'Setter' or 'Traversal' by using @('<>')@.
 --
 -- >>> execState (do _1 <>= Sum c; _2 <>= Product d) (Sum a,Product b)
 -- (Sum {getSum = a + c},Product {getProduct = b * d})
@@ -1073,12 +1073,12 @@ l <>~ n = over l (`mappend` n)
 -- ("hello!!!","world!!!")
 --
 -- @
--- ('<>=') :: ('MonadState' s m, 'Monoid' a) => 'Setter'' s a -> a -> m ()
--- ('<>=') :: ('MonadState' s m, 'Monoid' a) => 'Iso'' s a -> a -> m ()
--- ('<>=') :: ('MonadState' s m, 'Monoid' a) => 'Lens'' s a -> a -> m ()
--- ('<>=') :: ('MonadState' s m, 'Monoid' a) => 'Traversal'' s a -> a -> m ()
+-- ('<>=') :: ('MonadState' s m, 'Semigroup' a) => 'Setter'' s a -> a -> m ()
+-- ('<>=') :: ('MonadState' s m, 'Semigroup' a) => 'Iso'' s a -> a -> m ()
+-- ('<>=') :: ('MonadState' s m, 'Semigroup' a) => 'Lens'' s a -> a -> m ()
+-- ('<>=') :: ('MonadState' s m, 'Semigroup' a) => 'Traversal'' s a -> a -> m ()
 -- @
-(<>=) :: (MonadState s m, Monoid a) => ASetter' s a -> a -> m ()
+(<>=) :: (MonadState s m, Semigroup a) => ASetter' s a -> a -> m ()
 l <>= a = State.modify (l <>~ a)
 {-# INLINE (<>=) #-}
 

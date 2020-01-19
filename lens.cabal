@@ -1,6 +1,6 @@
 name:          lens
 category:      Data, Lenses, Generics
-version:       4.18.1
+version:       4.19
 license:       BSD2
 cabal-version: 1.18
 license-file:  LICENSE
@@ -327,6 +327,7 @@ library
     Numeric.Natural.Lens
 
   other-modules:
+    Control.Lens.Internal.Prelude
     Paths_lens
 
   if flag(safe)
@@ -464,6 +465,7 @@ benchmark plated
   default-language: Haskell2010
   build-depends:
     base,
+    base-compat >=0.11.0 && <0.12,
     comonad,
     criterion,
     deepseq,

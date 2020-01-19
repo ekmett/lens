@@ -150,7 +150,9 @@ module Control.Lens.Fold
   , foldMapByOf
   ) where
 
-import Control.Applicative as Applicative
+import Prelude ()
+
+import Control.Applicative (Alternative (..))
 import Control.Applicative.Backwards
 import Control.Comonad
 import Control.Lens.Getter
@@ -158,19 +160,18 @@ import Control.Lens.Internal.Fold
 import Control.Lens.Internal.Getter
 import Control.Lens.Internal.Indexed
 import Control.Lens.Internal.Magma
+import Control.Lens.Internal.Prelude
 import Control.Lens.Type
 import Control.Monad as Monad
 import Control.Monad.Reader
 import Control.Monad.State
 import Data.CallStack
-import Data.Foldable
 import Data.Functor.Apply hiding ((<.))
-import Data.Functor.Compose
 import Data.Functor.Contravariant
 import Data.Int (Int64)
 import Data.List (intercalate)
-import Data.Maybe
-import Data.Monoid
+import Data.Maybe (fromMaybe)
+import Data.Monoid (First (..), Endo (..), Dual (..), All (..), Any (..))
 import Data.Profunctor
 import Data.Profunctor.Rep
 import Data.Profunctor.Sieve
@@ -178,8 +179,6 @@ import Data.Profunctor.Unsafe
 #if MIN_VERSION_reflection(2,1,0)
 import Data.Reflection
 #endif
-import Data.Traversable
-import Prelude hiding (foldr)
 
 import qualified Data.Semigroup as Semi
 import Data.List.NonEmpty (NonEmpty(..))
@@ -195,6 +194,7 @@ import Data.List.NonEmpty (NonEmpty(..))
 -- >>> import Control.DeepSeq (NFData (..), force)
 -- >>> import Control.Exception (evaluate)
 -- >>> import Data.Maybe (fromMaybe)
+-- >>> import Data.Monoid (Sum (..))
 -- >>> import System.Timeout (timeout)
 -- >>> import qualified Data.Map as Map
 -- >>> let f :: Expr -> Expr; f = Debug.SimpleReflect.Vars.f
@@ -1102,7 +1102,7 @@ sequenceOf_ l = liftM skip . getSequenced #. foldMapOf l Sequenced
 -- 'asumOf' :: 'Alternative' f => 'Prism'' s (f a)     -> s -> f a
 -- @
 asumOf :: Alternative f => Getting (Endo (f a)) s (f a) -> s -> f a
-asumOf l = foldrOf l (<|>) Applicative.empty
+asumOf l = foldrOf l (<|>) empty
 {-# INLINE asumOf #-}
 
 -- | The sum of a collection of actions, generalizing 'concatOf'.

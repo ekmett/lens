@@ -1,7 +1,9 @@
-next [????.??.??]
+4.19 [????.??.??]
 -----------------
 * Add `{Functor,Foldable,Traversable}WithIndex` instances for
   `Control.Applicative.Const` and `Data.Functor.Constant.Constant`.
+* Make `<>~` and `<>=` and their `<op` and `<<op` state variants require only
+  `Semigroup`, not `Monoid`
 
 4.18.1 [2019.09.13]
 -------------------
