@@ -8,9 +8,8 @@
 {-# LANGUAGE Trustworthy #-}
 {-# LANGUAGE ConstraintKinds #-}
 
-#ifndef MIN_VERSION_containers
-#define MIN_VERSION_containers(x,y,z) 1
-#endif
+#include "lens-common.h"
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Traversal

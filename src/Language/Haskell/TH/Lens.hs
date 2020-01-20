@@ -4,13 +4,8 @@
 #endif
 {-# LANGUAGE Rank2Types #-}
 
-#if __GLASGOW_HASKELL__ >= 800
-{-# OPTIONS_GHC -Wno-trustworthy-safe #-}
-#endif
+#include "lens-common.h"
 
-#ifndef MIN_VERSION_template_haskell
-#define MIN_VERSION_template_haskell(x,y,z) 1
-#endif
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Language.Haskell.TH.Lens

@@ -4,16 +4,9 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE ConstraintKinds #-}
-
-#ifndef MIN_VERSION_reflection
-#define MIN_VERSION_reflection(x,y,z) 1
-#endif
-
 {-# LANGUAGE Trustworthy #-}
-#if __GLASGOW_HASKELL__ >= 800
-{-# OPTIONS_GHC -Wno-trustworthy-safe #-}
-#endif
 
+#include "lens-common.h"
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 ----------------------------------------------------------------------------
 -- |

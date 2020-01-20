@@ -10,6 +10,10 @@
 {-# LANGUAGE PolyKinds #-} -- gplate1
 #endif
 
+#ifdef TRUSTWORTHY
+{-# LANGUAGE Trustworthy #-} -- template-haskell
+#endif
+
 #if __GLASGOW_HASKELL__ < 710
 {-# LANGUAGE OverlappingInstances #-}
 #define OVERLAPPING_PRAGMA
@@ -17,25 +21,8 @@
 #define OVERLAPPING_PRAGMA {-# OVERLAPPING #-}
 #endif
 
-#ifdef TRUSTWORTHY
-{-# LANGUAGE Trustworthy #-} -- template-haskell
-#endif
+#include "lens-common.h"
 
-#if __GLASGOW_HASKELL__ >= 800
-{-# OPTIONS_GHC -Wno-trustworthy-safe #-}
-#endif
-
-#ifndef MIN_VERSION_template_haskell
-#define MIN_VERSION_template_haskell(x,y,z) 1
-#endif
-
-#ifndef MIN_VERSION_free
-#define MIN_VERSION_free(x,y,z) 1
-#endif
-
-#ifndef MIN_VERSION_base
-#define MIN_VERSION_base(x,y,z) 1
-#endif
 -------------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Plated

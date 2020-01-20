@@ -10,13 +10,7 @@
 {-# LANGUAGE TypeInType #-}
 #endif
 
-#ifndef MIN_VERSION_mtl
-#define MIN_VERSION_mtl(x,y,z) 1
-#endif
-
-#if __GLASGOW_HASKELL__ >= 800
-{-# OPTIONS_GHC -Wno-trustworthy-safe #-}
-#endif
+#include "lens-common.h"
 
 -------------------------------------------------------------------------------
 -- |

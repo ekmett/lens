@@ -14,17 +14,12 @@
 {-# LANGUAGE ViewPatterns #-}
 #endif
 
-#ifndef MIN_VERSION_base
-#define MIN_VERSION_base(x,y,z) 1
-#endif
-
-#ifndef MIN_VERSION_exceptions
-#define MIN_VERSION_exceptions 1
-#endif
+#include "lens-common.h"
 
 #if !(MIN_VERSION_exceptions(0,4,0))
 #define MonadThrow MonadCatch
 #endif
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Exception.Lens

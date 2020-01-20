@@ -14,17 +14,8 @@
 {-# LANGUAGE Trustworthy #-}
 #endif
 
-#if __GLASGOW_HASKELL__ >= 711
-{-# OPTIONS_GHC -fno-warn-redundant-constraints #-}
-#endif
+#include "lens-common.h"
 
-#ifndef MIN_VERSION_base
-#define MIN_VERSION_base(x,y,z) 1
-#endif
-
-#ifndef MIN_VERSION_containers
-#define MIN_VERSION_containers(x,y,z) 1
-#endif
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.At

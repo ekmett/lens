@@ -14,9 +14,7 @@
 {-# LANGUAGE TypeInType #-}
 #endif
 
-#ifndef MIN_VERSION_bytestring
-#define MIN_VERSION_bytestring(x,y,z) 1
-#endif
+#include "lens-common.h"
 
 -----------------------------------------------------------------------------
 -- |

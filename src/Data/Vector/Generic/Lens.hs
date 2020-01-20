@@ -5,9 +5,8 @@
 {-# LANGUAGE Trustworthy #-}
 #endif
 
-#ifndef MIN_VERSION_vector
-#define MIN_VERSION_vector(x,y,z) 1
-#endif
+#include "lens-common.h"
+
 -------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Vector.Generic.Lens

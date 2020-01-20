@@ -1,10 +1,5 @@
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE FlexibleContexts #-}
-
-#ifndef MIN_VERSION_base
-#define MIN_VERSION_base(x,y,z) 1
-#endif
 
 -----------------------------------------------------------------------------
 -- |
@@ -99,13 +94,12 @@ module Data.List.Lens
   , stripSuffix
   ) where
 
+import Prelude ()
+
 import Control.Monad (guard)
+import Control.Lens.Internal.Prelude
 import Control.Lens
 import Data.List
-
-#if !MIN_VERSION_base(4,8,0)
-import Data.Functor
-#endif
 
 -- $setup
 -- >>> :set -XNoOverloadedStrings
