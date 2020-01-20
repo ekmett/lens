@@ -30,9 +30,12 @@ module Control.Lens.Internal.FieldTH
   , HasFieldClasses
   ) where
 
+import Prelude ()
+
 import Control.Lens.At
 import Control.Lens.Fold
 import Control.Lens.Internal.TH
+import Control.Lens.Internal.Prelude
 import Control.Lens.Lens
 import Control.Lens.Plated
 import Control.Lens.Prism
@@ -40,7 +43,6 @@ import Control.Lens.Setter
 import Control.Lens.Getter
 import Control.Lens.Tuple
 import Control.Lens.Traversal
-import Control.Applicative
 import Control.Monad
 import Control.Monad.State
 import Language.Haskell.TH.Lens
@@ -49,14 +51,13 @@ import qualified Language.Haskell.TH.Datatype as D
 import Data.Maybe (isJust,maybeToList)
 import Data.List (nub, findIndices)
 import Data.Either (partitionEithers)
-import Data.Semigroup
+import Data.Semigroup (Any (..))
 import Data.Set.Lens
 import           Data.Map ( Map )
 import           Data.Set ( Set )
 import qualified Data.Set as Set
 import qualified Data.Map as Map
 import qualified Data.Traversable as T
-import Prelude
 
 ------------------------------------------------------------------------
 -- Field generation entry point

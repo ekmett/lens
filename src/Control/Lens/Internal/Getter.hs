@@ -18,16 +18,14 @@ module Control.Lens.Internal.Getter
   , AlongsideRight(..)
   ) where
 
-import Control.Applicative
+import Prelude ()
+
+import Control.Lens.Internal.Prelude
 import Data.Bifoldable
 import Data.Bifunctor
 import Data.Bitraversable
-import Data.Foldable
-import Data.Functor.Contravariant
 import Data.Semigroup.Foldable
 import Data.Semigroup.Traversable
-import Data.Traversable
-import Prelude
 
 -- | The 'mempty' equivalent for a 'Contravariant' 'Applicative' 'Functor'.
 noEffect :: (Contravariant f, Applicative f) => f a

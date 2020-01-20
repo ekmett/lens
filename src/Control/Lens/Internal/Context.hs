@@ -28,19 +28,15 @@ module Control.Lens.Internal.Context
   , PretextT(..), PretextT'
   ) where
 
-import Control.Applicative
+import Prelude ()
+
 import Control.Arrow
-import Control.Category
+import qualified Control.Category as C
 import Control.Comonad
 import Control.Comonad.Store.Class
 import Control.Lens.Internal.Indexed
-import Data.Functor.Compose
-import Data.Functor.Contravariant
-import Data.Functor.Identity
-import Data.Profunctor
+import Control.Lens.Internal.Prelude
 import Data.Profunctor.Rep
-import Data.Profunctor.Sieve
-import Data.Profunctor.Unsafe
 import Prelude hiding ((.),id)
 
 ------------------------------------------------------------------------------
@@ -229,7 +225,7 @@ instance Functor (Pretext p a b) where
 instance Conjoined p => IndexedComonad (Pretext p) where
   iextract (Pretext m) = runIdentity $ m (arr Identity)
   {-# INLINE iextract #-}
-  iduplicate (Pretext m) = getCompose $ m (Compose #. distrib sell . sell)
+  iduplicate (Pretext m) = getCompose $ m (Compose #. distrib sell C.. sell)
   {-# INLINE iduplicate #-}
 
 instance (a ~ b, Conjoined p) => Comonad (Pretext p a b) where
@@ -309,7 +305,7 @@ instance Functor (PretextT p g a b) where
 instance Conjoined p => IndexedComonad (PretextT p g) where
   iextract (PretextT m) = runIdentity $ m (arr Identity)
   {-# INLINE iextract #-}
-  iduplicate (PretextT m) = getCompose $ m (Compose #. distrib sell . sell)
+  iduplicate (PretextT m) = getCompose $ m (Compose #. distrib sell C.. sell)
   {-# INLINE iduplicate #-}
 
 instance (a ~ b, Conjoined p) => Comonad (PretextT p g a b) where

@@ -29,14 +29,13 @@ module Control.Lens.Internal.ByteString
   , unpackLazy8, traversedLazy8
   ) where
 
-#if !MIN_VERSION_base(4,8,0)
-import Control.Applicative
-#endif
+import Prelude ()
 
 import Control.Lens.Type
 import Control.Lens.Getter
 import Control.Lens.Fold
 import Control.Lens.Indexed
+import Control.Lens.Internal.Prelude
 import Control.Lens.Setter
 import qualified Data.ByteString               as B
 import qualified Data.ByteString.Char8         as B8
@@ -48,7 +47,6 @@ import Data.Bits
 import Data.Char
 import Data.Int (Int64)
 import Data.Word (Word8)
-import Data.Monoid
 import Foreign.Ptr
 import Foreign.Storable
 #if MIN_VERSION_base(4,8,0)

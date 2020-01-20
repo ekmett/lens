@@ -39,27 +39,20 @@ module Control.Lens.Internal.Indexed
   , asIndex
   ) where
 
-import Control.Applicative
+import Prelude ()
+
 import Control.Arrow as Arrow
-import Control.Category
+import qualified Control.Category as C
 import Control.Comonad
+import Control.Lens.Internal.Prelude
 import Control.Lens.Internal.Instances ()
-import Control.Monad
 import Control.Monad.Fix
 import Data.Distributive
 import Data.Functor.Bind
-import Data.Functor.Contravariant
 import Data.Int
-import Data.Monoid
 import Data.Profunctor.Closed
-import Data.Profunctor
 import Data.Profunctor.Rep
-import Data.Profunctor.Sieve
-import qualified Data.Semigroup as Semi
-import Data.Traversable
-import Prelude hiding ((.),id)
 #ifndef SAFE
-import Data.Profunctor.Unsafe
 import Control.Lens.Internal.Coerce
 #endif
 
@@ -202,7 +195,7 @@ instance Strong (Indexed i) where
   second' = second
   {-# INLINE second' #-}
 
-instance Category (Indexed i) where
+instance C.Category (Indexed i) where
   id = Indexed (const id)
   {-# INLINE id #-}
   Indexed f . Indexed g = Indexed $ \i -> f i . g i
@@ -278,10 +271,10 @@ instance Contravariant f => Contravariant (Indexing f) where
     (j, ff) -> (j, contramap f ff)
   {-# INLINE contramap #-}
 
-instance Semi.Semigroup (f a) => Semi.Semigroup (Indexing f a) where
+instance Semigroup (f a) => Semigroup (Indexing f a) where
     Indexing mx <> Indexing my = Indexing $ \i -> case mx i of
       (j, x) -> case my j of
-         ~(k, y) -> (k, x Semi.<> y)
+         ~(k, y) -> (k, x <> y)
     {-# INLINE (<>) #-}
 
 -- |

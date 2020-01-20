@@ -130,7 +130,6 @@ module Control.Lens.Traversal
 
 import Prelude ()
 
-import Control.Applicative (WrappedMonad (..), ZipList (..), Alternative (..))
 import Control.Applicative.Backwards
 import qualified Control.Category as C
 import Control.Comonad
@@ -152,16 +151,12 @@ import Data.Functor.Day.Curried
 import Data.Functor.Yoneda
 import Data.Int
 import qualified Data.IntMap as IntMap
-import Data.List.NonEmpty (NonEmpty (..))
 import qualified Data.Map as Map
 import Data.Map (Map)
+import Data.Monoid (Any (..))
 import Data.Sequence (Seq, mapWithIndex)
 import Data.Vector as Vector (Vector, imap)
-import Data.Monoid (Any (..), Endo (..))
-import Data.Profunctor
-import Data.Profunctor.Rep
-import Data.Profunctor.Sieve
-import Data.Profunctor.Unsafe
+import Data.Profunctor.Rep (Representable (..))
 import Data.Reflection
 import Data.Semigroup.Traversable
 import Data.Semigroup.Bitraversable

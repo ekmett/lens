@@ -63,26 +63,22 @@ module Control.Lens.Type
   , Optic, Optic'
   ) where
 
-import Control.Applicative
+import Prelude ()
+
+import Control.Lens.Internal.Prelude
 import Control.Lens.Internal.Setter
 import Control.Lens.Internal.Indexed
 import Data.Bifunctor
-import Data.Functor.Identity
-import Data.Functor.Contravariant
 import Data.Functor.Apply
 #if __GLASGOW_HASKELL__ >= 800
 import Data.Kind
 #endif
-import Data.Profunctor
-import Data.Tagged
-import Prelude ()
 
 -- $setup
 -- >>> :set -XNoOverloadedStrings
 -- >>> import Control.Lens
 -- >>> import Debug.SimpleReflect.Expr
 -- >>> import Debug.SimpleReflect.Vars as Vars hiding (f,g,h)
--- >>> import Prelude
 -- >>> let f :: Expr -> Expr; f = Debug.SimpleReflect.Vars.f
 -- >>> let g :: Expr -> Expr; g = Debug.SimpleReflect.Vars.g
 -- >>> let h :: Expr -> Expr -> Expr; h = Debug.SimpleReflect.Vars.h

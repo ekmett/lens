@@ -43,7 +43,10 @@ module Control.Lens.At
   , icontains
   ) where
 
+import Prelude ()
+
 import Control.Lens.Each
+import Control.Lens.Internal.Prelude
 import Control.Lens.Traversal
 import Control.Lens.Lens
 import Control.Lens.Setter
@@ -60,7 +63,6 @@ import Data.HashSet as HashSet
 import Data.Int
 import Data.IntMap as IntMap
 import Data.IntSet as IntSet
-import Data.List.NonEmpty as NonEmpty
 import Data.Map as Map
 import Data.Set as Set
 import Data.Sequence as Seq
@@ -72,10 +74,6 @@ import Data.Vector.Primitive as Prim
 import Data.Vector.Storable as Storable
 import Data.Vector.Unboxed as Unboxed hiding (indexed)
 import Data.Word
-
-#if !MIN_VERSION_base(4,8,0)
-import Control.Applicative
-#endif
 
 type family Index (s :: *) :: *
 type instance Index (e -> a) = e

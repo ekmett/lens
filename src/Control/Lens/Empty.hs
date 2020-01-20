@@ -28,12 +28,14 @@ module Control.Lens.Empty
 #endif
   ) where
 
+import Prelude ()
+
 import Control.Lens.Iso
 #if __GLASGOW_HASKELL__ >= 710
 import Control.Lens.Fold
 #endif
-import Control.Applicative (ZipList(..))
 import Control.Lens.Prism
+import Control.Lens.Internal.Prelude as Prelude
 import Control.Lens.Review
 import Data.ByteString as StrictB
 import Data.ByteString.Lazy as LazyB
@@ -41,10 +43,9 @@ import Data.HashMap.Lazy as HashMap
 import Data.HashSet as HashSet
 import Data.IntMap as IntMap
 import Data.IntSet as IntSet
+import Data.Monoid
 import Data.Map as Map
 import Data.Maybe
-import Data.Monoid
-import Data.Profunctor.Unsafe
 import qualified Data.Sequence as Seq
 import Data.Set as Set
 import Data.Text as StrictT

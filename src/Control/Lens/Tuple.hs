@@ -54,17 +54,12 @@ module Control.Lens.Tuple
   , _17', _18', _19'
   ) where
 
+import           Prelude ()
 import           Control.Lens.Lens
-import           Data.Functor.Identity
-import           Data.Functor.Product
-import           Data.Profunctor       (dimap)
-import           Data.Proxy            (Proxy (Proxy))
+import           Control.Lens.Internal.Prelude
+import           Data.Functor.Product  (Product (..))
 import           GHC.Generics          ((:*:) (..), Generic (..), K1 (..),
                                         M1 (..), U1 (..))
-
-#if !MIN_VERSION_base(4,8,0)
-import           Control.Applicative
-#endif
 
 -- $setup
 -- >>> :set -XNoOverloadedStrings

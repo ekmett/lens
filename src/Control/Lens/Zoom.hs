@@ -30,8 +30,11 @@ module Control.Lens.Zoom
   , Zoomed
   ) where
 
+import Prelude ()
+
 import Control.Lens.Getter
 import Control.Lens.Internal.Coerce
+import Control.Lens.Internal.Prelude
 import Control.Lens.Internal.Zoom
 import Control.Lens.Type
 import Control.Monad
@@ -49,9 +52,6 @@ import Control.Monad.Trans.List
 import Control.Monad.Trans.Identity
 import Control.Monad.Trans.Maybe
 import Control.Monad.Trans.Free
-import Data.Monoid
-import Data.Profunctor.Unsafe
-import Prelude
 
 #ifdef HLINT
 {-# ANN module "HLint: ignore Use fmap" #-}

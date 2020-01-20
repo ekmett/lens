@@ -51,10 +51,9 @@
 -- A common question is whether you can combine multiple 'Getter's to
 -- retrieve multiple values. Recall that all 'Getter's are 'Fold's and that
 -- we have a @'Monoid' m => 'Applicative' ('Const' m)@ instance to play
--- with. Knowing this, we can use @'Data.Monoid.<>'@ to glue 'Fold's
+-- with. Knowing this, we can use @'Data.Semigroup.<>'@ to glue 'Fold's
 -- together:
 --
--- >>> import Data.Monoid
 -- >>> (1, 2, 3, 4, 5) ^.. (_2 <> _3 <> _5)
 -- [2,3,5]
 --
@@ -87,15 +86,14 @@ module Control.Lens.Getter
   , Const(..)
   ) where
 
-import Control.Applicative
+import Prelude ()
+
 import Control.Lens.Internal.Indexed
+import Control.Lens.Internal.Prelude
 import Control.Lens.Type
 import Control.Monad.Reader.Class as Reader
 import Control.Monad.State        as State
-import Control.Monad.Writer       as Writer
-import Data.Functor.Contravariant
-import Data.Profunctor
-import Data.Profunctor.Unsafe
+import Control.Monad.Writer (MonadWriter (..))
 
 -- $setup
 -- >>> :set -XNoOverloadedStrings
