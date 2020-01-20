@@ -5,10 +5,6 @@
 {-# LANGUAGE PatternSynonyms #-}
 #endif
 
-#ifndef MIN_VERSION_base
-#define MIN_VERSION_base(x,y,z) 1
-#endif
-
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Complex.Lens
@@ -37,12 +33,11 @@ module Data.Complex.Lens
 #endif
   ) where
 
-import Control.Lens
-import Data.Complex
+import Prelude ()
 
-#if !MIN_VERSION_base(4,8,0)
-import Control.Applicative
-#endif
+import Control.Lens
+import Control.Lens.Internal.Prelude
+import Data.Complex
 
 -- $setup
 -- >>> import Debug.SimpleReflect

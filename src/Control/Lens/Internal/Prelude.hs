@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+#include "lens-common.h"
 -- | Module which does most common imports (and related CPP)
 -- needed across the lens library.
 --
@@ -16,7 +17,7 @@ module Control.Lens.Internal.Prelude
   , Foldable, foldMap, foldr, foldl', null, length, traverse_
   , Traversable (..)
   , Applicative (..)
-  , (&), (<&>), (<$>)
+  , (&), (<&>), (<$>), (<$)
   -- * Functors
   , Identity (..)
   , Compose (..)
@@ -32,7 +33,7 @@ import Prelude hiding
     , Foldable (..)
     , Traversable (..)
     , Monoid (..)
-    , (<$>)
+    , (<$>), (<$)
 #else
     , foldr, length, null
     , mapM, sequence
@@ -42,7 +43,7 @@ import Prelude hiding
 #endif
     )
 
-import Control.Applicative (Applicative (..), (<$>)) -- N.B. liftA2
+import Control.Applicative (Applicative (..), (<$>), (<$)) -- N.B. liftA2
 import Data.Foldable (Foldable, foldMap, foldr, foldl', traverse_) -- N.B. we don't define Foldable instances, so this way is makes less CPP
 import Data.Monoid (Monoid (..))
 import Data.Semigroup (Semigroup (..))

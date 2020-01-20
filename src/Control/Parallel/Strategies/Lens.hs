@@ -2,9 +2,9 @@
 #ifdef TRUSTWORTHY
 {-# LANGUAGE Trustworthy #-}
 #endif
-#ifndef MIN_VERSION_parallel
-#define MIN_VERSION_parallel(x,y,z) (defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL > 700)
-#endif
+
+#include "lens-common.h"
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Parallel.Strategies.Lens

@@ -1,9 +1,4 @@
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE Rank2Types #-}
-
-#ifndef MIN_VERSION_base
-#define MIN_VERSION_base(x,y,z) 1
-#endif
 
 -----------------------------------------------------------------------------
 -- |
@@ -20,13 +15,12 @@ module Data.Typeable.Lens
   , _gcast
   ) where
 
-import Control.Lens
-import Data.Typeable
-import Data.Maybe
+import Prelude ()
 
-#if !MIN_VERSION_base(4,8,0)
-import Control.Applicative
-#endif
+import Control.Lens
+import Control.Lens.Internal.Prelude
+import Data.Maybe (fromMaybe)
+import Data.Typeable
 
 -- | A 'Traversal'' for working with a 'cast' of a 'Typeable' value.
 _cast :: (Typeable s, Typeable a) => Traversal' s a

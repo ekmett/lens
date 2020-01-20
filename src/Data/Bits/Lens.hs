@@ -1,10 +1,5 @@
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE FlexibleContexts #-}
-
-#ifndef MIN_VERSION_base
-#define MIN_VERSION_base(x,y,z) 1
-#endif
 
 -----------------------------------------------------------------------------
 -- |
@@ -25,14 +20,14 @@ module Data.Bits.Lens
   , bytewise
   ) where
 
+import Prelude ()
+
 import Control.Lens
+import Control.Lens.Internal.Prelude
 import Control.Monad.State
 import Data.Bits
 import Data.Word
 
-#if !MIN_VERSION_base(4,8,0)
-import Data.Functor
-#endif
 
 -- $setup
 -- >>> :set -XNoOverloadedStrings
@@ -278,9 +273,9 @@ byteAt i f b = back <$> indexed f i (forward b) where
 -- If you supply this an 'Integer', the result will be an infinite 'Traversal', which
 -- can be productively consumed, but not reassembled.
 bits :: (Num b, Bits b) => IndexedTraversal' Int b Bool
-bits f b = Prelude.foldr step 0 <$> traverse g bs where
+bits f b = foldr step 0 <$> traverse g bs where
   g n      = (,) n <$> indexed f n (testBit b n)
-  bs       = Prelude.takeWhile hasBit [0..]
+  bs       = takeWhile hasBit [0..]
   hasBit n = complementBit b n /= b -- test to make sure that complementing this bit actually changes the value
   step (n,True) r = setBit r n
   step _        r = r
@@ -299,9 +294,9 @@ bits f b = Prelude.foldr step 0 <$> traverse g bs where
 -- Why isn't this function called @bytes@ to match 'bits'? Alas, there
 -- is already a function by that name in "Data.ByteString.Lens".
 bytewise :: (Integral b, Bits b) => IndexedTraversal' Int b Word8
-bytewise f b = Prelude.foldr step 0 <$> traverse g bs where
+bytewise f b = foldr step 0 <$> traverse g bs where
   g n = (,) n <$> indexed f n (fromIntegral $ b `shiftR` (n*8))
-  bs = Prelude.takeWhile hasByte [0..]
+  bs = takeWhile hasByte [0..]
   hasByte n = complementBit b (n*8) /= b
   step (n,x) r = r .|. (fromIntegral x `shiftL` (n*8))
 {-# INLINE bytewise #-}

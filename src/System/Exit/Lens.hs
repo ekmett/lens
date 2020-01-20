@@ -7,10 +7,6 @@
 {-# LANGUAGE ViewPatterns #-}
 #endif
 
-#ifndef MIN_VERSION_base
-#define MIN_VERSION_base(x,y,z) 1
-#endif
-
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  System.Exit.Lens
@@ -32,14 +28,13 @@ module System.Exit.Lens
 #endif
   ) where
 
+import Prelude ()
+
 import Control.Exception
 import Control.Exception.Lens
 import Control.Lens
+import Control.Lens.Internal.Prelude
 import System.Exit
-
-#if !MIN_VERSION_base(4,8,0)
-import Control.Applicative
-#endif
 
 -- | Exit codes that a program can return with:
 class AsExitCode t where

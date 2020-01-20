@@ -16,9 +16,6 @@
 {-# OPTIONS_GHC -fno-warn-redundant-constraints #-}
 #endif
 
-#if __GLASGOW_HASKELL__ >= 800
-{-# OPTIONS_GHC -Wno-trustworthy-safe #-}
-#endif
 -------------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Getter
