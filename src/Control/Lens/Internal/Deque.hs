@@ -24,28 +24,21 @@ module Control.Lens.Internal.Deque
   , singleton
   ) where
 
-import Control.Applicative
+import Prelude ()
+
 import Control.Lens.Cons
 import Control.Lens.Fold
 import Control.Lens.Indexed hiding ((<.>))
+import Control.Lens.Internal.Prelude hiding (null)
 import Control.Lens.Iso
 import Control.Lens.Lens
 import Control.Lens.Prism
 import Control.Monad
-#if MIN_VERSION_base(4,8,0)
-import Data.Foldable hiding (null)
-import qualified Data.Foldable as Foldable
-#else
-import Data.Foldable as Foldable
-#endif
+import Data.Foldable (toList)
 import Data.Function
 import Data.Functor.Bind
 import Data.Functor.Plus
 import Data.Functor.Reverse
-import Data.Traversable as Traversable
-import Data.Semigroup
-import Data.Profunctor.Unsafe
-import Prelude hiding (null)
 
 -- | A Banker's deque based on Chris Okasaki's \"Purely Functional Data Structures\"
 data Deque a = BD !Int [a] !Int [a]
@@ -83,7 +76,7 @@ size (BD lf _ lr _) = lf + lr
 -- >>> fromList [1,2]
 -- BD 1 [1] 1 [2]
 fromList :: [a] -> Deque a
-fromList = Prelude.foldr cons empty
+fromList = foldr cons empty
 {-# INLINE fromList #-}
 
 instance Eq a => Eq (Deque a) where
@@ -114,8 +107,8 @@ instance Applicative Deque where
 
 instance Alt Deque where
   xs <!> ys
-    | size xs < size ys = Foldable.foldr cons ys xs
-    | otherwise         = Foldable.foldl snoc xs ys
+    | size xs < size ys = foldr cons ys xs
+    | otherwise         = foldl snoc xs ys
   {-# INLINE (<!>) #-}
 
 instance Plus Deque where
@@ -126,8 +119,8 @@ instance Alternative Deque where
   empty = BD 0 [] 0 []
   {-# INLINE empty #-}
   xs <|> ys
-    | size xs < size ys = Foldable.foldr cons ys xs
-    | otherwise         = Foldable.foldl snoc xs ys
+    | size xs < size ys = foldr cons ys xs
+    | otherwise         = foldl snoc xs ys
   {-# INLINE (<|>) #-}
 
 instance Reversing (Deque a) where
@@ -170,16 +163,16 @@ instance TraversableWithIndex Int Deque where
 
 instance Semigroup (Deque a) where
   xs <> ys
-    | size xs < size ys = Foldable.foldr cons ys xs
-    | otherwise         = Foldable.foldl snoc xs ys
+    | size xs < size ys = foldr cons ys xs
+    | otherwise         = foldl snoc xs ys
   {-# INLINE (<>) #-}
 
 instance Monoid (Deque a) where
   mempty = BD 0 [] 0 []
   {-# INLINE mempty #-}
   mappend xs ys
-    | size xs < size ys = Foldable.foldr cons ys xs
-    | otherwise         = Foldable.foldl snoc xs ys
+    | size xs < size ys = foldr cons ys xs
+    | otherwise         = foldl snoc xs ys
   {-# INLINE mappend #-}
 
 -- | Check that a 'Deque' satisfies the balance invariants and rebalance if not.

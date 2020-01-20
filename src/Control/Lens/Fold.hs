@@ -145,7 +145,6 @@ module Control.Lens.Fold
 
 import Prelude ()
 
-import Control.Applicative (Alternative (..))
 import Control.Applicative.Backwards
 import Control.Comonad
 import Control.Lens.Getter
@@ -160,21 +159,15 @@ import Control.Monad.Reader
 import Control.Monad.State
 import Data.CallStack
 import Data.Functor.Apply hiding ((<.))
-import Data.Functor.Contravariant
 import Data.Int (Int64)
 import Data.List (intercalate)
 import Data.Maybe (fromMaybe)
-import Data.Monoid (First (..), Endo (..), Dual (..), All (..), Any (..))
-import Data.Profunctor
-import Data.Profunctor.Rep
-import Data.Profunctor.Sieve
-import Data.Profunctor.Unsafe
+import Data.Monoid (First (..), All (..), Any (..))
 #if MIN_VERSION_reflection(2,1,0)
 import Data.Reflection
 #endif
 
 import qualified Data.Semigroup as Semi
-import Data.List.NonEmpty (NonEmpty(..))
 
 -- $setup
 -- >>> :set -XNoOverloadedStrings

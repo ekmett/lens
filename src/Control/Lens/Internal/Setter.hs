@@ -20,15 +20,11 @@ module Control.Lens.Internal.Setter
     Settable(..)
   ) where
 
-import Control.Applicative
+import Prelude ()
+
 import Control.Applicative.Backwards
+import Control.Lens.Internal.Prelude
 import Data.Distributive
-import Data.Functor.Compose
-import Data.Functor.Identity
-import Data.Profunctor
-import Data.Profunctor.Unsafe
-import Data.Traversable
-import Prelude
 
 -----------------------------------------------------------------------------
 -- Settable

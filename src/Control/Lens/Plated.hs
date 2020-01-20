@@ -97,13 +97,15 @@ module Control.Lens.Plated
   )
   where
 
-import Control.Applicative
+import Prelude ()
+
 import Control.Comonad.Cofree
 import qualified Control.Comonad.Trans.Cofree as CoTrans
 import Control.Lens.Fold
 import Control.Lens.Getter
 import Control.Lens.Indexed
 import Control.Lens.Internal.Context
+import Control.Lens.Internal.Prelude
 import Control.Lens.Type
 import Control.Lens.Setter
 import Control.Lens.Traversal
@@ -116,7 +118,6 @@ import Control.MonadPlus.Free as MonadPlus
 import qualified Language.Haskell.TH as TH
 import Data.Data
 import Data.Data.Lens
-import Data.Monoid
 import Data.Tree
 import GHC.Generics
 

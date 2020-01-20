@@ -28,17 +28,18 @@ module Control.Lens.Each
     Each(..)
   ) where
 
+import Prelude ()
+
 import Control.Lens.Traversal
 import Control.Lens.Internal.ByteString
+import Control.Lens.Internal.Prelude
 import Data.Array.Unboxed as Unboxed
 import Data.Array.IArray as IArray
 import Data.ByteString as StrictB
 import Data.ByteString.Lazy as LazyB
 import Data.Complex
-import Data.Functor.Identity
 import Data.HashMap.Lazy as HashMap
 import Data.IntMap as IntMap
-import Data.List.NonEmpty
 import Data.Map as Map
 import Data.Sequence as Seq
 import Data.Text.Lens (text)
@@ -54,10 +55,6 @@ import Data.Vector.Storable (Storable)
 import qualified Data.Vector.Unboxed as Unboxed
 import Data.Vector.Unboxed (Unbox)
 import Data.Word
-
-#if !MIN_VERSION_base(4,8,0)
-import Control.Applicative
-#endif
 
 -- $setup
 -- >>> :set -XNoOverloadedStrings

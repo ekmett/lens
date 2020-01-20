@@ -76,7 +76,8 @@ module Control.Lens.Indexed
   , itraverseByOf
   ) where
 
-import Control.Applicative
+import Prelude ()
+
 import Control.Applicative.Backwards
 import Control.Comonad.Cofree
 import Control.Comonad.Trans.Traced
@@ -89,6 +90,7 @@ import Control.Lens.Fold
 import Control.Lens.Getter
 import Control.Lens.Internal.Fold
 import Control.Lens.Internal.Indexed
+import Control.Lens.Internal.Prelude
 import Control.Lens.Internal.Level
 import Control.Lens.Internal.Magma
 import Control.Lens.Setter
@@ -97,34 +99,22 @@ import Control.Lens.Type
 import Data.Array (Array)
 import qualified Data.Array as Array
 import Data.Foldable
-import Data.Functor.Compose
 import Data.Functor.Constant (Constant (..))
-import Data.Functor.Contravariant
 import Data.Functor.Product
 import Data.Functor.Reverse
 import Data.Functor.Sum
 import Data.HashMap.Lazy as HashMap
 import Data.IntMap as IntMap
 import Data.Ix (Ix)
-import Data.List.NonEmpty as NonEmpty
 import Data.Map as Map
 import Data.Monoid hiding (Sum, Product)
-import Data.Profunctor.Unsafe
-import Data.Proxy
 import Data.Reflection
 import Data.Sequence hiding ((:<), index)
-import Data.Tagged
 import Data.Tree
 import Data.Tuple (swap)
 import Data.Vector (Vector)
-import Data.Void
 import qualified Data.Vector as V
 import GHC.Generics
-import Prelude
-
-#if !(MIN_VERSION_base(4,8,0))
-import Data.Traversable (sequenceA)
-#endif
 
 #ifdef HLINT
 {-# ANN module "HLint: ignore Use fmap" #-}

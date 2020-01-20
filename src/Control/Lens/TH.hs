@@ -79,9 +79,8 @@ module Control.Lens.TH
   , abbreviatedNamer
   ) where
 
-#if !MIN_VERSION_base(4,8,0)
-import Control.Applicative
-#endif
+import Prelude ()
+
 #if !(MIN_VERSION_template_haskell(2,7,0))
 import Control.Monad (ap)
 #endif
@@ -94,6 +93,7 @@ import Control.Lens.Lens
 import Control.Lens.Setter
 import Control.Lens.Tuple
 import Control.Lens.Traversal
+import Control.Lens.Internal.Prelude as Prelude
 import Control.Lens.Internal.TH
 import Control.Lens.Internal.FieldTH
 import Control.Lens.Internal.PrismTH
@@ -101,11 +101,10 @@ import Control.Lens.Wrapped () -- haddocks
 import Control.Lens.Type () -- haddocks
 import Data.Char (toLower, toUpper, isUpper)
 import Data.Foldable hiding (concat, any)
-import Data.List as List
+import qualified Data.List as List
 import qualified Data.Map as Map
 import Data.Map (Map)
 import Data.Maybe (maybeToList)
-import Data.Monoid
 import qualified Data.Set as Set
 import Data.Set (Set)
 import Data.Set.Lens
@@ -677,7 +676,7 @@ camelCaseFields = defaultFieldRules
 camelCaseNamer :: FieldNamer
 camelCaseNamer tyName fields field = maybeToList $ do
 
-  fieldPart <- stripPrefix expectedPrefix (nameBase field)
+  fieldPart <- List.stripPrefix expectedPrefix (nameBase field)
   method    <- computeMethod fieldPart
   let cls = "Has" ++ fieldPart
   return (MethodName (mkName cls) (mkName method))
@@ -685,7 +684,7 @@ camelCaseNamer tyName fields field = maybeToList $ do
   where
   expectedPrefix = optUnderscore ++ overHead toLower (nameBase tyName)
 
-  optUnderscore  = ['_' | any (isPrefixOf "_" . nameBase) fields ]
+  optUnderscore  = ['_' | any (List.isPrefixOf "_" . nameBase) fields ]
 
   computeMethod (x:xs) | isUpper x = Just (toLower x : xs)
   computeMethod _                  = Nothing
@@ -704,7 +703,7 @@ classUnderscoreNoPrefixFields =
 -- | A 'FieldNamer' for 'classUnderscoreNoPrefixFields'.
 classUnderscoreNoPrefixNamer :: FieldNamer
 classUnderscoreNoPrefixNamer _ _ field = maybeToList $ do
-  fieldUnprefixed <- stripPrefix "_" (nameBase field)
+  fieldUnprefixed <- List.stripPrefix "_" (nameBase field)
   let className  = "Has" ++ overHead toUpper fieldUnprefixed
       methodName = fieldUnprefixed
   return (MethodName (mkName className) (mkName methodName))
@@ -730,11 +729,11 @@ abbreviatedNamer _ fields field = maybeToList $ do
   return (MethodName (mkName cls) (mkName method))
 
   where
-  stripMaxLc f = do x <- stripPrefix optUnderscore f
+  stripMaxLc f = do x <- List.stripPrefix optUnderscore f
                     case break isUpper x of
                       (p,s) | List.null p || List.null s -> Nothing
                             | otherwise                  -> Just s
-  optUnderscore  = ['_' | any (isPrefixOf "_" . nameBase) fields ]
+  optUnderscore  = ['_' | any (List.isPrefixOf "_" . nameBase) fields ]
 
   computeMethod (x:xs) | isUpper x = Just (toLower x : xs)
   computeMethod _                  = Nothing

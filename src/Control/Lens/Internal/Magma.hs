@@ -34,21 +34,14 @@ module Control.Lens.Internal.Magma
   , runTakingWhile
   ) where
 
-import Control.Applicative
-import Control.Category
+import Prelude ()
+
 import Control.Comonad
 import Control.Lens.Internal.Bazaar
 import Control.Lens.Internal.Context
 import Control.Lens.Internal.Indexed
-import Data.Foldable
+import Control.Lens.Internal.Prelude
 import Data.Functor.Apply
-import Data.Functor.Contravariant
-import Data.Monoid
-import Data.Profunctor.Rep
-import Data.Profunctor.Sieve
-import Data.Profunctor.Unsafe
-import Data.Traversable
-import Prelude hiding ((.),id)
 
 ------------------------------------------------------------------------------
 -- Magma

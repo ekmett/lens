@@ -32,14 +32,13 @@ module Control.Lens.Internal.Fold
   , NonEmptyDList(..)
   ) where
 
-import Control.Applicative
+import Prelude ()
+
 import Control.Lens.Internal.Getter
+import Control.Lens.Internal.Prelude
 import Data.Functor.Bind
-import Data.Functor.Contravariant
-import Data.Maybe
-import Data.Semigroup hiding (Min, getMin, Max, getMax)
+import Data.Maybe (fromMaybe)
 import Data.Reflection
-import Prelude
 
 import qualified Data.List.NonEmpty as NonEmpty
 

@@ -14,9 +14,11 @@ module Control.Lens.Internal.Prism
   , Market'
   ) where
 
-import Data.Profunctor
+import Prelude ()
+
+import Control.Lens.Internal.Prelude
+
 #ifndef SAFE
-import Data.Profunctor.Unsafe
 import Control.Lens.Internal.Coerce
 #endif
 

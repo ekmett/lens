@@ -139,10 +139,6 @@ import Control.Monad.State as State
 import Data.Functor.Apply
 import Data.Functor.Reverse
 import Data.Functor.Yoneda
-import Data.Profunctor
-import Data.Profunctor.Rep
-import Data.Profunctor.Sieve
-import Data.Profunctor.Unsafe
 import Data.Semigroup.Traversable
 #if __GLASGOW_HASKELL__ >= 800
 import GHC.Exts (TYPE)

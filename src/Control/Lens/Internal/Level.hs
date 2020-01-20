@@ -26,16 +26,10 @@ module Control.Lens.Internal.Level
   , Flows(..)
   ) where
 
-import Control.Applicative
-import Control.Category
-import Control.Comonad
-import Data.Foldable
+import Prelude ()
+
+import Control.Lens.Internal.Prelude
 import Data.Functor.Apply
-import Data.Int
-import Data.Semigroup
-import Data.Traversable
-import Data.Word
-import Prelude hiding ((.),id)
 
 ------------------------------------------------------------------------------
 -- Levels

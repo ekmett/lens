@@ -88,11 +88,6 @@ import Control.Monad (liftM)
 import Control.Monad.Reader.Class as Reader
 import Control.Monad.State.Class  as State
 import Control.Monad.Writer.Class as Writer
-import Data.Functor.Contravariant
-import Data.Profunctor
-import Data.Profunctor.Rep
-import Data.Profunctor.Sieve
-import Data.Profunctor.Unsafe
 
 #ifdef HLINT
 {-# ANN module "HLint: ignore Avoid lambda" #-}
@@ -103,6 +98,7 @@ import Data.Profunctor.Unsafe
 -- >>> import Control.Lens
 -- >>> import Control.Monad.State
 -- >>> import Data.Char
+-- >>> import Data.Functor.Contravariant (Predicate (..), Op (..))
 -- >>> import Data.Map as Map
 -- >>> import Data.Semigroup (Sum (..), Product (..))
 -- >>> import Debug.SimpleReflect.Expr as Expr

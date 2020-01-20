@@ -30,15 +30,12 @@ module Control.Lens.Internal.Zoom
   , EffectRWS(..)
   ) where
 
-import Control.Applicative
-import Control.Category
-import Control.Comonad
+import Prelude ()
+
+import Control.Lens.Internal.Prelude
 import Control.Monad.Reader as Reader
 import Control.Monad.Trans.Free
 import Data.Functor.Bind
-import Data.Functor.Contravariant
-import Data.Semigroup
-import Prelude hiding ((.),id)
 
 ------------------------------------------------------------------------------
 -- Focusing

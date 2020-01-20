@@ -29,22 +29,16 @@ module Control.Lens.Internal.Bazaar
   , BazaarT1(..), BazaarT1'
   ) where
 
-import Control.Applicative
+import Prelude ()
+
 import Control.Arrow as Arrow
-import Control.Category
+import qualified Control.Category as C
 import Control.Comonad
+import Control.Lens.Internal.Prelude
 import Control.Lens.Internal.Context
 import Control.Lens.Internal.Indexed
 import Data.Functor.Apply
-import Data.Functor.Compose
-import Data.Functor.Contravariant
-import Data.Functor.Identity
-import Data.Semigroup
-import Data.Profunctor
 import Data.Profunctor.Rep
-import Data.Profunctor.Sieve
-import Data.Profunctor.Unsafe
-import Prelude hiding ((.),id)
 
 ------------------------------------------------------------------------------
 -- Bizarre
@@ -91,7 +85,7 @@ instance IndexedFunctor (Bazaar p) where
 instance Conjoined p => IndexedComonad (Bazaar p) where
   iextract (Bazaar m) = runIdentity $ m (arr Identity)
   {-# INLINE iextract #-}
-  iduplicate (Bazaar m) = getCompose $ m (Compose #. distrib sell . sell)
+  iduplicate (Bazaar m) = getCompose $ m (Compose #. distrib sell C.. sell)
   {-# INLINE iduplicate #-}
 
 instance Corepresentable p => Sellable p (Bazaar p) where
@@ -172,7 +166,7 @@ instance IndexedFunctor (BazaarT p g) where
 instance Conjoined p => IndexedComonad (BazaarT p g) where
   iextract (BazaarT m) = runIdentity $ m (arr Identity)
   {-# INLINE iextract #-}
-  iduplicate (BazaarT m) = getCompose $ m (Compose #. distrib sell . sell)
+  iduplicate (BazaarT m) = getCompose $ m (Compose #. distrib sell C.. sell)
   {-# INLINE iduplicate #-}
 
 instance Corepresentable p => Sellable p (BazaarT p g) where
@@ -283,7 +277,7 @@ instance IndexedFunctor (Bazaar1 p) where
 instance Conjoined p => IndexedComonad (Bazaar1 p) where
   iextract (Bazaar1 m) = runIdentity $ m (arr Identity)
   {-# INLINE iextract #-}
-  iduplicate (Bazaar1 m) = getCompose $ m (Compose #. distrib sell . sell)
+  iduplicate (Bazaar1 m) = getCompose $ m (Compose #. distrib sell C.. sell)
   {-# INLINE iduplicate #-}
 
 instance Corepresentable p => Sellable p (Bazaar1 p) where
@@ -350,7 +344,7 @@ instance IndexedFunctor (BazaarT1 p g) where
 instance Conjoined p => IndexedComonad (BazaarT1 p g) where
   iextract (BazaarT1 m) = runIdentity $ m (arr Identity)
   {-# INLINE iextract #-}
-  iduplicate (BazaarT1 m) = getCompose $ m (Compose #. distrib sell . sell)
+  iduplicate (BazaarT1 m) = getCompose $ m (Compose #. distrib sell C.. sell)
   {-# INLINE iduplicate #-}
 
 instance Corepresentable p => Sellable p (BazaarT1 p g) where
