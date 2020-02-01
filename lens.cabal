@@ -20,7 +20,8 @@ tested-with:   GHC == 7.4.2
              , GHC == 8.2.2
              , GHC == 8.4.4
              , GHC == 8.6.5
-             , GHC == 8.8.1
+             , GHC == 8.8.2
+             , GHC == 8.10.1
 synopsis:      Lenses, Folds and Traversals
 description:
   This package comes \"Batteries Included\" with many useful lenses for the types
@@ -128,7 +129,7 @@ source-repository head
 
 custom-setup
   setup-depends:
-    Cabal >= 1.10 && <3.1,
+    Cabal >= 1.10 && <3.3,
     base  >= 4.5 && <5,
     cabal-doctest >= 1 && <1.1,
     filepath
@@ -219,7 +220,7 @@ library
     reflection                >= 2.1      && < 3,
     semigroupoids             >= 5        && < 6,
     tagged                    >= 0.4.4    && < 1,
-    template-haskell          >= 2.4      && < 2.16,
+    template-haskell          >= 2.4      && < 2.17,
     th-abstraction            >= 0.3      && < 0.4,
     text                      >= 0.11     && < 1.3,
     transformers              >= 0.2      && < 0.6,
