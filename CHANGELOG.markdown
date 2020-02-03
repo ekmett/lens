@@ -1,4 +1,4 @@
-4.19 [????.??.??]
+4.19 [2020.02.03]
 -----------------
 * Support building with GHC 8.10.
 * The types of `_TupE` and `_UnboxedTupE` are now `Prism' Exp [Maybe Exp]`
