@@ -2128,6 +2128,7 @@ _TupE
   = prism' reviewer remitter
   where
       reviewer = TupE
+      remitter (TupE x) = Just x
       remitter _ = Nothing
 
 -- |
