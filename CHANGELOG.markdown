@@ -1,3 +1,8 @@
+next [????.??.??]
+-----------------
+* Fix a bug introduced in 4.19 where using `_TupE` to `preview` a value would
+  always fail.
+
 4.19 [2020.02.03]
 -----------------
 * Support building with GHC 8.10.
