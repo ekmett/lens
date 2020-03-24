@@ -412,14 +412,14 @@ anon a p = iso (fromMaybe a) go where
 -- from the map.  You have now lost the information that that user was
 -- ever present in the map:
 --
--- >>> fromList [("user1", "!!!")] & (at "user1" . non def) .~ ""
+-- >>> fromList [("user1", "axc")] & (at "user1" . non "abc" . ix 1) .~ 'b'
 -- fromlist []
 --
 -- Using 'inon' instead of 'non' means that key will not be deleted
 -- from the map:
 --
--- >>> fromList [("user1", "!!!")] & (at "user1" . inon def) .~ ""
--- fromlist [("user1", "")]
+-- >>> fromList [("user1", "axc")] & (at "user1" . inon "abc" . ix 1) .~ 'b'
+-- fromlist [("user1", "abc")]
 inon :: a -> Iso' (Maybe a) a
 inon a = anon a (const False)
 {-# INLINE inon #-}
