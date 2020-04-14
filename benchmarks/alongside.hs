@@ -2,6 +2,8 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+module Main (main) where
+
 import Control.Applicative
 import Control.Comonad
 import Control.Comonad.Store.Class
@@ -9,7 +11,6 @@ import Control.Lens.Internal
 import Control.Lens
 import Criterion.Main
 import Data.Functor.Compose
-import Data.Functor.Identity
 
 -- | A finally encoded Store
 newtype Experiment a b s = Experiment { runExperiment :: forall f. Functor f => (a -> f b) -> f s }
@@ -90,11 +91,12 @@ compound5 l l' l'' l''' l''''
          (\(s, (s', (s'', (s''', s'''')))) (t, (t', (t'', (t''', t''''))))
            -> (set l t s, (set l' t' s', (set l'' t'' s'', (set l''' t''' s''', set l'''' t'''' s'''')))) )
 
+main :: IO ()
 main = defaultMain
-    [ bench "alongside1" $ nf (view $ alongside _1 _2) (("hi", 1), (2, "there!"))
-    , bench "trial1" $ nf (view $ trial _1 _2) (("hi", 1), (2, "there!"))
-    , bench "half1" $ nf (view $ half _1 _2) (("hi", 1), (2, "there!"))
-    , bench "compound1"  $ nf (view $ compound _1 _2) (("hi", 1), (2, "there!"))
+    [ bench "alongside1" $ nf (view $ alongside _1 _2) (("hi", v), (w, "there!"))
+    , bench "trial1" $ nf (view $ trial _1 _2) (("hi", v), (w, "there!"))
+    , bench "half1" $ nf (view $ half _1 _2) (("hi", v), (w, "there!"))
+    , bench "compound1"  $ nf (view $ compound _1 _2) (("hi", v), (w, "there!"))
     , bench "alongside5"  $ nf (view $ (alongside _1 (alongside _1 (alongside _1 (alongside _1 _1)))))
       ((v,v),((v,v),((v,v),((v,v),(v,v)))))
     , bench "trial5"  $ nf (view $ (trial _1 (trial _1 (trial _1 (trial _1 _1)))))
@@ -105,3 +107,4 @@ main = defaultMain
       ((v,v),((v,v),((v,v),((v,v),(v,v)))))
     ]
   where v = 1 :: Int
+        w = 2 :: Int

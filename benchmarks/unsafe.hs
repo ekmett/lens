@@ -1,16 +1,10 @@
 {-# LANGUAGE BangPatterns #-}
-module Main where
+module Main (main) where
 
 import Control.Lens
-import Control.Lens.Internal
-import Control.Exception
 
 import Criterion.Main
 import Criterion.Types (Config(..))
-
-import Data.Functor.Identity (Identity(..))
-
-import GHC.Exts
 
 overS :: ASetter s t a b -> (a -> b) -> s -> t
 overS l f = runIdentity . l (Identity . f)

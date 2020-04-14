@@ -388,7 +388,7 @@ test-suite properties
   main-is: properties.hs
   other-modules:
     Control.Lens.Properties
-  ghc-options: -w -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N
   hs-source-dirs:
     tests
     lens-properties/src
@@ -409,7 +409,7 @@ test-suite properties
 test-suite hunit
   type: exitcode-stdio-1.0
   main-is: hunit.hs
-  ghc-options: -w -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N
   hs-source-dirs: tests
   default-language: Haskell2010
 
@@ -486,7 +486,7 @@ benchmark plated
 benchmark alongside
   type:             exitcode-stdio-1.0
   main-is:          alongside.hs
-  ghc-options:      -w -O2 -threaded -fdicts-cheap -funbox-strict-fields
+  ghc-options:      -Wall -O2 -threaded -fdicts-cheap -funbox-strict-fields
   hs-source-dirs:   benchmarks
   default-language: Haskell2010
   build-depends:
@@ -501,7 +501,7 @@ benchmark alongside
 benchmark folds
   type:             exitcode-stdio-1.0
   main-is:          folds.hs
-  ghc-options:      -w -O2 -threaded -fdicts-cheap -funbox-strict-fields
+  ghc-options:      -Wall -O2 -threaded -fdicts-cheap -funbox-strict-fields
   hs-source-dirs:   benchmarks
   default-language: Haskell2010
   build-depends:
@@ -517,7 +517,7 @@ benchmark folds
 benchmark traversals
   type:             exitcode-stdio-1.0
   main-is:          traversals.hs
-  ghc-options:      -w -O2 -threaded -fdicts-cheap -funbox-strict-fields
+  ghc-options:      -Wall -O2 -threaded -fdicts-cheap -funbox-strict-fields
   hs-source-dirs:   benchmarks
   default-language: Haskell2010
   build-depends:
@@ -534,7 +534,7 @@ benchmark traversals
 benchmark unsafe
   type:             exitcode-stdio-1.0
   main-is:          unsafe.hs
-  ghc-options:      -w -O2 -threaded -fdicts-cheap -funbox-strict-fields
+  ghc-options:      -Wall -O2 -threaded -fdicts-cheap -funbox-strict-fields
   hs-source-dirs:   benchmarks
   default-language: Haskell2010
   build-depends:

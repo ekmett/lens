@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE LiberalTypeSynonyms #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -12,11 +13,12 @@ module Control.Lens.Properties
     , isPrism
     ) where
 
+#if !(MIN_VERSION_base(4,8,0))
 import Control.Applicative
+#endif
 import Control.Lens
 import Data.Functor.Compose
 import Test.QuickCheck
-import Test.QuickCheck.Function
 
 --------------------------------------------------------------------------------
 -- | A 'Setter' is only legal if the following 3 laws hold:

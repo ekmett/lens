@@ -2,6 +2,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE BangPatterns #-}
+module Main (main) where
 
 import qualified Data.ByteString as BS
 import qualified Data.Foldable as F

@@ -2,6 +2,7 @@
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE DeriveDataTypeable, DeriveGeneric #-}
 {-# OPTIONS_GHC -funbox-strict-fields #-}
+module Main (main) where
 
 #ifndef MIN_VERSION_base
 #define MIN_VERSION_base(x,y,z) 1

@@ -4,6 +4,7 @@
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE BangPatterns #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
+module Main (main) where
 
 import qualified Data.ByteString as BS
 import qualified Data.HashMap.Strict as HM
