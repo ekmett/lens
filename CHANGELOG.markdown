@@ -1,3 +1,7 @@
+next [????.??.??]
+-----------------
+* Remove the test suite's dependency on `test-framework-th`.
+
 4.19.1 [2020.02.13]
 -------------------
 * Fix a bug introduced in 4.19 where using `_TupE` to `preview` a value would
