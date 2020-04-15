@@ -1,5 +1,12 @@
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE TemplateHaskell #-}
+
+#if __GLASGOW_HASKELL__ < 706
+-- Needed to avoid spurious warnings on GHC 7.4 due to an old TH bug
+{-# OPTIONS_GHC -fno-warn-name-shadowing #-}
+#endif
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Main (hunit)
@@ -16,14 +23,16 @@
 -- of what is possible using the lens package; there are a great many use cases
 -- (and lens functions) that aren't covered.
 -----------------------------------------------------------------------------
-module Main where
+module Main (main) where
 
 import Control.Lens
 import Control.Monad.State
 import Data.Char
 import Data.List as List
-import Data.Monoid
 import Data.Map as Map
+#if !(MIN_VERSION_base(4,11,0))
+import Data.Monoid
+#endif
 import Test.Framework.Providers.HUnit
 import Test.Framework.TH
 import Test.Framework

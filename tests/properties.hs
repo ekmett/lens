@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE TemplateHaskell #-}
@@ -26,18 +27,19 @@
 -----------------------------------------------------------------------------
 module Main where
 
+#if !(MIN_VERSION_base(4,8,0))
 import Control.Applicative
+#endif
 import Control.Lens
 import Test.QuickCheck
-import Test.QuickCheck.Function
 import Test.Framework.TH
 import Test.Framework.Providers.QuickCheck2
 import Data.Char (isAlphaNum, isAscii, toUpper)
 import Data.Text.Strict.Lens
-import Data.Maybe
 import Data.List.Lens
-import Data.Functor.Compose
+#if __GLASGOW_HASKELL__ >= 708
 import GHC.Exts (Constraint)
+#endif
 import Numeric (showHex, showOct, showSigned)
 import Numeric.Lens
 import Control.Lens.Properties (isIso, isLens, isPrism, isSetter, isTraversal)
@@ -106,7 +108,7 @@ prop_base_read (n :: Integer) =
           ]
 prop_base_readFail (s :: String) =
   forAll (choose (2,36)) $ \b ->
-    not isValid ==> s ^? base b == Nothing
+    not isValid ==> s ^? base b == (Nothing :: Maybe Integer)
   where
     isValid = (not . null) sPos && all isValidChar sPos
     sPos = case s of { ('-':s') -> s'; _ -> s }
@@ -125,7 +127,7 @@ sampleExtremePoly f foo = f foo
 samplePolyEquality :: Equality Monad Identity Monad Identity
 samplePolyEquality f = f
 
-lessSimplePoly :: forall KVS(k1 k2) (s :: k1) (t :: k2) (a :: k1) (b :: k2) .
+lessSimplePoly :: forall KVS(k1 k2) (a :: k1) (b :: k2) .
                   Equality a b a b
 lessSimplePoly f = f
 

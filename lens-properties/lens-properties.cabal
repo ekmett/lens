@@ -43,3 +43,4 @@ library
     Control.Lens.Properties
 
   hs-source-dirs: src
+  ghc-options: -Wall
