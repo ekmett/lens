@@ -1,5 +1,5 @@
-next [????.??.??]
------------------
+4.19.2 [2020.04.15]
+-------------------
 * Remove the test suite's dependency on `test-framework-th`.
 
 4.19.1 [2020.02.13]
