@@ -1,7 +1,6 @@
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE Rank2Types #-}
-{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ExtendedDefaultRules #-}
 {-# LANGUAGE LiberalTypeSynonyms #-}
@@ -32,7 +31,7 @@ import Control.Applicative
 #endif
 import Control.Lens
 import Test.QuickCheck
-import Test.Framework.TH
+import Test.Framework
 import Test.Framework.Providers.QuickCheck2
 import Data.Char (isAlphaNum, isAscii, toUpper)
 import Data.Text.Strict.Lens
@@ -147,4 +146,32 @@ equalityIso f = f
 
 
 main :: IO ()
-main = $defaultMainGenerator
+main = defaultMain
+  [ testGroup "Main"
+    [ testProperty "1" prop_1
+    , testProperty "2" prop_2
+    , testProperty "3" prop_3
+    , testProperty "4" prop_4
+    , testProperty "5" prop_5
+    , testProperty "6" prop_6
+    , testProperty "7" prop_7
+    , testProperty "8" prop_8
+    , testProperty "9" prop_9
+    , testProperty "10" prop_10
+    , testProperty "2 2" prop_2_2
+    , testProperty "mapped" prop_mapped
+    , testProperty "mapped mapped" prop_mapped_mapped
+    , testProperty "both" prop_both
+    , testProperty "traverseLeft" prop_traverseLeft
+    , testProperty "traverseRight" prop_traverseRight
+    , testProperty "simple" prop_simple
+    , testProperty " Left" prop__Left
+    , testProperty " Right" prop__Right
+    , testProperty " Just" prop__Just
+    , testProperty "prefixed" prop_prefixed
+    , testProperty "text" prop_text
+    , testProperty "base show" prop_base_show
+    , testProperty "base read" prop_base_read
+    , testProperty "base readFail" prop_base_readFail
+    ]
+  ]

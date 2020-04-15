@@ -2,9 +2,13 @@
 #
 #   haskell-ci '--output=.travis.yml' '--config=cabal.haskell-ci' 'cabal.project'
 #
+# To regenerate the script (for example after adjusting tested-with) run
+#
+#   haskell-ci regenerate
+#
 # For more information, see https://github.com/haskell-CI/haskell-ci
 #
-# version: 0.9.20200125
+# version: 0.10
 #
 version: ~> 1.0
 language: c
@@ -19,7 +23,7 @@ notifications:
       - irc.freenode.org#haskell-lens
     skip_join: true
     template:
-      - "\"\\x0313lens\\x03/\\x0306%{branch}\\x03 \\x0314%{commit}\\x03 %{build_url} %{message}\""
+      - "\x0313lens\x03/\x0306%{branch}\x03 \x0314%{commit}\x03 %{build_url} %{message}"
 cache:
   directories:
     - $HOME/.cabal/packages
@@ -39,39 +43,33 @@ jobs:
     - compiler: ghc-8.10.1
       addons: {"apt":{"sources":[{"sourceline":"deb http://ppa.launchpad.net/hvr/ghc/ubuntu xenial main","key_url":"https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x063dab2bdc0b3f9fcebc378bff3aeacef6f88286"}],"packages":["ghc-8.10.1","cabal-install-3.2","freeglut3-dev"]}}
       os: linux
-    - compiler: ghc-8.8.2
-      addons: {"apt":{"sources":[{"sourceline":"deb http://ppa.launchpad.net/hvr/ghc/ubuntu xenial main","key_url":"https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x063dab2bdc0b3f9fcebc378bff3aeacef6f88286"}],"packages":["ghc-8.8.2","cabal-install-3.0","freeglut3-dev"]}}
+    - compiler: ghc-8.8.3
+      addons: {"apt":{"sources":[{"sourceline":"deb http://ppa.launchpad.net/hvr/ghc/ubuntu xenial main","key_url":"https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x063dab2bdc0b3f9fcebc378bff3aeacef6f88286"}],"packages":["ghc-8.8.3","cabal-install-3.2","freeglut3-dev"]}}
       os: linux
     - compiler: ghc-8.6.5
-      addons: {"apt":{"sources":[{"sourceline":"deb http://ppa.launchpad.net/hvr/ghc/ubuntu xenial main","key_url":"https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x063dab2bdc0b3f9fcebc378bff3aeacef6f88286"}],"packages":["ghc-8.6.5","cabal-install-3.0","freeglut3-dev"]}}
+      addons: {"apt":{"sources":[{"sourceline":"deb http://ppa.launchpad.net/hvr/ghc/ubuntu xenial main","key_url":"https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x063dab2bdc0b3f9fcebc378bff3aeacef6f88286"}],"packages":["ghc-8.6.5","cabal-install-3.2","freeglut3-dev"]}}
       os: linux
     - compiler: ghc-8.4.4
-      addons: {"apt":{"sources":[{"sourceline":"deb http://ppa.launchpad.net/hvr/ghc/ubuntu xenial main","key_url":"https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x063dab2bdc0b3f9fcebc378bff3aeacef6f88286"}],"packages":["ghc-8.4.4","cabal-install-3.0","freeglut3-dev"]}}
+      addons: {"apt":{"sources":[{"sourceline":"deb http://ppa.launchpad.net/hvr/ghc/ubuntu xenial main","key_url":"https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x063dab2bdc0b3f9fcebc378bff3aeacef6f88286"}],"packages":["ghc-8.4.4","cabal-install-3.2","freeglut3-dev"]}}
       os: linux
     - compiler: ghc-8.2.2
-      addons: {"apt":{"sources":[{"sourceline":"deb http://ppa.launchpad.net/hvr/ghc/ubuntu xenial main","key_url":"https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x063dab2bdc0b3f9fcebc378bff3aeacef6f88286"}],"packages":["ghc-8.2.2","cabal-install-3.0","freeglut3-dev"]}}
+      addons: {"apt":{"sources":[{"sourceline":"deb http://ppa.launchpad.net/hvr/ghc/ubuntu xenial main","key_url":"https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x063dab2bdc0b3f9fcebc378bff3aeacef6f88286"}],"packages":["ghc-8.2.2","cabal-install-3.2","freeglut3-dev"]}}
       os: linux
     - compiler: ghc-8.0.2
-      addons: {"apt":{"sources":[{"sourceline":"deb http://ppa.launchpad.net/hvr/ghc/ubuntu xenial main","key_url":"https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x063dab2bdc0b3f9fcebc378bff3aeacef6f88286"}],"packages":["ghc-8.0.2","cabal-install-3.0","freeglut3-dev"]}}
+      addons: {"apt":{"sources":[{"sourceline":"deb http://ppa.launchpad.net/hvr/ghc/ubuntu xenial main","key_url":"https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x063dab2bdc0b3f9fcebc378bff3aeacef6f88286"}],"packages":["ghc-8.0.2","cabal-install-3.2","freeglut3-dev"]}}
       os: linux
     - compiler: ghc-7.10.3
-      addons: {"apt":{"sources":[{"sourceline":"deb http://ppa.launchpad.net/hvr/ghc/ubuntu xenial main","key_url":"https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x063dab2bdc0b3f9fcebc378bff3aeacef6f88286"}],"packages":["ghc-7.10.3","cabal-install-3.0","freeglut3-dev"]}}
+      addons: {"apt":{"sources":[{"sourceline":"deb http://ppa.launchpad.net/hvr/ghc/ubuntu xenial main","key_url":"https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x063dab2bdc0b3f9fcebc378bff3aeacef6f88286"}],"packages":["ghc-7.10.3","cabal-install-3.2","freeglut3-dev"]}}
       os: linux
     - compiler: ghc-7.8.4
-      addons: {"apt":{"sources":[{"sourceline":"deb http://ppa.launchpad.net/hvr/ghc/ubuntu xenial main","key_url":"https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x063dab2bdc0b3f9fcebc378bff3aeacef6f88286"}],"packages":["ghc-7.8.4","cabal-install-3.0","freeglut3-dev"]}}
+      addons: {"apt":{"sources":[{"sourceline":"deb http://ppa.launchpad.net/hvr/ghc/ubuntu xenial main","key_url":"https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x063dab2bdc0b3f9fcebc378bff3aeacef6f88286"}],"packages":["ghc-7.8.4","cabal-install-3.2","freeglut3-dev"]}}
       os: linux
     - compiler: ghc-7.6.3
-      addons: {"apt":{"sources":[{"sourceline":"deb http://ppa.launchpad.net/hvr/ghc/ubuntu xenial main","key_url":"https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x063dab2bdc0b3f9fcebc378bff3aeacef6f88286"}],"packages":["ghc-7.6.3","cabal-install-3.0","freeglut3-dev"]}}
+      addons: {"apt":{"sources":[{"sourceline":"deb http://ppa.launchpad.net/hvr/ghc/ubuntu xenial main","key_url":"https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x063dab2bdc0b3f9fcebc378bff3aeacef6f88286"}],"packages":["ghc-7.6.3","cabal-install-3.2","freeglut3-dev"]}}
       os: linux
     - compiler: ghc-7.4.2
-      addons: {"apt":{"sources":[{"sourceline":"deb http://ppa.launchpad.net/hvr/ghc/ubuntu xenial main","key_url":"https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x063dab2bdc0b3f9fcebc378bff3aeacef6f88286"}],"packages":["ghc-7.4.2","cabal-install-3.0","freeglut3-dev"]}}
+      addons: {"apt":{"sources":[{"sourceline":"deb http://ppa.launchpad.net/hvr/ghc/ubuntu xenial main","key_url":"https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x063dab2bdc0b3f9fcebc378bff3aeacef6f88286"}],"packages":["ghc-7.4.2","cabal-install-3.2","freeglut3-dev"]}}
       os: linux
-    - compiler: ghc-head
-      addons: {"apt":{"sources":[{"sourceline":"deb http://ppa.launchpad.net/hvr/ghc/ubuntu xenial main","key_url":"https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x063dab2bdc0b3f9fcebc378bff3aeacef6f88286"}],"packages":["ghc-head","cabal-install-head","freeglut3-dev"]}}
-      os: linux
-  allow_failures:
-    - compiler: ghc-head
-    - compiler: ghc-8.10.1
 before_install:
   - HC=$(echo "/opt/$CC/bin/ghc" | sed 's/-/\//')
   - WITHCOMPILER="-w $HC"
@@ -89,7 +87,6 @@ before_install:
   - TEST=--enable-tests
   - BENCH=--enable-benchmarks
   - HEADHACKAGE=false
-  - if [ $HCNUMVER -ge 81000 ] ; then HEADHACKAGE=true ; fi
   - rm -f $CABALHOME/config
   - |
     echo "verbose: normal +nowrap +markoutput"          >> $CABALHOME/config
@@ -107,17 +104,6 @@ before_install:
     echo "  prefix: $CABALHOME"                         >> $CABALHOME/config
     echo "repository hackage.haskell.org"               >> $CABALHOME/config
     echo "  url: http://hackage.haskell.org/"           >> $CABALHOME/config
-  - |
-    if $HEADHACKAGE; then
-    echo "allow-newer: $($HCPKG list --simple-output | sed -E 's/([a-zA-Z-]+)-[0-9.]+/*:\1/g')" >> $CABALHOME/config
-    echo "repository head.hackage.ghc.haskell.org"                                        >> $CABALHOME/config
-    echo "   url: https://ghc.gitlab.haskell.org/head.hackage/"                           >> $CABALHOME/config
-    echo "   secure: True"                                                                >> $CABALHOME/config
-    echo "   root-keys: 7541f32a4ccca4f97aea3b22f5e593ba2c0267546016b992dfadcd2fe944e55d" >> $CABALHOME/config
-    echo "              26021a13b401500c8eb2761ca95c61f2d625bfef951b939a8124ed12ecf07329" >> $CABALHOME/config
-    echo "              f76d08be13e9a61a377a85e2fb63f4c5435d40f8feb3e12eb05905edb8cdea89" >> $CABALHOME/config
-    echo "   key-threshold: 3"                                                            >> $CABALHOME/config
-    fi
 install:
   - ${CABAL} --version
   - echo "$(${HC} --version) [$(${HC} --print-project-git-commit-id 2> /dev/null || echo '?')]"
@@ -127,10 +113,10 @@ install:
   - cat $CABALHOME/config
   - rm -fv cabal.project cabal.project.local cabal.project.freeze
   - travis_retry ${CABAL} v2-update -v
-  - if [ $HCNUMVER -ge 80800 ] && [ $HCNUMVER -lt 81000 ] ; then HLINTVER=$(cd /tmp && (${CABAL} v2-install -v $WITHCOMPILER --dry-run hlint  --constraint='hlint ==2.2.*' |  perl -ne 'if (/\bhlint-(\d+(\.\d+)*)\b/) { print "$1"; last; }')); echo "HLint version $HLINTVER" ; fi
-  - "if [ $HCNUMVER -ge 80800 ] && [ $HCNUMVER -lt 81000 ] ; then if [ ! -e $HOME/.hlint/hlint-$HLINTVER/hlint ]; then echo \"Downloading HLint version $HLINTVER\"; mkdir -p $HOME/.hlint; curl --write-out 'Status Code: %{http_code} Redirects: %{num_redirects} Total time: %{time_total} Total Dsize: %{size_download}\\n' --silent --location --output $HOME/.hlint/hlint-$HLINTVER.tar.gz \"https://github.com/ndmitchell/hlint/releases/download/v$HLINTVER/hlint-$HLINTVER-x86_64-linux.tar.gz\"; tar -xzv -f $HOME/.hlint/hlint-$HLINTVER.tar.gz -C $HOME/.hlint; fi ; fi"
-  - if [ $HCNUMVER -ge 80800 ] && [ $HCNUMVER -lt 81000 ] ; then mkdir -p $CABALHOME/bin && ln -sf "$HOME/.hlint/hlint-$HLINTVER/hlint" $CABALHOME/bin/hlint ; fi
-  - if [ $HCNUMVER -ge 80800 ] && [ $HCNUMVER -lt 81000 ] ; then hlint --version ; fi
+  - if [ $HCNUMVER -ge 81000 ] ; then HLINTVER=$(cd /tmp && (${CABAL} v2-install -v $WITHCOMPILER --dry-run hlint  --constraint='hlint ==2.2.*' |  perl -ne 'if (/\bhlint-(\d+(\.\d+)*)\b/) { print "$1"; last; }')); echo "HLint version $HLINTVER" ; fi
+  - "if [ $HCNUMVER -ge 81000 ] ; then if [ ! -e $HOME/.hlint/hlint-$HLINTVER/hlint ]; then echo \"Downloading HLint version $HLINTVER\"; mkdir -p $HOME/.hlint; curl --write-out 'Status Code: %{http_code} Redirects: %{num_redirects} Total time: %{time_total} Total Dsize: %{size_download}\\n' --silent --location --output $HOME/.hlint/hlint-$HLINTVER.tar.gz \"https://github.com/ndmitchell/hlint/releases/download/v$HLINTVER/hlint-$HLINTVER-x86_64-linux.tar.gz\"; tar -xzv -f $HOME/.hlint/hlint-$HLINTVER.tar.gz -C $HOME/.hlint; fi ; fi"
+  - if [ $HCNUMVER -ge 81000 ] ; then mkdir -p $CABALHOME/bin && ln -sf "$HOME/.hlint/hlint-$HLINTVER/hlint" $CABALHOME/bin/hlint ; fi
+  - if [ $HCNUMVER -ge 81000 ] ; then hlint --version ; fi
   # Generate cabal.project
   - rm -rf cabal.project cabal.project.local cabal.project.freeze
   - touch cabal.project
@@ -138,6 +124,12 @@ install:
     echo "packages: ." >> cabal.project
     echo "packages: ./examples" >> cabal.project
     echo "packages: ./lens-properties" >> cabal.project
+  - if [ $HCNUMVER -ge 80200 ] ; then echo 'package lens' >> cabal.project ; fi
+  - "if [ $HCNUMVER -ge 80200 ] ; then echo '  ghc-options: -Werror=missing-methods' >> cabal.project ; fi"
+  - if [ $HCNUMVER -ge 80200 ] ; then echo 'package lens-examples' >> cabal.project ; fi
+  - "if [ $HCNUMVER -ge 80200 ] ; then echo '  ghc-options: -Werror=missing-methods' >> cabal.project ; fi"
+  - if [ $HCNUMVER -ge 80200 ] ; then echo 'package lens-properties' >> cabal.project ; fi
+  - "if [ $HCNUMVER -ge 80200 ] ; then echo '  ghc-options: -Werror=missing-methods' >> cabal.project ; fi"
   - |
   - "for pkg in $($HCPKG list --simple-output); do echo $pkg | sed 's/-[^-]*$//' | (grep -vE -- '^(lens|lens-examples|lens-properties)$' || true) | sed 's/^/constraints: /' | sed 's/$/ installed/' >> cabal.project.local; done"
   - cat cabal.project || true
@@ -148,7 +140,7 @@ install:
   - ${CABAL} v2-freeze $WITHCOMPILER ${TEST} ${BENCH}
   - "cat cabal.project.freeze | sed -E 's/^(constraints: *| *)//' | sed 's/any.//'"
   - rm  cabal.project.freeze
-  - ${CABAL} v2-build $WITHCOMPILER ${TEST} ${BENCH} --dep -j2 all
+  - travis_wait 40 ${CABAL} v2-build $WITHCOMPILER ${TEST} ${BENCH} --dep -j2 all
 script:
   - DISTDIR=$(mktemp -d /tmp/dist-test.XXXX)
   # Packaging...
@@ -168,6 +160,12 @@ script:
     echo "packages: ${PKGDIR_lens}" >> cabal.project
     echo "packages: ${PKGDIR_lens_examples}" >> cabal.project
     echo "packages: ${PKGDIR_lens_properties}" >> cabal.project
+  - if [ $HCNUMVER -ge 80200 ] ; then echo 'package lens' >> cabal.project ; fi
+  - "if [ $HCNUMVER -ge 80200 ] ; then echo '  ghc-options: -Werror=missing-methods' >> cabal.project ; fi"
+  - if [ $HCNUMVER -ge 80200 ] ; then echo 'package lens-examples' >> cabal.project ; fi
+  - "if [ $HCNUMVER -ge 80200 ] ; then echo '  ghc-options: -Werror=missing-methods' >> cabal.project ; fi"
+  - if [ $HCNUMVER -ge 80200 ] ; then echo 'package lens-properties' >> cabal.project ; fi
+  - "if [ $HCNUMVER -ge 80200 ] ; then echo '  ghc-options: -Werror=missing-methods' >> cabal.project ; fi"
   - |
   - "for pkg in $($HCPKG list --simple-output); do echo $pkg | sed 's/-[^-]*$//' | (grep -vE -- '^(lens|lens-examples|lens-properties)$' || true) | sed 's/^/constraints: /' | sed 's/$/ installed/' >> cabal.project.local; done"
   - cat cabal.project || true
@@ -178,9 +176,9 @@ script:
   # Testing...
   - ${CABAL} v2-test $WITHCOMPILER ${TEST} ${BENCH} all
   # HLint..
-  - if [ $HCNUMVER -ge 80800 ] && [ $HCNUMVER -lt 81000 ] ; then (cd ${PKGDIR_lens} && hlint src) ; fi
-  - if [ $HCNUMVER -ge 80800 ] && [ $HCNUMVER -lt 81000 ] ; then (cd ${PKGDIR_lens_examples} && hlint .) ; fi
-  - if [ $HCNUMVER -ge 80800 ] && [ $HCNUMVER -lt 81000 ] ; then (cd ${PKGDIR_lens_properties} && hlint src) ; fi
+  - if [ $HCNUMVER -ge 81000 ] ; then (cd ${PKGDIR_lens} && hlint src) ; fi
+  - if [ $HCNUMVER -ge 81000 ] ; then (cd ${PKGDIR_lens_examples} && hlint .) ; fi
+  - if [ $HCNUMVER -ge 81000 ] ; then (cd ${PKGDIR_lens_properties} && hlint src) ; fi
   # cabal check...
   - (cd ${PKGDIR_lens} && ${CABAL} -vnormal check)
   - (cd ${PKGDIR_lens_examples} && ${CABAL} -vnormal check)
@@ -188,5 +186,5 @@ script:
   # haddock...
   - if [ $HCNUMVER -lt 70600 ] || [ $HCNUMVER -ge 70800 ] ; then ${CABAL} v2-haddock $WITHCOMPILER --with-haddock $HADDOCK ${TEST} ${BENCH} all ; fi
 
-# REGENDATA ("0.9.20200125",["--output=.travis.yml","--config=cabal.haskell-ci","cabal.project"])
+# REGENDATA ("0.10",["--output=.travis.yml","--config=cabal.haskell-ci","cabal.project"])
 # EOF
