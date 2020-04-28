@@ -1,5 +1,13 @@
 {-# LANGUAGE RankNTypes #-}
 
+-------------------------------------------------------------------------------
+-- | This module provides conversion functions between the optics defined in
+-- this library and 'Profunctor'-based optics.
+--
+-- The goal of these functions is to provide an interoperability layer between
+-- the two styles of optics, and not to reimplement all the library in terms of
+-- 'Profunctor' optics.
+
 module Control.Lens.Profunctor
   ( -- * Conversion from Van Laarhoven optics
     fromLens
@@ -13,7 +21,7 @@ module Control.Lens.Profunctor
   , toTraversal
   ) where
 
-import Control.Applicative (pure)
+import Control.Applicative (Applicative (..))
 import Control.Lens.Type (Lens, Prism, Setter, Traversal)
 import Control.Lens.Internal.Context (Context (..), sell)
 import Data.Functor.Identity (Identity (..))
