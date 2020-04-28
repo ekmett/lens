@@ -285,6 +285,7 @@ library
     Control.Lens.Operators
     Control.Lens.Plated
     Control.Lens.Prism
+    Control.Lens.Profunctor
     Control.Lens.Reified
     Control.Lens.Review
     Control.Lens.Setter
