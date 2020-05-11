@@ -274,6 +274,7 @@ library
     Control.Lens.Internal.List
     Control.Lens.Internal.Magma
     Control.Lens.Internal.Prism
+    Control.Lens.Internal.Profunctor
     Control.Lens.Internal.Review
     Control.Lens.Internal.Setter
     Control.Lens.Internal.TH
