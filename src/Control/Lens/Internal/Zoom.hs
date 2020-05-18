@@ -33,7 +33,7 @@ module Control.Lens.Internal.Zoom
 import Prelude ()
 
 import Control.Lens.Internal.Prelude
-import Control.Monad.Reader as Reader
+import Control.Monad
 import Control.Monad.Trans.Free
 import Data.Functor.Bind
 
