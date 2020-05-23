@@ -58,12 +58,6 @@ toTupleP xs = tupP xs
 conAppsT :: Name -> [Type] -> Type
 conAppsT conName = foldl AppT (ConT conName)
 
-
--- | Return 'Name' contained in a 'TyVarBndr'.
-bndrName :: TyVarBndr -> Name
-bndrName (PlainTV  n  ) = n
-bndrName (KindedTV n _) = n
-
 fromSet :: (k -> v) -> Set.Set k -> Map.Map k v
 #if MIN_VERSION_containers(0,5,0)
 fromSet = Map.fromSet
