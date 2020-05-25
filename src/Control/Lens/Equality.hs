@@ -8,6 +8,7 @@
 #endif
 #if __GLASGOW_HASKELL__ >= 800
 {-# LANGUAGE TypeInType #-}
+{-# LANGUAGE Trustworthy #-}
 #endif
 
 -----------------------------------------------------------------------------
