@@ -448,7 +448,7 @@ test-suite doctests
       containers,
       directory      >= 1.0,
       deepseq,
-      doctest        >= 0.11.4 && < 0.12 || >= 0.13 && < 0.17,
+      doctest        >= 0.11.4 && < 0.12 || >= 0.13 && < 0.18,
       filepath,
       generic-deriving,
       lens,
