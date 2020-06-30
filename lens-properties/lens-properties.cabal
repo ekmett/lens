@@ -2,7 +2,7 @@ name:          lens-properties
 category:      Data, Lenses
 version:       4.11.1
 license:       BSD3
-cabal-version: >= 1.8
+cabal-version: >= 1.10
 license-file:  LICENSE
 author:        Edward Kmett and Oliver Charles
 maintainer:    Edward Kmett <ekmett@gmail.com>
@@ -44,3 +44,4 @@ library
 
   hs-source-dirs: src
   ghc-options: -Wall
+  default-language: Haskell2010
