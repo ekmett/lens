@@ -435,6 +435,9 @@ cosmos = cosmosOf plate
 -- @
 -- 'cosmosOf' :: 'Fold' a a -> 'Fold' a a
 -- @
+
+-- The 'Contravariant' constraint isn't required for the implementation. Since any 'Traversal' produced with 'cosmosOf' is more likely than
+-- not to be broken, the additional constraint restricts 'cosmosOf' to 'Fold's.
 cosmosOf :: (Applicative f, Contravariant f) => LensLike' f a a -> LensLike' f a a
 cosmosOf d f s = f s *> d (cosmosOf d f) s
 {-# INLINE cosmosOf #-}
