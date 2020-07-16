@@ -40,10 +40,6 @@ import Data.Reflection
 
 import qualified Data.List.NonEmpty as NonEmpty
 
-#ifdef HLINT
-{-# ANN module "HLint: ignore Avoid lambda" #-}
-#endif
-
 ------------------------------------------------------------------------------
 -- Folding
 ------------------------------------------------------------------------------

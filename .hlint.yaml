@@ -10,10 +10,12 @@
 - ignore: {name: Use fewer imports}
 - ignore: {name: "Use :"}
 - ignore: {name: Use typeRep, within: [Control.Lens.Internal.Typeable, Control.Lens.Internal.Exception]}
-- ignore: {name: Eta reduce, within: [Control.Lens.Zoom]} # Breaks code
+- ignore: {name: Eta reduce, within: [Control.Lens.Zoom, Control.Lens.Equality]} # Breaks code
+- ignore: {name: Use id, within: [Control.Lens.Equality]}
 - ignore: {name: Use camelCase, within: [Control.Lens.Internal.TH]}
 - ignore: {name: Use list comprehension, within: [Control.Lens.Internal.FieldTH]}
-- ignore: {name: Use fmap, within: [Control.Exception.Lens]} # Needed to support pre-AMP GHCs
+- ignore: {name: Use fmap, within: [Control.Exception.Lens, Control.Lens.Internal.Zoom, Control.Lens.Zoom, Control.Lens.Indexed, Control.Lens.Fold, Control.Monad.Error.Lens,Control.Lens.Setter]} # Needed to support pre-AMP GHC-7.8
+- ignore: {name: Use uncurry}
 
 - fixity: "infixl 9 :>"
 - fixity: "infixr 9 <.>, <., .>, ..."

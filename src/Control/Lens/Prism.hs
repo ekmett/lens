@@ -62,10 +62,6 @@ import Data.Void
 import Data.Coerce
 import Prelude
 
-#ifdef HLINT
-{-# ANN module "HLint: ignore Use camelCase" #-}
-#endif
-
 -- $setup
 -- >>> :set -XNoOverloadedStrings
 -- >>> import Control.Lens

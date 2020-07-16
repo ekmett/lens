@@ -89,11 +89,6 @@ import Control.Monad.Reader.Class as Reader
 import Control.Monad.State.Class  as State
 import Control.Monad.Writer.Class as Writer
 
-#ifdef HLINT
-{-# ANN module "HLint: ignore Avoid lambda" #-}
-{-# ANN module "HLint: ignore Use fmap" #-}
-#endif
-
 -- $setup
 -- >>> import Control.Lens
 -- >>> import Control.Monad.State

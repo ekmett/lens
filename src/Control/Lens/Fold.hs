@@ -187,13 +187,6 @@ import qualified Data.Semigroup as Semi
 -- >>> let g :: Expr -> Expr; g = Debug.SimpleReflect.Vars.g
 -- >>> let timingOut :: NFData a => a -> IO a; timingOut = fmap (fromMaybe (error "timeout")) . timeout (5*10^6) . evaluate . force
 
-#ifdef HLINT
-{-# ANN module "HLint: ignore Eta reduce" #-}
-{-# ANN module "HLint: ignore Use camelCase" #-}
-{-# ANN module "HLint: ignore Use curry" #-}
-{-# ANN module "HLint: ignore Use fmap" #-}
-#endif
-
 infixl 8 ^.., ^?, ^?!, ^@.., ^@?, ^@?!
 
 --------------------------
@@ -306,7 +299,7 @@ cycled l f a = as where as = l f a .> as
 -- >>> 10^..unfolded (\b -> if b == 0 then Nothing else Just (b, b-1))
 -- [10,9,8,7,6,5,4,3,2,1]
 unfolded :: (b -> Maybe (a, b)) -> Fold b a
-unfolded f g b0 = go b0 where
+unfolded f g = go where
   go b = case f b of
     Just (a, b') -> g a *> go b'
     Nothing      -> noEffect
@@ -322,7 +315,7 @@ unfolded f g b0 = go b0 where
 -- 'iterated' :: (a -> a) -> 'Fold1' a a
 -- @
 iterated :: Apply f => (a -> a) -> LensLike' f a a
-iterated f g a0 = go a0 where
+iterated f g = go where
   go a = g a .> go (f a)
 {-# INLINE iterated #-}
 

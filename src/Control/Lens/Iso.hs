@@ -141,10 +141,6 @@ import qualified GHC.Exts as Exts
 import GHC.Exts (TYPE)
 #endif
 
-#ifdef HLINT
-{-# ANN module "HLint: ignore Use on" #-}
-#endif
-
 -- $setup
 -- >>> :set -XNoOverloadedStrings
 -- >>> import Control.Lens

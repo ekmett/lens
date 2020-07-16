@@ -144,10 +144,6 @@ import Data.Semigroup.Traversable
 import GHC.Exts (TYPE)
 #endif
 
-#ifdef HLINT
-{-# ANN module "HLint: ignore Use ***" #-}
-#endif
-
 -- $setup
 -- >>> :set -XNoOverloadedStrings
 -- >>> import Control.Lens

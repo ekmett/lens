@@ -53,11 +53,6 @@ import GHC.Exts (TYPE)
 import Data.Kind (Type)
 #endif
 
-#ifdef HLINT
-{-# ANN module "HLint: ignore Use id" #-}
-{-# ANN module "HLint: ignore Eta reduce" #-}
-#endif
-
 -- $setup
 -- >>> import Control.Lens
 
