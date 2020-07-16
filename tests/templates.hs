@@ -312,7 +312,6 @@ cavendish = _Banana # (4, "Cavendish")
 
 data family Family a b c
 
-#if __GLASGOW_HASKELL >= 706
 declareLenses [d|
   data instance Family Int (a, b) a = FamilyInt { fm0 :: (b, a), fm1 :: Int }
   |]
@@ -322,8 +321,6 @@ checkFm0 = fm0
 
 checkFm1 :: Lens' (Family Int (a, b) a) Int
 checkFm1 = fm1
-
-#endif
 
 class Class a where
   data Associated a
@@ -342,7 +339,6 @@ declareLenses [d|
 checkMochi :: Iso' (Associated Int) Double
 checkMochi = mochi
 
-#if __GLASGOW_HASKELL__ >= 706
 declareFields [d|
   data DeclaredFields f a
     = DeclaredField1 { declaredFieldsA0 :: f a    , declaredFieldsB0 :: Int }
@@ -367,7 +363,6 @@ checkB0' = b0
 
 checkC0' :: Traversal' (DeclaredFields f a) String
 checkC0' = c0
-#endif
 
 declareFields [d|
     data Aardvark = Aardvark { aardvarkAlbatross :: Int }

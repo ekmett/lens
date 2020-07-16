@@ -7,10 +7,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE UndecidableInstances #-}
-
-#if __GLASGOW_HASKELL__ >= 706
 {-# LANGUAGE PolyKinds #-}
-#endif
 
 #ifdef TRUSTWORTHY
 {-# LANGUAGE Trustworthy #-}
@@ -155,12 +152,7 @@ import           Foreign.C.Types
 import qualified GHC.Generics as Generic
 import           GHC.Generics hiding (from, to)
 import           System.Posix.Types
-
-#if MIN_VERSION_base(4,6,0)
 import           Data.Ord (Down(Down))
-#else
-import           GHC.Exts (Down(Down))
-#endif
 
 #if MIN_VERSION_base(4,8,0)
 import qualified Data.Monoid as Monoid

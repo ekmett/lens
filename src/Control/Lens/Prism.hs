@@ -59,13 +59,7 @@ import Data.Profunctor.Rep
 import Data.Profunctor.Sieve
 import Data.Traversable
 import Data.Void
-#if MIN_VERSION_base(4,7,0)
 import Data.Coerce
-#elif defined(SAFE)
-import Data.Profunctor.Unsafe
-#else
-import Unsafe.Coerce
-#endif
 import Prelude
 
 #ifdef HLINT
@@ -97,16 +91,8 @@ type APrism' s a = APrism s s a a
 
 -- | Convert 'APrism' to the pair of functions that characterize it.
 withPrism :: APrism s t a b -> ((b -> t) -> (s -> Either t a) -> r) -> r
-#if MIN_VERSION_base(4,7,0)
 withPrism k f = case coerce (k (Market Identity Right)) of
   Market bt seta -> f bt seta
-#elif defined(SAFE)
-withPrism k f = case k (Market Identity Right) of
-  Market bt seta -> f (runIdentity #. bt) (either (Left . runIdentity) Right . seta)
-#else
-withPrism k f = case unsafeCoerce (k (Market Identity Right)) of
-  Market bt seta -> f bt seta
-#endif
 {-# INLINE withPrism #-}
 
 -- | Clone a 'Prism' so that you can reuse the same monomorphically typed 'Prism' for different purposes.

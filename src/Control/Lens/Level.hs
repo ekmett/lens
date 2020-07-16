@@ -1,10 +1,8 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE FlexibleContexts #-}
-
-#if __GLASGOW_HASKELL__ < 708
 {-# LANGUAGE Trustworthy #-}
-#endif
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Level

@@ -3,9 +3,7 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FunctionalDependencies #-}
-#if __GLASGOW_HASKELL__ >= 707
 {-# LANGUAGE RoleAnnotations #-}
-#endif
 #if __GLASGOW_HASKELL__ >= 711
 {-# OPTIONS_GHC -fno-warn-redundant-constraints #-}
 #endif
@@ -148,9 +146,7 @@ instance (a ~ b, Conjoined p) => ComonadApply (Bazaar p a b) where
 -- For example. This lets us write a suitably polymorphic and lazy 'Control.Lens.Traversal.taking', but there
 -- must be a better way!
 newtype BazaarT p (g :: * -> *) a b t = BazaarT { runBazaarT :: forall f. Applicative f => p a (f b) -> f t }
-#if __GLASGOW_HASKELL__ >= 707
 type role BazaarT representational nominal nominal nominal nominal
-#endif
 
 -- | This alias is helpful when it comes to reducing repetition in type signatures.
 --
@@ -326,9 +322,7 @@ instance (a ~ b, Conjoined p) => ComonadApply (Bazaar1 p a b) where
 -- For example. This lets us write a suitably polymorphic and lazy 'Control.Lens.Traversal.taking', but there
 -- must be a better way!
 newtype BazaarT1 p (g :: * -> *) a b t = BazaarT1 { runBazaarT1 :: forall f. Apply f => p a (f b) -> f t }
-#if __GLASGOW_HASKELL__ >= 707
 type role BazaarT1 representational nominal nominal nominal nominal
-#endif
 
 -- | This alias is helpful when it comes to reducing repetition in type signatures.
 --

@@ -81,9 +81,6 @@ module Control.Lens.TH
 
 import Prelude ()
 
-#if !(MIN_VERSION_template_haskell(2,7,0))
-import Control.Monad (ap)
-#endif
 import Control.Monad.Trans.Class
 import Control.Monad.Trans.State
 import Control.Monad.Trans.Writer
@@ -632,13 +629,6 @@ makeWrappedInstance dataDecl con fieldType = do
   --   type Unwrapped (Con a b c...) = fieldType
   --   _Wrapped' = iso (\(Con x) -> x) Con
   instanceD (cxt []) klass [unwrappedATF, isoMethod]
-
-#if !(MIN_VERSION_template_haskell(2,7,0))
--- | The orphan instance for old versions is bad, but programming without 'Applicative' is worse.
-instance Applicative Q where
-  pure = return
-  (<*>) = ap
-#endif
 
 overHead :: (a -> a) -> [a] -> [a]
 overHead _ []     = []

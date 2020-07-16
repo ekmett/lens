@@ -85,17 +85,14 @@ module Control.Lens.Iso
   , bimapping
   , firsting
   , seconding
-#if __GLASGOW_HASKELL__ >= 708
   -- * Coercions
   , coerced
-#endif
   ) where
 
 import Control.Lens.Equality (simple)
 import Control.Lens.Getter
 import Control.Lens.Fold
 import Control.Lens.Internal.Context
-import Control.Lens.Internal.Coerce
 import Control.Lens.Internal.Indexed
 import Control.Lens.Internal.Iso as Iso
 import Control.Lens.Internal.Magma
@@ -131,11 +128,9 @@ import Data.Profunctor.Unsafe
 import Data.Functor
 #endif
 
-#if __GLASGOW_HASKELL__ >= 708
-import Data.Coerce (Coercible)
+import Data.Coerce
 #if __GLASGOW_HASKELL__ < 710
 import Data.Type.Coercion
-#endif
 #endif
 
 #if __GLASGOW_HASKELL__ >= 710
@@ -527,11 +522,7 @@ pattern Reversed a <- (view reversed -> a) where
 #endif
 
 instance Strict LazyB.ByteString StrictB.ByteString where
-#if MIN_VERSION_bytestring(0,10,0)
   strict = iso LazyB.toStrict LazyB.fromStrict
-#else
-  strict = iso (StrictB.concat . LazyB.toChunks) (LazyB.fromChunks . return)
-#endif
   {-# INLINE strict #-}
 
 instance Strict LazyT.Text StrictT.Text where
@@ -700,7 +691,6 @@ seconding :: (Bifunctor f, Bifunctor g) => AnIso s t a b -> Iso (f x s) (g y t) 
 seconding p = withIso p $ \ sa bt -> iso (second sa) (second bt)
 {-# INLINE seconding #-}
 
-#if __GLASGOW_HASKELL__ >= 708
 -- | Data types that are representationally equal are isomorphic.
 --
 -- This is only available on GHC 7.8+
@@ -708,10 +698,13 @@ seconding p = withIso p $ \ sa bt -> iso (second sa) (second bt)
 -- @since 4.13
 coerced :: forall s t a b. (Coercible s a, Coercible t b) => Iso s t a b
 # if __GLASGOW_HASKELL__ >= 710
-coerced l = rmap (fmap coerce') l .# coerce
+coerced l = rmap (fmap coerce) l .# coerce
 # else
 coerced l = case sym Coercion :: Coercion a s of
               Coercion -> rmap (fmap coerce') l .# coerce
+
+coerce' :: forall a b. Coercible a b => b -> a
+coerce' = coerce (id :: a -> a)
+{-# INLINE coerce' #-}
 # endif
 {-# INLINE coerced #-}
-#endif

@@ -32,7 +32,7 @@
 #endif
 
 #ifndef MIN_VERSION_parallel
-#define MIN_VERSION_parallel(x,y,z) (defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL > 700)
+#define MIN_VERSION_parallel(x,y,z) defined(__GLASGOW_HASKELL__)
 #endif
 
 #ifndef MIN_VERSION_reflection

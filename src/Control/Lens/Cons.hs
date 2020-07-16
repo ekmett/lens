@@ -50,9 +50,9 @@ import Control.Lens.Prism
 import Control.Lens.Review
 import Control.Lens.Tuple
 import Control.Lens.Type
-import Control.Lens.Internal.Coerce
 import qualified Data.ByteString      as StrictB
 import qualified Data.ByteString.Lazy as LazyB
+import           Data.Coerce
 import           Data.Monoid
 import qualified Data.Sequence as Seq
 import           Data.Sequence hiding ((<|), (|>), (:<), (:>))
@@ -125,7 +125,7 @@ instance Cons [a] [b] a b where
 
 instance Cons (ZipList a) (ZipList b) a b where
   _Cons = withPrism listCons $ \listReview listPreview ->
-    prism (coerce' listReview) (coerce' listPreview) where
+    prism (coerce listReview) (coerce listPreview) where
 
     listCons :: Prism [a] [b] (a, [a]) (b, [b])
     listCons = _Cons
@@ -359,7 +359,7 @@ instance Snoc [a] [b] a b where
 
 instance Snoc (ZipList a) (ZipList b) a b where
   _Snoc = withPrism listSnoc $ \listReview listPreview ->
-    prism (coerce' listReview) (coerce' listPreview) where
+    prism (coerce listReview) (coerce listPreview) where
 
     listSnoc :: Prism [a] [b] ([a], a) ([b], b)
     listSnoc = _Snoc

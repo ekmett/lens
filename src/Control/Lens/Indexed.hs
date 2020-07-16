@@ -701,11 +701,7 @@ instance TraversableWithIndex Int Vector where
 instance FunctorWithIndex Int IntMap
 instance FoldableWithIndex Int IntMap
 instance TraversableWithIndex Int IntMap where
-#if MIN_VERSION_containers(0,5,0)
   itraverse = IntMap.traverseWithKey
-#else
-  itraverse f = sequenceA . IntMap.mapWithKey f
-#endif
   {-# INLINE [0] itraverse #-}
 
 {-# RULES
@@ -718,11 +714,7 @@ instance TraversableWithIndex Int IntMap where
 instance FunctorWithIndex k (Map k)
 instance FoldableWithIndex k (Map k)
 instance TraversableWithIndex k (Map k) where
-#if MIN_VERSION_containers(0,5,0)
   itraverse = Map.traverseWithKey
-#else
-  itraverse f = sequenceA . Map.mapWithKey f
-#endif
   {-# INLINE [0] itraverse #-}
 
 {-# RULES

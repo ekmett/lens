@@ -3,9 +3,7 @@
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
-#if __GLASGOW_HASKELL__ >= 706
 {-# LANGUAGE PolyKinds #-}
-#endif
 #if __GLASGOW_HASKELL__ >= 800
 {-# LANGUAGE TypeInType #-}
 {-# LANGUAGE Trustworthy #-}
@@ -74,11 +72,7 @@ data Identical a b s t where
   Identical :: Identical a b a b
 
 -- | When you see this as an argument to a function, it expects an 'Equality'.
-#if __GLASGOW_HASKELL__ >= 706
-type AnEquality (s :: k1) (t :: k2) (a :: k1) (b :: k2) = Identical a (Proxy b) a (Proxy b) -> Identical a (Proxy b) s (Proxy t)
-#else
 type AnEquality s t a b = Identical a (Proxy b) a (Proxy b) -> Identical a (Proxy b) s (Proxy t)
-#endif
 
 -- | A 'Simple' 'AnEquality'.
 type AnEquality' s a = AnEquality s s a a
@@ -102,10 +96,8 @@ substEq l = case runEq l of
 -- | We can use 'Equality' to do substitution into anything.
 #if __GLASGOW_HASKELL__ >= 800
 mapEq :: forall k1 k2 (s :: k1) (t :: k2) (a :: k1) (b :: k2) (f :: k1 -> Type) . AnEquality s t a b -> f s -> f a
-#elif __GLASGOW_HASKELL__ >= 706
-mapEq :: forall (s :: k1) (t :: k2) (a :: k1) (b :: k2) (f :: k1 -> *) . AnEquality s t a b -> f s -> f a
 #else
-mapEq :: AnEquality s t a b -> f s -> f a
+mapEq :: forall (s :: k1) (t :: k2) (a :: k1) (b :: k2) (f :: k1 -> *) . AnEquality s t a b -> f s -> f a
 #endif
 mapEq l r = substEq l r
 {-# INLINE mapEq #-}

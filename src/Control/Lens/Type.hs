@@ -5,10 +5,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE KindSignatures #-}
-#if __GLASGOW_HASKELL__ >= 706
 {-# LANGUAGE PolyKinds #-}
-#endif
 #if __GLASGOW_HASKELL__ >= 800
 {-# LANGUAGE TypeInType #-}
 #endif
@@ -464,10 +461,8 @@ type Prism' s a = Prism s s a a
 -- Note: Composition with an 'Equality' is index-preserving.
 #if __GLASGOW_HASKELL__ >= 800
 type Equality (s :: k1) (t :: k2) (a :: k1) (b :: k2) = forall k3 (p :: k1 -> k3 -> Type) (f :: k2 -> k3) .
-#elif __GLASGOW_HASKELL__ >= 706
-type Equality (s :: k1) (t :: k2) (a :: k1) (b :: k2) = forall (p :: k1 -> * -> *) (f :: k2 -> *) .
 #else
-type Equality s t a b = forall p (f :: * -> *) .
+type Equality (s :: k1) (t :: k2) (a :: k1) (b :: k2) = forall (p :: k1 -> * -> *) (f :: k2 -> *) .
 #endif
     p a (f b) -> p s (f t)
 

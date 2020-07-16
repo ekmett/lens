@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Internal.Prism
@@ -17,10 +17,7 @@ module Control.Lens.Internal.Prism
 import Prelude ()
 
 import Control.Lens.Internal.Prelude
-
-#ifndef SAFE
 import Control.Lens.Internal.Coerce
-#endif
 
 ------------------------------------------------------------------------------
 -- Prism: Market
@@ -45,12 +42,10 @@ instance Profunctor (Market a b) where
   rmap f (Market bt seta) = Market (f . bt) (either (Left . f) Right . seta)
   {-# INLINE rmap #-}
 
-#ifndef SAFE
   ( #. ) _ = coerce'
   {-# INLINE ( #. ) #-}
   ( .# ) p _ = coerce p
   {-# INLINE ( .# ) #-}
-#endif
 
 instance Choice (Market a b) where
   left' (Market bt seta) = Market (Left . bt) $ \sc -> case sc of

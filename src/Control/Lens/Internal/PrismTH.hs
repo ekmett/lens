@@ -235,7 +235,7 @@ computePrismType :: Type -> Cxt -> [NCon] -> NCon -> Q Stab
 computePrismType t cx cons con =
   do let ts      = view nconTypes con
          unbound = setOf typeVars t Set.\\ setOf typeVars cons
-     sub <- sequenceA (fromSet (newName . nameBase) unbound)
+     sub <- sequenceA (Map.fromSet (newName . nameBase) unbound)
      b   <- toTupleT (map return ts)
      a   <- toTupleT (map return (substTypeVars sub ts))
      let s = substTypeVars sub t
@@ -244,7 +244,7 @@ computePrismType t cx cons con =
 
 computeIsoType :: Type -> [Type] -> TypeQ
 computeIsoType t' fields =
-  do sub <- sequenceA (fromSet (newName . nameBase) (setOf typeVars t'))
+  do sub <- sequenceA (Map.fromSet (newName . nameBase) (setOf typeVars t'))
      let t = return                    t'
          s = return (substTypeVars sub t')
          b = toTupleT (map return                    fields)

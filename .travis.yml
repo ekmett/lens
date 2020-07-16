@@ -8,7 +8,7 @@
 #
 # For more information, see https://github.com/haskell-CI/haskell-ci
 #
-# version: 0.10
+# version: 0.10.2
 #
 version: ~> 1.0
 language: c
@@ -64,12 +64,6 @@ jobs:
     - compiler: ghc-7.8.4
       addons: {"apt":{"sources":[{"sourceline":"deb http://ppa.launchpad.net/hvr/ghc/ubuntu xenial main","key_url":"https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x063dab2bdc0b3f9fcebc378bff3aeacef6f88286"}],"packages":["ghc-7.8.4","cabal-install-3.2","freeglut3-dev"]}}
       os: linux
-    - compiler: ghc-7.6.3
-      addons: {"apt":{"sources":[{"sourceline":"deb http://ppa.launchpad.net/hvr/ghc/ubuntu xenial main","key_url":"https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x063dab2bdc0b3f9fcebc378bff3aeacef6f88286"}],"packages":["ghc-7.6.3","cabal-install-3.2","freeglut3-dev"]}}
-      os: linux
-    - compiler: ghc-7.4.2
-      addons: {"apt":{"sources":[{"sourceline":"deb http://ppa.launchpad.net/hvr/ghc/ubuntu xenial main","key_url":"https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x063dab2bdc0b3f9fcebc378bff3aeacef6f88286"}],"packages":["ghc-7.4.2","cabal-install-3.2","freeglut3-dev"]}}
-      os: linux
 before_install:
   - HC=$(echo "/opt/$CC/bin/ghc" | sed 's/-/\//')
   - WITHCOMPILER="-w $HC"
@@ -113,7 +107,7 @@ install:
   - cat $CABALHOME/config
   - rm -fv cabal.project cabal.project.local cabal.project.freeze
   - travis_retry ${CABAL} v2-update -v
-  - if [ $HCNUMVER -ge 81000 ] ; then HLINTVER=$(cd /tmp && (${CABAL} v2-install -v $WITHCOMPILER --dry-run hlint  --constraint='hlint ==2.2.*' |  perl -ne 'if (/\bhlint-(\d+(\.\d+)*)\b/) { print "$1"; last; }')); echo "HLint version $HLINTVER" ; fi
+  - if [ $HCNUMVER -ge 81000 ] ; then HLINTVER=$(cd /tmp && (${CABAL} v2-install -v $WITHCOMPILER --dry-run hlint  --constraint='hlint ==3.1.*' |  perl -ne 'if (/\bhlint-(\d+(\.\d+)*)\b/) { print "$1"; last; }')); echo "HLint version $HLINTVER" ; fi
   - "if [ $HCNUMVER -ge 81000 ] ; then if [ ! -e $HOME/.hlint/hlint-$HLINTVER/hlint ]; then echo \"Downloading HLint version $HLINTVER\"; mkdir -p $HOME/.hlint; curl --write-out 'Status Code: %{http_code} Redirects: %{num_redirects} Total time: %{time_total} Total Dsize: %{size_download}\\n' --silent --location --output $HOME/.hlint/hlint-$HLINTVER.tar.gz \"https://github.com/ndmitchell/hlint/releases/download/v$HLINTVER/hlint-$HLINTVER-x86_64-linux.tar.gz\"; tar -xzv -f $HOME/.hlint/hlint-$HLINTVER.tar.gz -C $HOME/.hlint; fi ; fi"
   - if [ $HCNUMVER -ge 81000 ] ; then mkdir -p $CABALHOME/bin && ln -sf "$HOME/.hlint/hlint-$HLINTVER/hlint" $CABALHOME/bin/hlint ; fi
   - if [ $HCNUMVER -ge 81000 ] ; then hlint --version ; fi
@@ -184,7 +178,7 @@ script:
   - (cd ${PKGDIR_lens_examples} && ${CABAL} -vnormal check)
   - (cd ${PKGDIR_lens_properties} && ${CABAL} -vnormal check)
   # haddock...
-  - if [ $HCNUMVER -lt 70600 ] || [ $HCNUMVER -ge 70800 ] ; then ${CABAL} v2-haddock $WITHCOMPILER --with-haddock $HADDOCK ${TEST} ${BENCH} all ; fi
+  - ${CABAL} v2-haddock $WITHCOMPILER --with-haddock $HADDOCK ${TEST} ${BENCH} all
 
-# REGENDATA ("0.10",["--output=.travis.yml","--config=cabal.haskell-ci","cabal.project"])
+# REGENDATA ("0.10.2",["--output=.travis.yml","--config=cabal.haskell-ci","cabal.project"])
 # EOF
