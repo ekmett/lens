@@ -1,3 +1,10 @@
+next [2020.xx.yy]
+-----------------
+
+* Add `Control.Lens.Profunctor` with conversion functions to and from
+  profunctor optic representation
+* Mark `Control.Lens.Equality` as Trustworthy
+
 4.19.2 [2020.04.15]
 -------------------
 * Remove the test suite's dependency on `test-framework-th`.
