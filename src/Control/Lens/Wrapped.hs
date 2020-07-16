@@ -158,10 +158,6 @@ import           Data.Ord (Down(Down))
 import qualified Data.Monoid as Monoid
 #endif
 
-#ifdef HLINT
-{-# ANN module "HLint: ignore Use uncurry" #-}
-#endif
-
 -- $setup
 -- >>> :set -XNoOverloadedStrings
 -- >>> import Control.Lens

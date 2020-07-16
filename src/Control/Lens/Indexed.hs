@@ -116,10 +116,6 @@ import Data.Vector (Vector)
 import qualified Data.Vector as V
 import GHC.Generics
 
-#ifdef HLINT
-{-# ANN module "HLint: ignore Use fmap" #-}
-#endif
-
 infixr 9 <.>, <., .>
 
 -- $setup

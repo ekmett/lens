@@ -41,7 +41,3 @@ import Control.Lens.Internal.Prism
 import Control.Lens.Internal.Review
 import Control.Lens.Internal.Setter
 import Control.Lens.Internal.Zoom
-
-#ifdef HLINT
-{-# ANN module "HLint: ignore Use import/export shortcut" #-}
-#endif

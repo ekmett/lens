@@ -40,10 +40,6 @@ import qualified Data.Monoid as M
 import Data.Semigroup (Semigroup(..))
 #endif
 
-#ifdef HLINT
-{-# ANN module "HLint: ignore Use fmap" #-}
-#endif
-
 ------------------------------------------------------------------------------
 -- Catching
 ------------------------------------------------------------------------------

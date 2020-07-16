@@ -111,12 +111,6 @@ import Language.Haskell.TH.Datatype
 import Language.Haskell.TH.Lens
 import Language.Haskell.TH.Syntax hiding (lift)
 
-#ifdef HLINT
-{-# ANN module "HLint: ignore Eta reduce" #-}
-{-# ANN module "HLint: ignore Use fewer imports" #-}
-{-# ANN module "HLint: ignore Use foldl" #-}
-#endif
-
 -- | Generate "simple" optics even when type-changing optics are possible.
 -- (e.g. 'Lens'' instead of 'Lens')
 simpleLenses :: Lens' LensRules Bool
@@ -847,7 +841,7 @@ emit decs = tell $ Endo (decs++)
 -- | Traverse each data, newtype, data instance or newtype instance
 -- declaration.
 traverseDataAndNewtype :: (Applicative f) => (Dec -> f Dec) -> [Dec] -> f [Dec]
-traverseDataAndNewtype f decs = traverse go decs
+traverseDataAndNewtype f = traverse go 
   where
     go dec = case dec of
       DataD{} -> f dec

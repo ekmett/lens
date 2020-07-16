@@ -50,10 +50,6 @@ import Control.Monad.Trans.Identity
 import Control.Monad.Trans.Maybe
 import Control.Monad.Trans.Free
 
-#ifdef HLINT
-{-# ANN module "HLint: ignore Use fmap" #-}
-#endif
-
 -- $setup
 -- >>> import Control.Lens
 -- >>> import Control.Monad.State

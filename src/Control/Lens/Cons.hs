@@ -70,10 +70,6 @@ import           Data.Word
 import           Control.Applicative (ZipList(..))
 import           Prelude
 
-#ifdef HLINT
-{-# ANN module "HLint: ignore Eta reduce" #-}
-#endif
-
 -- $setup
 -- >>> :set -XNoOverloadedStrings
 -- >>> import Control.Lens
@@ -545,5 +541,5 @@ snoc = curry (simply review _Snoc)
 -- >>> unsnoc (Seq.fromList [])
 -- Nothing
 unsnoc :: Snoc s s a a => s -> Maybe (s, a)
-unsnoc s = simply preview _Snoc s
+unsnoc = simply preview _Snoc
 {-# INLINE unsnoc #-}

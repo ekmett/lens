@@ -94,7 +94,3 @@ import Control.Lens.Tuple
 import Control.Lens.Type
 import Control.Lens.Wrapped
 import Control.Lens.Zoom
-
-#ifdef HLINT
-{-# ANN module "HLint: ignore Use import/export shortcut" #-}
-#endif

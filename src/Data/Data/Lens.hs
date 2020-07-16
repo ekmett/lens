@@ -77,13 +77,6 @@ import qualified Data.Proxy as X (Proxy (..))
 import qualified Data.Typeable as X (typeRep, eqT)
 import qualified Data.Type.Equality as X
 
-#ifdef HLINT
-{-# ANN module "HLint: ignore Eta reduce" #-}
-{-# ANN module "HLint: ignore Use foldl" #-}
-{-# ANN module "HLint: ignore Reduce duplication" #-}
-{-# ANN module "HLint: ignore Unused LANGUAGE pragma" #-}
-#endif
-
 -- $setup
 -- >>> :set -XNoOverloadedStrings
 -- >>> import Control.Lens
@@ -402,7 +395,7 @@ hitTest a b = Oracle $ \(c :: c) ->
 
 
 biplateData :: forall f s a. (Applicative f, Data s) => (forall c. Typeable c => c -> Answer c a) -> (a -> f a) -> s -> f s
-biplateData o f a0 = go2 a0 where
+biplateData o f = go2 where
   go :: Data d => d -> f d
   go s = gfoldl (\x y -> x <*> go2 y) pure s
   go2 :: Data d => d -> f d
@@ -413,7 +406,7 @@ biplateData o f a0 = go2 a0 where
 {-# INLINE biplateData #-}
 
 uniplateData :: forall f s a. (Applicative f, Data s) => (forall c. Typeable c => c -> Answer c a) -> (a -> f a) -> s -> f s
-uniplateData o f a0 = go a0 where
+uniplateData o f = go where
   go :: Data d => d -> f d
   go s = gfoldl (\x y -> x <*> go2 y) pure s
   go2 :: Data d => d -> f d
