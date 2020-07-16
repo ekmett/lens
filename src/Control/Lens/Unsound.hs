@@ -3,13 +3,10 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# OPTIONS_GHC -fno-warn-warnings-deprecations #-}
-
-#if __GLASGOW_HASKELL__ < 708
 {-# LANGUAGE Trustworthy #-}
-#endif
-
 {-# LANGUAGE RankNTypes #-}
+
+{-# OPTIONS_GHC -fno-warn-warnings-deprecations #-}
 
 -------------------------------------------------------------------------------
 -- |

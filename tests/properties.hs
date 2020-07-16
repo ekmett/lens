@@ -6,12 +6,10 @@
 {-# LANGUAGE LiberalTypeSynonyms #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE KindSignatures #-}
-#if __GLASGOW_HASKELL__ >= 706
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE PolyKinds #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE ConstraintKinds #-}
-#endif
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Main (properties)
@@ -36,9 +34,7 @@ import Test.Framework.Providers.QuickCheck2
 import Data.Char (isAlphaNum, isAscii, toUpper)
 import Data.Text.Strict.Lens
 import Data.List.Lens
-#if __GLASGOW_HASKELL__ >= 708
 import GHC.Exts (Constraint)
-#endif
 import Numeric (showHex, showOct, showSigned)
 import Numeric.Lens
 import Control.Lens.Properties (isIso, isLens, isPrism, isSetter, isTraversal)
@@ -114,15 +110,12 @@ prop_base_readFail (s :: String) =
     isValidChar c = isAscii c && isAlphaNum c
 
 -- Things that should typecheck but that we don't need to run
-#if __GLASGOW_HASKELL__ >= 708
 data Foo (a :: Constraint) (b :: Constraint) where
   Foo :: Foo (Num Int) b
 
 sampleExtremePoly :: Equality s t a b -> Foo a (Functor b) -> Foo s (Functor t)
 sampleExtremePoly f foo = f foo
-#endif
 
-#if __GLASGOW_HASKELL__ >= 706
 samplePolyEquality :: Equality Monad Identity Monad Identity
 samplePolyEquality f = f
 
@@ -134,13 +127,7 @@ equalityAnEqualityPoly ::
        forall KVS(k1 k2) (s :: k1) (t :: k2) (a :: k1) (b :: k2) .
        Equality s t a b -> AnEquality s t a b
 equalityAnEqualityPoly f = f
-#else
-lessSimple :: Equality a b a b
-lessSimple f = f
 
-equalityAnEquality :: Equality s t a b -> AnEquality s t a b
-equalityAnEquality f = f
-#endif
 equalityIso :: Equality s t a b -> Iso s t a b
 equalityIso f = f
 

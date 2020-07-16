@@ -20,27 +20,6 @@ import Control.Lens
 import Criterion.Main
 import Criterion.Types
 
-#if !(MIN_VERSION_bytestring(0,10,0))
-import Control.DeepSeq (NFData(..))
-import qualified Data.ByteString.Internal as BS
-#endif
-
-#if !(MIN_VERSION_containers(0,5,0))
-import qualified Data.Foldable as F
-#endif
-
-#if !(MIN_VERSION_bytestring(0,10,0))
-instance NFData BS.ByteString where
-    rnf (BS.PS _ _ _) = ()
-#endif
-
-#if !(MIN_VERSION_containers(0,5,0))
--- Sadly, containers doesn't export the constructor for Seq on older versions,
--- so we'll have to settle for this inefficient implementation of rnf.
-instance NFData a => NFData (S.Seq a) where
-    rnf = rnf . F.toList
-#endif
-
 main :: IO ()
 main = defaultMainWith config
   [

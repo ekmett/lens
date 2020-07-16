@@ -38,11 +38,7 @@ import Data.Set as Set
 --
 -- >>> over setmapped (+1) (fromList [1,2,3,4])
 -- fromList [2,3,4,5]
-#if MIN_VERSION_containers(0,5,2)
 setmapped :: Ord j => IndexPreservingSetter (Set i) (Set j) i j
-#else
-setmapped :: (Ord i, Ord j) => IndexPreservingSetter (Set i) (Set j) i j
-#endif
 setmapped = setting Set.map
 {-# INLINE setmapped #-}
 

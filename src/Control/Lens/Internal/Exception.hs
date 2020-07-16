@@ -5,12 +5,9 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE KindSignatures #-}
-#if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 707
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE PolyKinds #-}
 {-# LANGUAGE RoleAnnotations #-}
-#endif
 
 #include "lens-common.h"
 
@@ -39,11 +36,6 @@ import Data.Monoid
 import Data.Proxy
 import Data.Reflection
 import Data.Typeable
-
--- This is needed because ghc 7.8-rc2 has Typeable1 as a type alias.
-#if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 707
-#define Typeable1 Typeable
-#endif
 
 ------------------------------------------------------------------------------
 -- Handlers
@@ -138,13 +130,13 @@ class Handleable e (m :: * -> *) (h :: * -> *) | h -> e m where
 instance Handleable SomeException IO Exception.Handler where
   handler = handlerIO
 
-instance Typeable1 m => Handleable SomeException m (Catch.Handler m) where
+instance Typeable m => Handleable SomeException m (Catch.Handler m) where
   handler = handlerCatchIO
 
 handlerIO :: forall a r. Typeable a => Getting (First a) SomeException a -> (a -> IO r) -> Exception.Handler r
 handlerIO l f = reifyTypeable (preview l) $ \ (_ :: Proxy s) -> Exception.Handler (\(Handling a :: Handling a s IO) -> f a)
 
-handlerCatchIO :: forall m a r. (Typeable a, Typeable1 m) => Getting (First a) SomeException a -> (a -> m r) -> Catch.Handler m r
+handlerCatchIO :: forall m a r. (Typeable a, Typeable m) => Getting (First a) SomeException a -> (a -> m r) -> Catch.Handler m r
 handlerCatchIO l f = reifyTypeable (preview l) $ \ (_ :: Proxy s) -> Catch.Handler (\(Handling a :: Handling a s m) -> f a)
 
 ------------------------------------------------------------------------------
@@ -167,25 +159,9 @@ supply = unsafePerformIO $ newIORef 0
 
 -- | This permits the construction of an \"impossible\" 'Control.Exception.Handler' that matches only if some function does.
 newtype Handling a s (m :: * -> *) = Handling a
-#if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 707
   deriving Typeable
 
 type role Handling representational nominal nominal
-#else
--- the m parameter exists simply to break the Typeable1 pattern, so we can provide this without overlap.
--- here we simply generate a fresh TypeRep so we'll fail to compare as equal to any other TypeRep.
-instance (Typeable a, Typeable s, Typeable1 m) => Typeable (Handling a s m) where
-  typeOf _ = mkTyConApp handlingTyCon
-    [ typeOf (undefined :: a)
-    , typeOf (undefined :: s)
-    , typeOf1 (undefined :: m a)
-    ]
-  {-# INLINE typeOf #-}
-
-handlingTyCon :: TyCon
-handlingTyCon = mkTyCon3 "lens" "Control.Lens.Internal.Exception" "Handling"
-{-# NOINLINE handlingTyCon #-}
-#endif
 
 -- The @Handling@ wrapper is uninteresting, and should never be thrown, so you won't get much benefit here.
 instance Show (Handling a s m) where
@@ -194,11 +170,7 @@ instance Show (Handling a s m) where
 
 instance ( Reifies s (SomeException -> Maybe a)
          , Typeable a, Typeable s
-#if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 707
          , Typeable m
-#else
-         , Typeable1 m
-#endif
          )
     => Exception (Handling a (s :: *) m) where
   toException _ = SomeException HandlingException

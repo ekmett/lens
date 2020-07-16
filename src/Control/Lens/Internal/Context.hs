@@ -4,9 +4,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FunctionalDependencies #-}
-#if __GLASGOW_HASKELL__ >= 707
 {-# LANGUAGE RoleAnnotations #-}
-#endif
 
 -----------------------------------------------------------------------------
 -- |
@@ -63,9 +61,8 @@ class IndexedFunctor w where
 -- "Parameterized Notions of Computation" <http://bentnib.org/paramnotions-jfp.pdf>
 -- and that construction is dualized here.
 class IndexedFunctor w => IndexedComonad w where
-#if __GLASGOW_HASKELL__ >= 708
   {-# MINIMAL iextract, (iduplicate | iextend) #-}
-#endif
+
   -- | extract from an indexed comonadic value when the indices match.
   iextract :: w a a t -> t
 
@@ -285,11 +282,9 @@ instance Corepresentable p => Sellable p (Pretext p) where
 -- 'Control.Lens.Getter.Getter'.
 newtype PretextT p (g :: * -> *) a b t = PretextT { runPretextT :: forall f. Functor f => p a (f b) -> f t }
 
-#if __GLASGOW_HASKELL__ >= 707
 -- really we want PretextT p g a b t to permit the last 3 arguments to be representational iff p and f accept representational arguments
 -- but that isn't currently an option in GHC
 type role PretextT representational nominal nominal nominal nominal
-#endif
 
 -- | @type 'PretextT'' p g a s = 'PretextT' p g a a s@
 type PretextT' p g a = PretextT p g a a

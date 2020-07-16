@@ -68,9 +68,7 @@ module Control.Exception.Lens
   -- ** Arithmetic Exceptions
   , AsArithException(..)
   , _Overflow, _Underflow, _LossOfPrecision, _DivideByZero, _Denormal
-#if MIN_VERSION_base(4,6,0)
   , _RatioZeroDenominator
-#endif
 #if __GLASGOW_HASKELL__ >= 710
   , pattern ArithException_
   , pattern Overflow_
@@ -632,10 +630,7 @@ pattern Denormal_ <- (has _Denormal -> True) where
   Denormal_ = review _Denormal ()
 #endif
 
-#if MIN_VERSION_base(4,6,0)
--- | Added in @base@ 4.6 in response to this libraries discussion:
---
--- <http://haskell.1045720.n5.nabble.com/Data-Ratio-and-exceptions-td5711246.html>
+-- |
 --
 -- @
 -- '_RatioZeroDenominator' ≡ '_ArithException' '.' '_RatioZeroDenominator'
@@ -654,8 +649,6 @@ _RatioZeroDenominator = _ArithException . dimap seta (either id id) . right' . r
 #if __GLASGOW_HASKELL__ >= 710
 pattern RatioZeroDenominator_ <- (has _RatioZeroDenominator -> True) where
   RatioZeroDenominator_ = review _RatioZeroDenominator ()
-#endif
-
 #endif
 
 ----------------------------------------------------------------------------

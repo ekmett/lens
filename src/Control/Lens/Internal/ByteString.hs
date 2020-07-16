@@ -54,9 +54,6 @@ import Foreign.ForeignPtr
 #else
 import Foreign.ForeignPtr.Safe
 #endif
-#if !MIN_VERSION_bytestring(0,10,4)
-import Foreign.ForeignPtr.Unsafe (unsafeForeignPtrToPtr)
-#endif
 import GHC.Base (unsafeChr)
 import GHC.ForeignPtr (mallocPlainForeignPtrBytes)
 import GHC.IO (unsafeDupablePerformIO)
@@ -135,9 +132,9 @@ unpackLazy = BL.unpack
 
 -- | An 'IndexedTraversal' of the individual bytes in a lazy 'BL.ByteString'
 traversedLazy :: IndexedTraversal' Int64 BL.ByteString Word8
-traversedLazy pafb = \lbs -> foldrChunks go (\_ -> pure BL.empty) lbs 0
+traversedLazy pafb = \lbs -> BL.foldrChunks go (\_ -> pure BL.empty) lbs 0
   where
-  go c fcs acc = BL.append . fromStrict
+  go c fcs acc = BL.append . BL.fromStrict
              <$> reindexed (\x -> acc + fromIntegral x :: Int64) traversedStrictTree pafb c
              <*> fcs acc'
     where
@@ -171,9 +168,9 @@ unpackLazy8 = BL8.unpack
 
 -- | An 'IndexedTraversal' of the individual bytes in a lazy 'BL.ByteString' pretending the bytes are chars.
 traversedLazy8 :: IndexedTraversal' Int64 BL.ByteString Char
-traversedLazy8 pafb = \lbs -> foldrChunks go (\_ -> pure BL.empty) lbs 0
+traversedLazy8 pafb = \lbs -> BL.foldrChunks go (\_ -> pure BL.empty) lbs 0
   where
-  go c fcs acc = BL.append . fromStrict
+  go c fcs acc = BL.append . BL.fromStrict
              <$> reindexed (\x -> acc + fromIntegral x :: Int64) traversedStrictTree8 pafb c
              <*> fcs acc'
     where
@@ -204,22 +201,6 @@ ifoldrBL8 f z xs = BL8.foldr (\ x g i -> i `seq` f i x (g (i+1))) (const z) xs 0
 -- ByteString guts
 ------------------------------------------------------------------------------
 
-fromStrict :: B.ByteString -> BL.ByteString
-#if MIN_VERSION_bytestring(0,10,0)
-fromStrict = BL.fromStrict
-#else
-fromStrict = \x -> BL.fromChunks [x]
-#endif
-{-# INLINE fromStrict #-}
-
-foldrChunks :: (B.ByteString -> r -> r) -> r -> BL.ByteString -> r
-#if MIN_VERSION_bytestring(0,10,0)
-foldrChunks = BL.foldrChunks
-#else
-foldrChunks f z b = foldr f z (BL.toChunks b)
-#endif
-{-# INLINE foldrChunks #-}
-
 -- | Conversion between 'Word8' and 'Char'. Should compile to a no-op.
 w2c :: Word8 -> Char
 w2c = unsafeChr . fromIntegral
@@ -234,40 +215,13 @@ c2w = fromIntegral . ord
 
 -- | Unpack a strict 'B.Bytestring'
 unpackStrict :: B.ByteString -> [Word8]
-#if MIN_VERSION_bytestring(0,10,4)
 unpackStrict = B.unpack
-#else
-unpackStrict (BI.PS fp off len) =
-      let p = unsafeForeignPtrToPtr fp
-       in go (p `plusPtr` off) (p `plusPtr` (off+len))
-    where
-      go !p !q | p == q    = []
-               | otherwise = let !x = BI.inlinePerformIO $ do
-                                        x' <- peek p
-                                        touchForeignPtr fp
-                                        return x'
-                             in x : go (p `plusPtr` 1) q
-#endif
 {-# INLINE unpackStrict #-}
 
 -- | Unpack a strict 'B.Bytestring', pretending the bytes are chars.
 unpackStrict8 :: B.ByteString -> String
-#if MIN_VERSION_bytestring(0,10,4)
 unpackStrict8 = B8.unpack
-#else
-unpackStrict8 (BI.PS fp off len) =
-      let p = unsafeForeignPtrToPtr fp
-       in go (p `plusPtr` off) (p `plusPtr` (off+len))
-    where
-      go !p !q | p == q    = []
-               | otherwise = let !x = BI.inlinePerformIO $ do
-                                        x' <- peek p
-                                        touchForeignPtr fp
-                                        return x'
-                             in w2c x : go (p `plusPtr` 1) q
-#endif
 {-# INLINE unpackStrict8 #-}
-
 
 -- | A way of creating ByteStrings outside the IO monad. The @Int@
 -- argument gives the final size of the ByteString. Unlike

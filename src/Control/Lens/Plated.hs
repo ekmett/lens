@@ -5,10 +5,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-
-#if __GLASGOW_HASKELL__ >= 706
-{-# LANGUAGE PolyKinds #-} -- gplate1
-#endif
+{-# LANGUAGE PolyKinds #-}
 
 #ifdef TRUSTWORTHY
 {-# LANGUAGE Trustworthy #-} -- template-haskell
@@ -263,9 +260,6 @@ instance Plated TH.Exp
 instance Plated TH.Dec
 instance Plated TH.Con
 instance Plated TH.Type
-#if !(MIN_VERSION_template_haskell(2,8,0))
-instance Plated TH.Kind -- in 2.8 Kind is an alias for Type
-#endif
 instance Plated TH.Stmt
 instance Plated TH.Pat
 

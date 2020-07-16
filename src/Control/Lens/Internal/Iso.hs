@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 #ifdef TRUSTWORTHY
 {-# LANGUAGE Trustworthy #-}
 #endif
@@ -18,10 +19,9 @@ module Control.Lens.Internal.Iso
   ) where
 
 import Data.Profunctor
-#ifndef SAFE
 import Data.Profunctor.Unsafe
 import Control.Lens.Internal.Coerce
-#endif
+
 import Data.ByteString       as StrictB
 import Data.ByteString.Lazy  as LazyB
 import Data.List.NonEmpty    as NonEmpty
@@ -52,12 +52,9 @@ instance Profunctor (Exchange a b) where
   {-# INLINE lmap #-}
   rmap f (Exchange sa bt) = Exchange sa (f . bt)
   {-# INLINE rmap #-}
-#ifndef SAFE
   ( #. ) _ = coerce'
   {-# INLINE ( #. ) #-}
   ( .# ) p _ = coerce p
-  {-# INLINE ( .# ) #-}
-#endif
 
 ------------------------------------------------------------------------------
 -- Reversible

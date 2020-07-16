@@ -5,10 +5,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-
-#if __GLASGOW_HASKELL__ < 708
 {-# LANGUAGE Trustworthy #-}
-#endif
 
 -----------------------------------------------------------------------------
 -- |
@@ -52,9 +49,7 @@ import Data.Functor.Bind
 import Data.Int
 import Data.Profunctor.Closed
 import Data.Profunctor.Rep
-#ifndef SAFE
 import Control.Lens.Internal.Coerce
-#endif
 
 -- $setup
 -- >>> :set -XNoOverloadedStrings
@@ -154,12 +149,10 @@ instance Profunctor (Indexed i) where
   {-# INLINE lmap #-}
   rmap bc iab = Indexed $ \i -> bc . runIndexed iab i
   {-# INLINE rmap #-}
-#ifndef SAFE
   ( .# ) ibc _ = coerce ibc
   {-# INLINE ( .# ) #-}
   ( #. ) _ = coerce'
   {-# INLINE ( #. ) #-}
-#endif
 
 instance Closed (Indexed i) where
   closed (Indexed iab) = Indexed $ \i xa x -> iab i (xa x)

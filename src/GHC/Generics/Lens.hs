@@ -4,9 +4,7 @@
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE FlexibleContexts #-}
-#if __GLASGOW_HASKELL__ >= 706
 {-# LANGUAGE PolyKinds #-}
-#endif
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  GHC.Generics.Lens

@@ -2,11 +2,6 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-#if __GLASGOW_HASKELL__ < 706
--- Needed to avoid spurious warnings on GHC 7.4 due to an old TH bug
-{-# OPTIONS_GHC -fno-warn-name-shadowing #-}
-#endif
-
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Main (hunit)

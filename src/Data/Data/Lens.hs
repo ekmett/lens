@@ -74,7 +74,7 @@ import           GHC.Exts (realWorld#)
 import           Prelude
 
 import qualified Data.Proxy as X (Proxy (..))
-import qualified Control.Lens.Internal.Typeable as X
+import qualified Data.Typeable as X (typeRep, eqT)
 import qualified Data.Type.Equality as X
 
 #ifdef HLINT

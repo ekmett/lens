@@ -84,7 +84,7 @@ makeFieldOpticsForDatatype rules info =
        let allFields  = toListOf (folded . _2 . folded . _1 . folded) fieldCons
        let defCons    = over normFieldLabels (expandName allFields) fieldCons
            allDefs    = setOf (normFieldLabels . folded) defCons
-       T.sequenceA (fromSet (buildScaffold rules s defCons) allDefs)
+       T.sequenceA (Map.fromSet (buildScaffold rules s defCons) allDefs)
 
      let defs = Map.toList perDef
      case _classyLenses rules tyName of
@@ -241,7 +241,7 @@ buildStab s categorizedFields =
      let s' = applyTypeSubst subA s
 
      -- compute possible type changes
-     sub <- T.sequenceA (fromSet (newName . nameBase) unfixedTypeVars)
+     sub <- T.sequenceA (Map.fromSet (newName . nameBase) unfixedTypeVars)
      let (t,b) = over both (substTypeVars sub) (s',a)
 
      return (s',t,a,b)
@@ -397,9 +397,6 @@ makeFieldInstance defType className decs =
       where
 #if !(MIN_VERSION_template_haskell(2,11,0))
       _OpenTypeFamilyD = _FamilyD . _1 . _TypeFam
-#endif
-#if !(MIN_VERSION_template_haskell(2,9,0))
-      _ClosedTypeFamilyD = ignored
 #endif
 
   pickInstanceDec hasFamilies

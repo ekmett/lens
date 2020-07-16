@@ -24,8 +24,6 @@ module Control.Lens.Internal.TH where
 import Data.Functor.Contravariant
 import Language.Haskell.TH
 import Language.Haskell.TH.Syntax
-import qualified Data.Map as Map
-import qualified Data.Set as Set
 #ifndef CURRENT_PACKAGE_KEY
 import Data.Version (showVersion)
 import Paths_lens (version)
@@ -57,13 +55,6 @@ toTupleP xs = tupP xs
 -- | Apply arguments to a type constructor.
 conAppsT :: Name -> [Type] -> Type
 conAppsT conName = foldl AppT (ConT conName)
-
-fromSet :: (k -> v) -> Set.Set k -> Map.Map k v
-#if MIN_VERSION_containers(0,5,0)
-fromSet = Map.fromSet
-#else
-fromSet f x = Map.fromDistinctAscList [ (k,f k) | k <- Set.toAscList x ]
-#endif
 
 -- | Generate many new names from a given base name.
 newNames :: String {- ^ base name -} -> Int {- ^ count -} -> Q [Name]
@@ -213,26 +204,4 @@ leftDataName             = mkNameG_d "base" "Data.Either" "Left"
 ------------------------------------------------------------------------
 
 inlinePragma :: Name -> [DecQ]
-
-#ifdef INLINING
-
-#if MIN_VERSION_template_haskell(2,8,0)
-
-# ifdef OLD_INLINE_PRAGMAS
--- 7.6rc1?
-inlinePragma methodName = [pragInlD methodName (inlineSpecNoPhase Inline False)]
-# else
--- 7.7.20120830
 inlinePragma methodName = [pragInlD methodName Inline FunLike AllPhases]
-# endif
-
-#else
--- GHC <7.6, TH <2.8.0
-inlinePragma methodName = [pragInlD methodName (inlineSpecNoPhase True False)]
-#endif
-
-#else
-
-inlinePragma _ = []
-
-#endif

@@ -1,5 +1,4 @@
 {-# LANGUAGE CPP #-}
-{-# LANGUAGE DeriveFunctor #-}
 -------------------------------------------------------------------------------
 -- | This module provides conversion functions between the optics defined in
 -- this library and 'Profunctor'-based optics.
@@ -82,16 +81,6 @@ fromSetter :: Mapping p => ASetter s t a b -> OpticP p s t a b
 fromSetter s = roam s'
   where
     s' f = runIdentity . s (Identity . f)
-
-#if !MIN_VERSION_profunctors(5,5,0)
-roam :: Mapping p => ((a -> b) -> s -> t) -> p a b -> p s t
-roam f = dimap (\s -> Bar $ \ab -> f ab s) lent . map'
-
-newtype Bar t b a = Bar { runBar :: (a -> b) -> t } deriving Functor
-
-lent :: Bar t a a -> t
-lent m = runBar m id
-#endif
 
 -- | Converts a 'Control.Lens.Type.Traversal' to a 'Profunctor'-based one.
 --
