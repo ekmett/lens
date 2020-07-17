@@ -109,8 +109,8 @@ module Control.Lens.Lens
   -- * ALens Combinators
   , storing
   , (^#)
-  , ( #~ ), ( #%~ ), ( #%%~ ), (<#~), (<#%~)
-  , ( #= ), ( #%= ), ( #%%= ), (<#=), (<#%=)
+  , (#~), (#%~), (#%%~), (<#~), (<#%~)
+  , (#=), (#%=), (#%%=), (<#=), (<#%=)
 
   -- * Common Lenses
   , devoid
@@ -1361,35 +1361,35 @@ storing l b s = ipeek b (l sell s)
 --
 -- >>> ("hello","there") & _2 #~ "world"
 -- ("hello","world")
-( #~ ) :: ALens s t a b -> b -> s -> t
-( #~ ) l b s = ipeek b (l sell s)
-{-# INLINE ( #~ ) #-}
+(#~) :: ALens s t a b -> b -> s -> t
+(#~) l b s = ipeek b (l sell s)
+{-# INLINE (#~) #-}
 
 -- | A version of ('Control.Lens.Setter.%~') that works on 'ALens'.
 --
 -- >>> ("hello","world") & _2 #%~ length
 -- ("hello",5)
-( #%~ ) :: ALens s t a b -> (a -> b) -> s -> t
-( #%~ ) l f s = ipeeks f (l sell s)
-{-# INLINE ( #%~ ) #-}
+(#%~) :: ALens s t a b -> (a -> b) -> s -> t
+(#%~) l f s = ipeeks f (l sell s)
+{-# INLINE (#%~) #-}
 
 -- | A version of ('%%~') that works on 'ALens'.
 --
 -- >>> ("hello","world") & _2 #%%~ \x -> (length x, x ++ "!")
 -- (5,("hello","world!"))
-( #%%~ ) :: Functor f => ALens s t a b -> (a -> f b) -> s -> f t
-( #%%~ ) l f s = runPretext (l sell s) f
-{-# INLINE ( #%%~ ) #-}
+(#%%~) :: Functor f => ALens s t a b -> (a -> f b) -> s -> f t
+(#%%~) l f s = runPretext (l sell s) f
+{-# INLINE (#%%~) #-}
 
 -- | A version of ('Control.Lens.Setter..=') that works on 'ALens'.
-( #= ) :: MonadState s m => ALens s s a b -> b -> m ()
+(#=) :: MonadState s m => ALens s s a b -> b -> m ()
 l #= f = modify (l #~ f)
-{-# INLINE ( #= ) #-}
+{-# INLINE (#=) #-}
 
 -- | A version of ('Control.Lens.Setter.%=') that works on 'ALens'.
-( #%= ) :: MonadState s m => ALens s s a b -> (a -> b) -> m ()
+(#%=) :: MonadState s m => ALens s s a b -> (a -> b) -> m ()
 l #%= f = modify (l #%~ f)
-{-# INLINE ( #%= ) #-}
+{-# INLINE (#%=) #-}
 
 -- | A version of ('<%~') that works on 'ALens'.
 --
@@ -1405,7 +1405,7 @@ l <#%= f = l #%%= \a -> let b = f a in (b, b)
 {-# INLINE (<#%=) #-}
 
 -- | A version of ('%%=') that works on 'ALens'.
-( #%%= ) :: MonadState s m => ALens s s a b -> (a -> (r, b)) -> m r
+(#%%=) :: MonadState s m => ALens s s a b -> (a -> (r, b)) -> m r
 #if MIN_VERSION_mtl(2,1,1)
 l #%%= f = State.state $ \s -> runPretext (l sell s) f
 #else
@@ -1415,7 +1415,7 @@ l #%%= f = do
   State.put t
   return r
 #endif
-{-# INLINE ( #%%= ) #-}
+{-# INLINE (#%%=) #-}
 
 -- | A version of ('Control.Lens.Setter.<.~') that works on 'ALens'.
 --

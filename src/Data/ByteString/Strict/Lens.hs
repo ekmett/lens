@@ -46,7 +46,7 @@ import Data.Word
 -- >>> [104,101,108,108,111]^.packedBytes
 -- "hello"
 packedBytes :: Iso' [Word8] ByteString
-packedBytes = iso Words.pack unpackStrict
+packedBytes = iso Words.pack Words.unpack
 {-# INLINE packedBytes #-}
 
 -- | 'Data.ByteString.unpack' (or 'Data.ByteString.pack') a 'ByteString' into a list of bytes
@@ -97,7 +97,7 @@ bytes = traversedStrictTree
 -- >>> "hello"^.packedChars.each.re (base 16 . enum).to (\x -> if Prelude.length x == 1 then '0':x else x)
 -- "68656c6c6f"
 packedChars :: Iso' String ByteString
-packedChars = iso Char8.pack unpackStrict8
+packedChars = iso Char8.pack Char8.unpack
 {-# INLINE packedChars #-}
 
 -- | 'Data.ByteString.Char8.unpack' (or 'Data.ByteString.Char8.pack') a list of characters into a 'ByteString'

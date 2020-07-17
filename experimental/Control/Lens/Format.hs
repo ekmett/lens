@@ -74,7 +74,7 @@ instance Profunctor (Formatted m) where
   lmap _ (Formatted mb) = Formatted mb
   rmap bc (Formatted mb) = Formatted (bc . mb)
   Formatted mb .# _ = Formatted mb
-  ( #. ) _ = unsafeCoerce
+  (#.) _ = unsafeCoerce
 
 instance Corepresentable (Formatted m) where
   type Corep (Formatted m) = Const m

@@ -42,10 +42,10 @@ instance Profunctor (Market a b) where
   rmap f (Market bt seta) = Market (f . bt) (either (Left . f) Right . seta)
   {-# INLINE rmap #-}
 
-  ( #. ) _ = coerce'
-  {-# INLINE ( #. ) #-}
-  ( .# ) p _ = coerce p
-  {-# INLINE ( .# ) #-}
+  (#.) _ = coerce'
+  {-# INLINE (#.) #-}
+  (.#) p _ = coerce p
+  {-# INLINE (.#) #-}
 
 instance Choice (Market a b) where
   left' (Market bt seta) = Market (Left . bt) $ \sc -> case sc of

@@ -48,7 +48,7 @@ import Data.Int (Int64)
 -- >>> [104,101,108,108,111]^.packedBytes == Char8.pack "hello"
 -- True
 packedBytes :: Iso' [Word8] ByteString
-packedBytes = iso Words.pack unpackLazy
+packedBytes = iso Words.pack Words.unpack
 {-# INLINE packedBytes #-}
 
 -- | 'Data.ByteString.Lazy.unpack' (or 'Data.ByteString.Lazy.pack') a 'ByteString' into a list of bytes
@@ -99,7 +99,7 @@ bytes = traversedLazy
 -- >>> "hello"^.packedChars.each.re (base 16 . enum).to (\x -> if Prelude.length x == 1 then '0':x else x)
 -- "68656c6c6f"
 packedChars :: Iso' String ByteString
-packedChars = iso Char8.pack unpackLazy8
+packedChars = iso Char8.pack Char8.unpack
 {-# INLINE packedChars #-}
 
 -- | 'Data.ByteString.Lazy.Char8.unpack' (or 'Data.ByteString.Lazy.Char8.pack') a list of characters into a 'ByteString'

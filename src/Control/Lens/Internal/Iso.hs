@@ -52,9 +52,9 @@ instance Profunctor (Exchange a b) where
   {-# INLINE lmap #-}
   rmap f (Exchange sa bt) = Exchange sa (f . bt)
   {-# INLINE rmap #-}
-  ( #. ) _ = coerce'
-  {-# INLINE ( #. ) #-}
-  ( .# ) p _ = coerce p
+  (#.) _ = coerce'
+  {-# INLINE (#.) #-}
+  (.#) p _ = coerce p
 
 ------------------------------------------------------------------------------
 -- Reversible

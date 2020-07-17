@@ -27,7 +27,7 @@ module Control.Lens.Review
   , re
   , review, reviews
   , reuse, reuses
-  , ( # )
+  , (#)
   , Bifunctor(bimap)
   , retagged
   , Reviewable
@@ -164,9 +164,9 @@ review p = asks (runIdentity #. unTagged #. p .# Tagged .# Identity)
 -- (#) :: 'Review'    s a -> a -> s
 -- (#) :: 'Equality'' s a -> a -> s
 -- @
-( # ) :: AReview t b -> b -> t
-( # ) p = runIdentity #. unTagged #. p .# Tagged .# Identity
-{-# INLINE ( # ) #-}
+(#) :: AReview t b -> b -> t
+(#) p = runIdentity #. unTagged #. p .# Tagged .# Identity
+{-# INLINE (#) #-}
 
 -- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Prism' around and 'view' a value (or the current environment) through it the other way,
 -- applying a function.
