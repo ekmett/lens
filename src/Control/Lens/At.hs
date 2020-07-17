@@ -64,6 +64,7 @@ import Data.Int
 import Data.IntMap as IntMap
 import Data.IntSet as IntSet
 import Data.Map as Map
+import Data.Maybe
 import Data.Set as Set
 import Data.Sequence as Seq
 import Data.Text as StrictT
@@ -152,13 +153,21 @@ icontains i f = contains i (indexed f i)
 {-# INLINE icontains #-}
 
 instance Contains IntSet where
+#if MIN_VERSION_containers(0,6,3)
+  contains k f = IntSet.alterF f k
+#else
   contains k f s = f (IntSet.member k s) <&> \b ->
     if b then IntSet.insert k s else IntSet.delete k s
+#endif
   {-# INLINE contains #-}
 
 instance Ord a => Contains (Set a) where
+#if MIN_VERSION_containers(0,6,3)
+  contains k f = Set.alterF f k
+#else
   contains k f s = f (Set.member k s) <&> \b ->
     if b then Set.insert k s else Set.delete k s
+#endif
   {-# INLINE contains #-}
 
 instance (Eq a, Hashable a) => Contains (HashSet a) where
@@ -467,24 +476,38 @@ instance Ord k => At (Map k a) where
   {-# INLINE at #-}
 
 instance (Eq k, Hashable k) => At (HashMap k a) where
+#if MIN_VERSION_unordered_containers(0,2,10)
+  at k f = HashMap.alterF f k
+#else
   at k f m = f mv <&> \r -> case r of
     Nothing -> maybe m (const (HashMap.delete k m)) mv
     Just v' -> HashMap.insert k v' m
     where mv = HashMap.lookup k m
+#endif
   {-# INLINE at #-}
 
 instance At IntSet where
+#if MIN_VERSION_containers(0,6,3)
+  at k f = IntSet.alterF f' k
+    where f' b = isJust <$> f (if b then Just () else Nothing)
+#else
   at k f m = f mv <&> \r -> case r of
     Nothing -> maybe m (const (IntSet.delete k m)) mv
     Just () -> IntSet.insert k m
     where mv = if IntSet.member k m then Just () else Nothing
+#endif
   {-# INLINE at #-}
 
 instance Ord k => At (Set k) where
+#if MIN_VERSION_containers(0,6,3)
+  at k f = Set.alterF f' k
+    where f' b = isJust <$> f (if b then Just () else Nothing)
+#else
   at k f m = f mv <&> \r -> case r of
     Nothing -> maybe m (const (Set.delete k m)) mv
     Just () -> Set.insert k m
     where mv = if Set.member k m then Just () else Nothing
+#endif
   {-# INLINE at #-}
 
 instance (Eq k, Hashable k) => At (HashSet k) where
