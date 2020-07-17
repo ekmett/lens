@@ -23,10 +23,8 @@
 -- Haskell Platforms and to improve constant and asymptotic factors in our performance.
 ----------------------------------------------------------------------------
 module Control.Lens.Internal.ByteString
-  ( unpackStrict, traversedStrictTree
-  , unpackStrict8, traversedStrictTree8
-  , unpackLazy, traversedLazy
-  , unpackLazy8, traversedLazy8
+  ( traversedStrictTree, traversedStrictTree8
+  , traversedLazy, traversedLazy8
   ) where
 
 import Prelude ()
@@ -125,11 +123,6 @@ ifoldrB8 :: (Int -> Char -> a -> a) -> a -> B.ByteString -> a
 ifoldrB8 f z xs = B8.foldr (\ x g i -> i `seq` f i x (g (i+1))) (const z) xs 0
 {-# INLINE ifoldrB8 #-}
 
--- | Unpack a lazy 'Bytestring'
-unpackLazy :: BL.ByteString -> [Word8]
-unpackLazy = BL.unpack
-{-# INLINE unpackLazy #-}
-
 -- | An 'IndexedTraversal' of the individual bytes in a lazy 'BL.ByteString'
 traversedLazy :: IndexedTraversal' Int64 BL.ByteString Word8
 traversedLazy pafb = \lbs -> BL.foldrChunks go (\_ -> pure BL.empty) lbs 0
@@ -160,11 +153,6 @@ imapBL f = snd . BL.mapAccumL (\i a -> i `seq` (i + 1, f i a)) 0
 ifoldrBL :: (Int -> Word8 -> a -> a) -> a -> BL.ByteString -> a
 ifoldrBL f z xs = BL.foldr (\ x g i -> i `seq` f i x (g (i+1))) (const z) xs 0
 {-# INLINE ifoldrBL #-}
-
--- | Unpack a lazy 'BL.ByteString' pretending the bytes are chars.
-unpackLazy8 :: BL.ByteString -> String
-unpackLazy8 = BL8.unpack
-{-# INLINE unpackLazy8 #-}
 
 -- | An 'IndexedTraversal' of the individual bytes in a lazy 'BL.ByteString' pretending the bytes are chars.
 traversedLazy8 :: IndexedTraversal' Int64 BL.ByteString Char
@@ -212,16 +200,6 @@ w2c = unsafeChr . fromIntegral
 c2w :: Char -> Word8
 c2w = fromIntegral . ord
 {-# INLINE c2w #-}
-
--- | Unpack a strict 'B.Bytestring'
-unpackStrict :: B.ByteString -> [Word8]
-unpackStrict = B.unpack
-{-# INLINE unpackStrict #-}
-
--- | Unpack a strict 'B.Bytestring', pretending the bytes are chars.
-unpackStrict8 :: B.ByteString -> String
-unpackStrict8 = B8.unpack
-{-# INLINE unpackStrict8 #-}
 
 -- | A way of creating ByteStrings outside the IO monad. The @Int@
 -- argument gives the final size of the ByteString. Unlike

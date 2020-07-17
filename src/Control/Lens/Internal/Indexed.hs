@@ -149,10 +149,10 @@ instance Profunctor (Indexed i) where
   {-# INLINE lmap #-}
   rmap bc iab = Indexed $ \i -> bc . runIndexed iab i
   {-# INLINE rmap #-}
-  ( .# ) ibc _ = coerce ibc
-  {-# INLINE ( .# ) #-}
-  ( #. ) _ = coerce'
-  {-# INLINE ( #. ) #-}
+  (.#) ibc _ = coerce ibc
+  {-# INLINE (.#) #-}
+  (#.) _ = coerce'
+  {-# INLINE (#.) #-}
 
 instance Closed (Indexed i) where
   closed (Indexed iab) = Indexed $ \i xa x -> iab i (xa x)
