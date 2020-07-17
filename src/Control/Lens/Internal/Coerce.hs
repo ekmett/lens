@@ -10,7 +10,8 @@
 -- Stability   :  experimental
 -- Portability :  non-portable
 --
--- This module provided a shim around 'coerce'.
+-- This module provides a shim around 'coerce'.
+-- We need to work around a GHC 7.8-specific 'Coercible' solver bug(s).
 -----------------------------------------------------------------------------
 module Control.Lens.Internal.Coerce
   ( coerce
