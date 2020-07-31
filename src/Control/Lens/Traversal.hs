@@ -734,7 +734,7 @@ holeInOne x = Holes $ \xt ->
 {-# INLINABLE holeInOne #-}
 
 -- | The non-empty version of 'holesOf'.
--- This extract a non-empty list of immediate children accroding to a given
+-- This extract a non-empty list of immediate children according to a given
 -- 'Traversal1' as editable contexts.
 --
 -- >>> let head1 f s = runPretext (NonEmpty.head $ holes1Of traversed1 s) f
