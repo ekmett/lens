@@ -15,8 +15,10 @@
 ----------------------------------------------------------------------------
 module Control.Lens.Operators
   ( -- output from scripts/operators -h
+  -- * "Control.Lens.At"
+    (==>)
   -- * "Control.Lens.Cons"
-    (<|)
+  , (<|)
   , (|>)
   -- * "Control.Lens.Fold"
   , (^..)

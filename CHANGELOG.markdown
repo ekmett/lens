@@ -4,6 +4,7 @@ next [2020.xx.yy]
 * Add `Control.Lens.Profunctor` with conversion functions to and from
   profunctor optic representation
 * Mark `Control.Lens.Equality` as Trustworthy
+* Add `Control.Lens.At.==>` for constructing singleton maps.
 
 4.19.2 [2020.04.15]
 -------------------

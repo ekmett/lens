@@ -27,7 +27,7 @@ module Main where
 #if !(MIN_VERSION_base(4,8,0))
 import Control.Applicative
 #endif
-import Control.Lens
+import Control.Lens hiding ((==>))
 import Test.QuickCheck
 import Test.Framework
 import Test.Framework.Providers.QuickCheck2

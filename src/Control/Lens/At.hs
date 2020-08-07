@@ -31,6 +31,7 @@ module Control.Lens.At
   -- * At
     At(at)
     , sans
+    , (==>)
     , iat
   -- * Ixed
   , Index
@@ -46,6 +47,7 @@ module Control.Lens.At
 import Prelude ()
 
 import Control.Lens.Each
+import Control.Lens.Empty
 import Control.Lens.Internal.Prelude
 import Control.Lens.Traversal
 import Control.Lens.Lens
@@ -65,7 +67,7 @@ import Data.IntMap as IntMap
 import Data.IntSet as IntSet
 import Data.Map as Map
 import Data.Set as Set
-import Data.Sequence as Seq
+import Data.Sequence as Seq hiding (Empty)
 import Data.Text as StrictT
 import Data.Text.Lazy as LazyT
 import Data.Tree
@@ -424,6 +426,20 @@ class Ixed m => At m where
 sans :: At m => Index m -> m -> m
 sans k m = m & at k .~ Nothing
 {-# INLINE sans #-}
+
+-- | Create a singleton container. Useful for making small maps.
+--
+-- >>> "foo" ==> "bar" :: Map String String
+-- fromList [("foo","bar")]
+--
+-- This operator has low precedence and is right-associative, so you can use it to create nested maps:
+--
+-- >>> "foo" ==> "bar" ==> "baz" :: Map String (Map String String)
+-- fromList [("foo",fromList [("bar","baz")])]
+(==>) :: (At m, AsEmpty m) => Index m -> IxValue m -> m
+k ==> v = Empty & at k ?~ v
+
+infixr 1 ==>
 
 -- | An indexed version of 'at'.
 --
