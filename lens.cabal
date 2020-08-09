@@ -174,11 +174,6 @@ flag test-templates
   default: True
   manual: True
 
--- Disallow unsafeCoerce
-flag safe
-  default: False
-  manual: True
-
 -- Assert that we are trustworthy when we can
 flag trustworthy
   default: True
@@ -320,9 +315,6 @@ library
   other-modules:
     Control.Lens.Internal.Prelude
     Paths_lens
-
-  if flag(safe)
-    cpp-options: -DSAFE=1
 
   if flag(trustworthy) && impl(ghc)
     other-extensions: Trustworthy

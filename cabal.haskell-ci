@@ -3,5 +3,3 @@ unconstrained:          False
 hlint:                  True
 apt:                    freeglut3-dev
 irc-channels:           irc.freenode.org#haskell-lens
--- Work around https://github.com/haskell/haddock/issues/242
-haddock:                <7.6 || >=7.8

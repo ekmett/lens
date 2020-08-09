@@ -40,7 +40,7 @@ import Data.Distributive
 import Data.Monoid
 import Data.Profunctor.Unsafe
 import Data.Profunctor.Rep
-import Unsafe.Coerce
+import Data.Coerce
 
 ------------------------------------------------------------------------------
 -- Formattable
@@ -74,7 +74,7 @@ instance Profunctor (Formatted m) where
   lmap _ (Formatted mb) = Formatted mb
   rmap bc (Formatted mb) = Formatted (bc . mb)
   Formatted mb .# _ = Formatted mb
-  (#.) _ = unsafeCoerce
+  (#.) _ = coerce
 
 instance Corepresentable (Formatted m) where
   type Corep (Formatted m) = Const m
