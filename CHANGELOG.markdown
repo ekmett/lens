@@ -4,6 +4,26 @@
 * Add `Control.Lens.Profunctor` with conversion functions to and from
   profunctor optic representation
 * Mark `Control.Lens.Equality` as Trustworthy
+* The `Swapped` type class is removed in favor of `Swap` from the `assoc` package
+* The `Strict` type class is removed in favor of `Strict` from the `strict` package
+
+  The `swapped`, `strict` and `lazy` isomorphisms are now defined using "new" type classes.
+
+  Users which define own instances of old type classes are advised to
+  define instances of the new ones.
+
+  ```haskell
+  import qualified Data.Bifunctor.Swap as Swap
+  import qualified Control.Lens        as Lens
+
+  instance Swap.Swap MyType where
+    swap = ...
+
+  #if !MIN_VERSION_lens(4,20,0)
+  instance Lens.Swapped MyType where
+    swapped = iso Swap.swap Swap.swap
+  #endif
+  ```
 
 4.19.2 [2020.04.15]
 -------------------

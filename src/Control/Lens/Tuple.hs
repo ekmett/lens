@@ -56,6 +56,7 @@ import           Prelude ()
 import           Control.Lens.Lens
 import           Control.Lens.Internal.Prelude
 import           Data.Functor.Product  (Product (..))
+import           Data.Strict           (Pair (..))
 import           GHC.Generics          ((:*:) (..), Generic (..), K1 (..),
                                         M1 (..), U1 (..))
 
@@ -106,6 +107,10 @@ instance Field1 (Product f g a) (Product f' g a) (f a) (f' a) where
 
 instance Field1 ((f :*: g) p) ((f' :*: g) p) (f p) (f' p) where
   _1 f (l :*: r) = (:*: r) <$> f l
+
+-- | @since 4.20
+instance Field1 (Pair a b) (Pair a' b) a a' where
+  _1 f (a :!: b) = (:!: b) <$> f a
 
 -- | @
 -- '_1' k ~(a,b) = (\\a' -> (a',b)) 'Data.Functor.<$>' k a
@@ -212,6 +217,10 @@ instance Field2 (Product f g a) (Product f g' a) (g a) (g' a) where
 
 instance Field2 ((f :*: g) p) ((f :*: g') p) (g p) (g' p) where
   _2 f (l :*: r) = (l :*:) <$> f r
+
+-- | @since 4.20
+instance Field2 (Pair a b) (Pair a b') b b' where
+  _2 f (a :!: b) = (a :!:) <$> f b
 
 -- | @
 -- '_2' k ~(a,b) = (\\b' -> (a,b')) 'Data.Functor.<$>' k b

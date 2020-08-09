@@ -55,6 +55,8 @@ import Data.Vector.Storable (Storable)
 import qualified Data.Vector.Unboxed as Unboxed
 import Data.Vector.Unboxed (Unbox)
 import Data.Word
+import qualified Data.Strict as S
+import Data.These (These (..))
 
 -- $setup
 -- >>> :set -XNoOverloadedStrings
@@ -221,3 +223,37 @@ instance (Ix i, i ~ j) => Each (Array i a) (Array j b) a b where
 instance (Ix i, IArray UArray a, IArray UArray b, i ~ j) => Each (UArray i a) (UArray j b) a b where
   each f arr = array (bounds arr) <$> traverse (\(i,a) -> (,) i <$> f a) (IArray.assocs arr)
   {-# INLINE each #-}
+
+-------------------------------------------------------------------------------
+-- strict
+-------------------------------------------------------------------------------
+
+-- | @since 4.20
+instance (a ~ a', b ~ b') => Each (S.Either a a') (S.Either b b') a b where
+    each f (S.Left x)  = S.Left <$> f x
+    each f (S.Right x) = S.Right <$> f x
+    {-# INLINE each #-}
+
+-- | @since 4.20
+instance (a~a', b~b') => Each (S.Pair a a') (S.Pair b b') a b where
+    each f (a S.:!: b) = (S.:!:) <$> f a <*> f b
+    {-# INLINE each #-}
+
+-- | @since 4.20
+instance Each (S.Maybe a) (S.Maybe b) a b
+
+-- | @since 4.20
+instance (a ~ a', b ~ b') => Each (S.These a a') (S.These b b') a b where
+    each f (S.This a)    = S.This <$> f a
+    each f (S.That b)    = S.That <$> f b
+    each f (S.These a b) = S.These <$> f a <*> f b
+
+-------------------------------------------------------------------------------
+-- these
+-------------------------------------------------------------------------------
+
+-- | @since 4.20
+instance (a ~ a', b ~ b') => Each (These a a') (These b b') a b where
+    each f (This a)    = This <$> f a
+    each f (That b)    = That <$> f b
+    each f (These a b) = These <$> f a <*> f b

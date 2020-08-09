@@ -1,6 +1,5 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE Rank2Types #-}
-{-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies #-}
 
@@ -51,16 +50,15 @@ module Control.Lens.Iso
   , enum
   , curried, uncurried
   , flipped
-  , Swapped(..)
+  , swapped
 #if __GLASGOW_HASKELL__ >= 710
   , pattern Swapped
 #endif
-  , Strict(..)
+  , strict, lazy
 #if __GLASGOW_HASKELL__ >= 710
   , pattern Strict
   , pattern Lazy
 #endif
-  , lazy
   , Reversing(..)
   , reversed
 #if __GLASGOW_HASKELL__ >= 710
@@ -99,27 +97,11 @@ import Control.Lens.Internal.Magma
 import Control.Lens.Prism
 import Control.Lens.Review
 import Control.Lens.Type
-import Control.Monad.State.Lazy as Lazy
-import Control.Monad.State.Strict as Strict
-import Control.Monad.Writer.Lazy as Lazy hiding (Product, Sum)
-import Control.Monad.Writer.Strict as Strict hiding (Product, Sum)
-import Control.Monad.RWS.Lazy as Lazy hiding (Product, Sum)
-import Control.Monad.RWS.Strict as Strict hiding (Product, Sum)
-import Control.Monad.ST.Lazy as Lazy
-import Control.Monad.ST as Strict
 
 import Data.Bifunctor
-import Data.Bifunctor.Biff
-import Data.Bifunctor.Flip
-import Data.Bifunctor.Product
-import Data.Bifunctor.Sum
-import Data.Bifunctor.Tannen
-import Data.ByteString as StrictB hiding (reverse)
-import Data.ByteString.Lazy as LazyB hiding (reverse)
+import Data.Bifunctor.Swap (Swap (..))
 import Data.Functor.Identity
-import Data.Text as StrictT hiding (reverse)
-import Data.Text.Lazy as LazyT hiding (reverse)
-import Data.Tuple (swap)
+import Data.Strict.Classes (Strict (..))
 import Data.Maybe
 import Data.Profunctor
 import Data.Profunctor.Unsafe
@@ -427,81 +409,29 @@ flipped :: Iso (a -> b -> c) (a' -> b' -> c') (b -> a -> c) (b' -> a' -> c')
 flipped = iso flip flip
 {-# INLINE flipped #-}
 
--- | This class provides for symmetric bifunctors.
-class Bifunctor p => Swapped p where
-  -- |
-  -- @
-  -- 'swapped' '.' 'swapped' ≡ 'id'
-  -- 'first' f '.' 'swapped' = 'swapped' '.' 'second' f
-  -- 'second' g '.' 'swapped' = 'swapped' '.' 'first' g
-  -- 'bimap' f g '.' 'swapped' = 'swapped' '.' 'bimap' g f
-  -- @
-  --
-  -- >>> (1,2)^.swapped
-  -- (2,1)
-  swapped :: Iso (p a b) (p c d) (p b a) (p d c)
+-- |
+-- @
+-- 'swapped' '.' 'swapped' ≡ 'id'
+-- 'first' f '.' 'swapped' = 'swapped' '.' 'second' f
+-- 'second' g '.' 'swapped' = 'swapped' '.' 'first' g
+-- 'bimap' f g '.' 'swapped' = 'swapped' '.' 'bimap' g f
+-- @
+--
+-- >>> (1,2)^.swapped
+-- (2,1)
+swapped :: Swap p => Iso (p a b) (p c d) (p b a) (p d c)
+swapped = iso swap swap
+{-# INLINE swapped #-}
 
-instance Swapped (,) where
-  swapped = iso swap swap
-
-instance Swapped Either where
-  swapped = iso (either Right Left) (either Right Left)
-
-instance (Swapped f, Swapped g) => Swapped (Product f g) where
-  swapped = iso f f
-    where
-      f (Pair x y) = Pair (x ^. swapped) (y ^. swapped)
-
-instance (Swapped p, Swapped q) => Swapped (Sum p q) where
-  swapped = iso f f
-    where
-      f (L2 x) = L2 (x ^. swapped)
-      f (R2 x) = R2 (x ^. swapped)
-
-instance (Swapped p) => Swapped (Flip p) where
-  swapped = iso f f
-    where
-      f (Flip p) = Flip (p ^. swapped)
-
-instance (f ~ g, Functor f, Swapped p) => Swapped (Biff p f g) where
-  swapped = iso f f
-    where
-      f (Biff p) = Biff (p ^. swapped)
-
-instance (Functor f, Swapped p) => Swapped (Tannen f p) where
-  swapped = iso f f
-    where
-      f (Tannen x) = Tannen $ fmap (^. swapped) x
-
-instance Swapped ((,,) x) where
-  swapped = iso f f
-    where
-      f (x,a,b) = (x,b,a)
-
-instance Swapped ((,,,) x y) where
-  swapped = iso f f
-    where
-      f (x,y,a,b) = (x,y,b,a)
-
-instance Swapped ((,,,,) x y z) where
-  swapped = iso f f
-    where
-      f (x,y,z,a,b) = (x,y,z,b,a)
-
-instance Swapped ((,,,,,) x y z w) where
-  swapped = iso f f
-    where
-      f (x,y,z,w,a,b) = (x,y,z,w,b,a)
-
-instance Swapped ((,,,,,,) x y z w v) where
-  swapped = iso f f
-    where
-      f (x,y,z,w,v,a,b) = (x,y,z,w,v,b,a)
-
--- | Ad hoc conversion between \"strict\" and \"lazy\" versions of a structure,
--- such as 'StrictT.Text' or 'StrictB.ByteString'.
-class Strict lazy strict | lazy -> strict, strict -> lazy where
-  strict :: Iso' lazy strict
+-- | An 'Iso' between the lazy variant of a structure and its strict
+-- counterpart.
+--
+-- @
+-- 'strict' = 'from' 'lazy'
+-- @
+strict :: Strict lazy strict => Iso' lazy strict
+strict = iso toStrict toLazy
+{-# INLINE strict #-}
 
 #if __GLASGOW_HASKELL__ >= 710
 pattern Strict a <- (view strict -> a) where
@@ -517,30 +447,6 @@ pattern Reversed a <- (view reversed -> a) where
   Reversed a = review reversed a
 #endif
 
-instance Strict LazyB.ByteString StrictB.ByteString where
-  strict = iso LazyB.toStrict LazyB.fromStrict
-  {-# INLINE strict #-}
-
-instance Strict LazyT.Text StrictT.Text where
-  strict = iso LazyT.toStrict LazyT.fromStrict
-  {-# INLINE strict #-}
-
-instance Strict (Lazy.StateT s m a) (Strict.StateT s m a) where
-  strict = iso (Strict.StateT . Lazy.runStateT) (Lazy.StateT . Strict.runStateT)
-  {-# INLINE strict #-}
-
-instance Strict (Lazy.WriterT w m a) (Strict.WriterT w m a) where
-  strict = iso (Strict.WriterT . Lazy.runWriterT) (Lazy.WriterT . Strict.runWriterT)
-  {-# INLINE strict #-}
-
-instance Strict (Lazy.RWST r w s m a) (Strict.RWST r w s m a) where
-  strict = iso (Strict.RWST . Lazy.runRWST) (Lazy.RWST . Strict.runRWST)
-  {-# INLINE strict #-}
-
-instance Strict (Lazy.ST s a) (Strict.ST s a) where
-  strict = iso Lazy.lazyToStrictST Lazy.strictToLazyST
-  {-# INLINE strict #-}
-
 -- | An 'Iso' between the strict variant of a structure and its lazy
 -- counterpart.
 --
@@ -548,10 +454,9 @@ instance Strict (Lazy.ST s a) (Strict.ST s a) where
 -- 'lazy' = 'from' 'strict'
 -- @
 --
--- See <http://hackage.haskell.org/package/strict-base-types> for an example
--- use.
 lazy :: Strict lazy strict => Iso' strict lazy
-lazy = from strict
+lazy = iso toLazy toStrict
+{-# INLINE lazy #-}
 
 -- | An 'Iso' between a list, 'ByteString', 'Text' fragment, etc. and its reversal.
 --
