@@ -48,6 +48,7 @@ import Control.Monad.State
 import Language.Haskell.TH.Lens
 import Language.Haskell.TH
 import qualified Language.Haskell.TH.Datatype as D
+import qualified Language.Haskell.TH.Datatype.TyVarBndr as D
 import Data.Maybe (isJust,maybeToList)
 import Data.List (nub, findIndices)
 import Data.Either (partitionEithers)
@@ -324,7 +325,7 @@ makeClassyClass className methodName s defs = do
            | otherwise = [FunDep [c] vars]
 
 
-  classD (cxt[]) className (map PlainTV (c:vars)) fd
+  classD (cxt[]) className (map D.plainTV (c:vars)) fd
     $ sigD methodName (return (lens'TypeName `conAppsT` [VarT c, s']))
     : concat
       [ [sigD defName (return ty)
@@ -367,7 +368,7 @@ makeClassyInstance rules className methodName s defs = do
 
 makeFieldClass :: OpticStab -> Name -> Name -> DecQ
 makeFieldClass defType className methodName =
-  classD (cxt []) className [PlainTV s, PlainTV a] [FunDep [s] [a]]
+  classD (cxt []) className [D.plainTV s, D.plainTV a] [FunDep [s] [a]]
          [sigD methodName (return methodType)]
   where
   methodType = quantifyType' (Set.fromList [s,a])
@@ -554,18 +555,13 @@ unify1 _ x y = fail ("Failed to unify types: " ++ show (x,y))
 
 -- | Perform a limited substitution on type variables. This is used
 -- when unifying rank-2 fields when trying to achieve a Getter or Fold.
-limitedSubst :: Map Name Type -> TyVarBndr -> Q TyVarBndr
-limitedSubst sub (PlainTV n)
-  | Just r <- Map.lookup n sub =
+limitedSubst :: Map Name Type -> D.TyVarBndrSpec -> Q D.TyVarBndrSpec
+limitedSubst sub tv
+  | Just r <- Map.lookup (D.tvName tv) sub =
        case r of
-         VarT m -> limitedSubst sub (PlainTV m)
+         VarT m -> limitedSubst sub (D.mapTVName (const m) tv)
          _ -> fail "Unable to unify exotic higher-rank type"
-limitedSubst sub (KindedTV n k)
-  | Just r <- Map.lookup n sub =
-       case r of
-         VarT m -> limitedSubst sub (KindedTV m k)
-         _ -> fail "Unable to unify exotic higher-rank type"
-limitedSubst _ tv = return tv
+  | otherwise = return tv
 
 
 -- | Apply a substitution to a type. This is used after unifying
@@ -640,7 +636,7 @@ quantifyType = quantifyType' Set.empty
 quantifyType' :: Set Name -> Cxt -> Type -> Type
 quantifyType' exclude c t = ForallT vs c t
   where
-  vs = map PlainTV
+  vs = map D.plainTVSpecified
      $ filter (`Set.notMember` exclude)
      $ nub -- stable order
      $ toListOf typeVars t

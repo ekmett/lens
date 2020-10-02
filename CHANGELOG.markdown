@@ -1,6 +1,6 @@
-next [2020.xx.yy]
+4.20 [2020.xx.yy]
 -----------------
-
+* Support building with GHC 9.0.
 * Add `Control.Lens.Profunctor` with conversion functions to and from
   profunctor optic representation
 * Mark `Control.Lens.Equality` as Trustworthy
