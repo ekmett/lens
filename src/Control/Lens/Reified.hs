@@ -256,7 +256,7 @@ instance Profunctor (ReifiedIndexedGetter i) where
   {-# INLINE dimap #-}
 
 instance Sieve (ReifiedIndexedGetter i) ((,) i) where
-  sieve = iview . runIndexedGetter
+  sieve (IndexedGetter l) = iview l
   {-# INLINE sieve #-}
 
 instance Representable (ReifiedIndexedGetter i) where
@@ -307,7 +307,7 @@ instance Profunctor ReifiedFold where
   {-# INLINE lmap #-}
 
 instance Sieve ReifiedFold [] where
-  sieve = toListOf . runFold
+  sieve (Fold l) = toListOf l
 
 instance Representable ReifiedFold where
   type Rep ReifiedFold = []

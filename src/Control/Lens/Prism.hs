@@ -95,7 +95,7 @@ withPrism k f = case coerce (k (Market Identity Right)) of
 --
 -- See 'Control.Lens.Lens.cloneLens' and 'Control.Lens.Traversal.cloneTraversal' for examples of why you might want to do this.
 clonePrism :: APrism s t a b -> Prism s t a b
-clonePrism k = withPrism k prism
+clonePrism k = withPrism k $ \bt sta -> prism bt sta
 {-# INLINE clonePrism #-}
 
 ------------------------------------------------------------------------------
@@ -132,9 +132,9 @@ outside k = withPrism k $ \bt seta f ft ->
 without :: APrism s t a b
         -> APrism u v c d
         -> Prism (Either s u) (Either t v) (Either a c) (Either b d)
-without k =
-  withPrism k         $ \bt seta k' ->
-  withPrism k'        $ \dv uevc    ->
+without k k' =
+  withPrism k         $ \bt seta ->
+  withPrism k'        $ \dv uevc ->
   prism (bimap bt dv) $ \su ->
   case su of
     Left s  -> bimap Left Left (seta s)
