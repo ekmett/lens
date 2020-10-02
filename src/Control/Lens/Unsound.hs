@@ -77,9 +77,9 @@ lensProduct l1 l2 f s =
 prismSum :: APrism s t a b
          -> APrism s t c d
          -> Prism s t (Either a c) (Either b d)
-prismSum k =
-    withPrism k                  $ \bt seta k' ->
-    withPrism k'                 $ \dt setb    ->
+prismSum k k' =
+    withPrism k                  $ \bt seta ->
+    withPrism k'                 $ \dt setb ->
     prism (either bt dt) $ \s ->
     f (Left <$> seta s) (Right <$> setb s)
   where

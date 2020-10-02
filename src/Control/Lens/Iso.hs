@@ -181,7 +181,7 @@ iso sa bt = dimap sa (fmap bt)
 -- 'from' ('from' l) ≡ l
 -- @
 from :: AnIso s t a b -> Iso b a t s
-from l = withIso l $ flip iso
+from l = withIso l $ \sa bt -> iso bt sa
 {-# INLINE from #-}
 
 -- | Extract the two functions, one from @s -> a@ and
@@ -203,7 +203,7 @@ withIso ai k = case ai (Exchange id Identity) of
 --
 -- See 'Control.Lens.Lens.cloneLens' or 'Control.Lens.Traversal.cloneTraversal' for more information on why you might want to do this.
 cloneIso :: AnIso s t a b -> Iso s t a b
-cloneIso k = withIso k iso
+cloneIso k = withIso k $ \sa bt -> iso sa bt
 {-# INLINE cloneIso #-}
 
 -----------------------------------------------------------------------------
@@ -354,7 +354,7 @@ mapping k = withIso k $ \ sa bt -> iso (fmap sa) (fmap bt)
 -- >>> non 0 # rem 10 5
 -- Nothing
 non :: Eq a => a -> Iso' (Maybe a) a
-non = non' . only
+non a = non' $ only a
 {-# INLINE non #-}
 
 -- | @'non'' p@ generalizes @'non' (p # ())@ to take any unit 'Prism'

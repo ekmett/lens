@@ -1345,7 +1345,7 @@ _Unwrapping _ = from _Wrapped
 -- @
 
 ala :: (Functor f, Rewrapping s t) => (Unwrapped s -> s) -> ((Unwrapped t -> t) -> f s) -> f (Unwrapped s)
-ala = xplat . _Unwrapping
+ala f = xplat $ _Unwrapping f
 {-# INLINE ala #-}
 
 -- | This combinator is based on @ala'@ from Conor McBride's work on Epigram.
@@ -1359,5 +1359,5 @@ ala = xplat . _Unwrapping
 -- >>> alaf Sum foldMap Prelude.length ["hello","world"]
 -- 10
 alaf :: (Functor f, Functor g, Rewrapping s t) => (Unwrapped s -> s) -> (f t -> g s) -> f (Unwrapped t) -> g (Unwrapped s)
-alaf = xplatf . _Unwrapping
+alaf f = xplatf $ _Unwrapping f
 {-# INLINE alaf #-}

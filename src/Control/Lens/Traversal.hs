@@ -1220,7 +1220,7 @@ elementOf l p = elementsOf l (p ==)
 -- 'element' ≡ 'elementOf' 'traverse'
 -- @
 element :: Traversable t => Int -> IndexedTraversal' Int (t a) a
-element = elementOf traverse
+element i = elementOf traverse i
 {-# INLINE element #-}
 
 -- | Traverse (or fold) selected elements of a 'Traversal' (or 'Fold') where their ordinal positions match a predicate.
@@ -1242,7 +1242,7 @@ elementsOf l p iafb s = snd $ runIndexing (l (\a -> Indexing (\i -> i `seq` (i +
 -- 'elements' ≡ 'elementsOf' 'traverse'
 -- @
 elements :: Traversable t => (Int -> Bool) -> IndexedTraversal' Int (t a) a
-elements = elementsOf traverse
+elements i = elementsOf traverse i
 {-# INLINE elements #-}
 
 -- | Try to map a function over this 'Traversal', failing if the 'Traversal' has no targets.
