@@ -226,9 +226,12 @@ library
       nats >= 0.1 && < 1.2,
       void >= 0.5 && < 1
 
+  -- Control.Lens as the first module, so cabal repl loads it.
+  exposed-modules:
+    Control.Lens
+
   exposed-modules:
     Control.Exception.Lens
-    Control.Lens
     Control.Lens.At
     Control.Lens.Combinators
     Control.Lens.Cons
