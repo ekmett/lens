@@ -21,6 +21,13 @@
     swapped = iso Swap.swap Swap.swap
   #endif
   ```
+* Make the functions in `Control.Lens.TH` work more robustly with poly-kinded
+  data types. This can cause a breaking change under certain situations:
+  * TH-generated optics for poly-kinded data types are now much more likely to
+    mention kind variables in their definitions, which will require enabling
+    the `PolyKinds` extension at use sites in order to typecheck.
+  * Because TH-generated optics now quantify more kind variables than they did
+    previously, this can affect the order of visible type applications.
 * Add `Control.Lens.Profunctor` with conversion functions to and from
   profunctor optic representation
 * Add `Control.Lens.Review.reviewing`, which is like `review` but with a more

@@ -23,7 +23,6 @@ module Control.Lens.Internal.PrismTH
   ) where
 
 import Control.Applicative
-import Control.Lens.Fold
 import Control.Lens.Getter
 import Control.Lens.Internal.TH
 import Control.Lens.Lens
@@ -39,6 +38,7 @@ import qualified Language.Haskell.TH.Datatype.TyVarBndr as D
 import Language.Haskell.TH.Lens
 import qualified Data.Map as Map
 import qualified Data.Set as Set
+import Data.Set (Set)
 import Prelude
 
 -- | Generate a 'Prism' for each constructor of a data type.
@@ -137,7 +137,7 @@ makePrisms' normal typeName =
      let cls | normal    = Nothing
              | otherwise = Just (D.datatypeName info)
          cons = D.datatypeCons info
-     makeConsPrisms (D.datatypeType info) (map normalizeCon cons) cls
+     makeConsPrisms (datatypeTypeKinded info) (map normalizeCon cons) cls
 
 
 -- | Generate prisms for the given 'Dec'
@@ -147,7 +147,7 @@ makeDecPrisms normal dec =
      let cls | normal    = Nothing
              | otherwise = Just (D.datatypeName info)
          cons = D.datatypeCons info
-     makeConsPrisms (D.datatypeType info) (map normalizeCon cons) cls
+     makeConsPrisms (datatypeTypeKinded info) (map normalizeCon cons) cls
 
 
 -- | Generate prisms for the given type, normalized constructors, and
@@ -166,7 +166,7 @@ makeConsPrisms t cons Nothing =
        stab <- computeOpticType t cons con
        let n = prismName conName
        sequenceA
-         ( [ sigD n (close (stabToType stab))
+         ( [ sigD n (return (quantifyType [] (stabToType Set.empty stab)))
            , valD (varP n) (normalB (makeConOpticExp stab cons con)) []
            ]
            ++ inlinePragma n
@@ -197,17 +197,15 @@ simplifyStab (Stab cx ty _ t _ b) = Stab cx ty t t b b
 stabSimple :: Stab -> Bool
 stabSimple (Stab _ _ s t a b) = s == t && a == b
 
-stabToType :: Stab -> Type
-stabToType stab@(Stab cx ty s t a b) = ForallT vs cx $
-  case ty of
-    PrismType  | stabSimple stab -> prism'TypeName  `conAppsT` [t,b]
-               | otherwise       -> prismTypeName   `conAppsT` [s,t,a,b]
-    ReviewType                   -> reviewTypeName  `conAppsT` [t,b]
-
+stabToType :: Set Name -> Stab -> Type
+stabToType clsTVBNames stab@(Stab cx ty s t a b) =
+  quantifyType' clsTVBNames cx stabTy
   where
-  vs = map D.plainTVSpecified
-     $ nub -- stable order
-     $ toListOf typeVars cx
+  stabTy =
+    case ty of
+      PrismType  | stabSimple stab -> prism'TypeName  `conAppsT` [t,b]
+                 | otherwise       -> prismTypeName   `conAppsT` [s,t,a,b]
+      ReviewType                   -> reviewTypeName  `conAppsT` [t,b]
 
 stabType :: Stab -> OpticType
 stabType (Stab _ o _ _ _ _) = o
@@ -256,7 +254,7 @@ computeIsoType t' fields =
             | otherwise    = appsT (conT isoTypeName) [s,t,a,b]
 #endif
 
-     close =<< ty
+     quantifyType [] <$> ty
 
 
 
@@ -420,8 +418,8 @@ makeClassyPrismClass t className methodName cons =
 #ifndef HLINT
      let methodType = appsT (conT prism'TypeName) [varT r,return t]
 #endif
-     methodss <- traverse (mkMethod (VarT r)) cons'
-     classD (cxt[]) className (map D.plainTV (r : vs)) (fds r)
+     methodss <- traverse (mkMethod r) cons'
+     classD (cxt[]) className (D.plainTV r : vs) (fds r)
        ( sigD methodName methodType
        : map return (concat methodss)
        )
@@ -429,19 +427,21 @@ makeClassyPrismClass t className methodName cons =
   where
   mkMethod r con =
     do Stab cx o _ _ _ b <- computeOpticType t cons con
-       let stab' = Stab cx o r r b b
+       let rTy   = VarT r
+           stab' = Stab cx o rTy rTy b b
            defName = view nconName con
            body    = appsE [varE composeValName, varE methodName, varE defName]
        sequenceA
-         [ sigD defName        (return (stabToType stab'))
+         [ sigD defName        (return (stabToType (Set.fromList (r:vNames)) stab'))
          , valD (varP defName) (normalB body) []
          ]
 
   cons'         = map (over nconName prismName) cons
-  vs            = Set.toList (setOf typeVars t)
+  vs            = D.freeVariablesWellScoped [t]
+  vNames        = map D.tvName vs
   fds r
     | null vs   = []
-    | otherwise = [FunDep [r] vs]
+    | otherwise = [FunDep [r] vNames]
 
 
 
@@ -457,8 +457,8 @@ makeClassyPrismInstance ::
   [NCon] {- Constructors    -} ->
   DecQ
 makeClassyPrismInstance s className methodName cons =
-  do let vs = Set.toList (setOf typeVars s)
-         cls = className `conAppsT` (s : map VarT vs)
+  do let vs = D.freeVariablesWellScoped [s]
+         cls = className `conAppsT` (s : map tvbToType vs)
 
      instanceD (cxt[]) (return cls)
        (   valD (varP methodName)
@@ -541,9 +541,3 @@ prismName' sameNameAsCon n =
     prefix :: Char -> String -> String
     prefix char str | sameNameAsCon = char:char:str
                     | otherwise     =      char:str
-
--- | Quantify all the free variables in a type.
-close :: Type -> TypeQ
-close t = forallT (map D.plainTVSpecified (Set.toList vs)) (cxt[]) (return t)
-  where
-  vs = setOf typeVars t
