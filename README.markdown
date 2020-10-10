@@ -203,18 +203,29 @@ makePrisms ''Neither
 will automatically derive
 
 ```haskell
-neither :: Iso (Neither a b) (Neither c d) (Either a b) (Either c d)
-nor :: Iso (Either a b) (Either c d) (Neither a b) (Neither c d)
+_Neither :: Iso (Neither a b) (Neither c d) (Either a b) (Either c d)
 ```
 
 such that
 
 ```haskell
-from neither = nor
-from nor = neither
-neither.nor = id
-nor.neither = id
+_Neither.from _Neither = id
+from _Neither._Neither = id
 ```
+
+Alternatively, you can use `makeLenses` to automatically derive isomorphisms for your own newtypes. e.g..
+
+```hs
+makeLenses ''Neither
+```
+
+will automatically derive
+
+```hs
+nor :: Iso (Either a b) (Either c d) (Neither a b) (Neither c d)
+```
+
+which behaves identically to `_Neither` above.
 
 There is also a fully operational, but simple game of [Pong](https://github.com/ekmett/lens/blob/master/examples/Pong.hs) in the [examples/](https://github.com/ekmett/lens/blob/master/examples/) folder.
 
