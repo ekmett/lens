@@ -1,11 +1,8 @@
 4.20 [2020.xx.yy]
 -----------------
 * Support building with GHC 9.0.
-* Add `Control.Lens.Profunctor` with conversion functions to and from
-  profunctor optic representation
-* Mark `Control.Lens.Equality` as Trustworthy
-* The `Swapped` type class is removed in favor of `Swap` from the `assoc` package
-* The `Strict` type class is removed in favor of `Strict` from the `strict` package
+* Remove the `Swapped` type class in favor of `Swap` from the `assoc` package.
+* Remove the `Strict` type class in favor of `Strict` from the `strict` package.
 
   The `swapped`, `strict` and `lazy` isomorphisms are now defined using "new" type classes.
 
@@ -24,6 +21,9 @@
     swapped = iso Swap.swap Swap.swap
   #endif
   ```
+* Add `Control.Lens.Profunctor` with conversion functions to and from
+  profunctor optic representation
+* Mark `Control.Lens.Equality` as Trustworthy
 
 4.19.2 [2020.04.15]
 -------------------
