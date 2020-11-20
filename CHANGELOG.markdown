@@ -23,6 +23,8 @@
   ```
 * Add `Control.Lens.Profunctor` with conversion functions to and from
   profunctor optic representation
+* Add `Control.Lens.Review.reviewing`, which is like `review` but with a more
+  polymorphic type.
 * Mark `Control.Lens.Equality` as Trustworthy
 
 4.19.2 [2020.04.15]
