@@ -39,9 +39,12 @@ module Control.Lens.Indexed
   , indexing64
   -- * Indexed Functors
   , FunctorWithIndex(..)
+  -- ** Indexed Functor Combinators
+  , imapped
   -- * Indexed Foldables
   , FoldableWithIndex(..)
   -- ** Indexed Foldable Combinators
+  , ifolded
   , iany
   , iall
   , inone, none
@@ -63,6 +66,7 @@ module Control.Lens.Indexed
   -- * Indexed Traversables
   , TraversableWithIndex(..)
   -- * Indexed Traversable Combinators
+  , itraversed
   , ifor
   , imapM
   , iforM
@@ -223,15 +227,15 @@ class Functor f => FunctorWithIndex i f | f -> i where
   -- | Map with access to the index.
   imap :: (i -> a -> b) -> f a -> f b
   default imap :: TraversableWithIndex i f => (i -> a -> b) -> f a -> f b
-  imap = iover itraversed
+  imap f = runIdentity #. itraverse (\i a -> Identity (f i a))
   {-# INLINE imap #-}
 
-  -- | The 'IndexedSetter' for a 'FunctorWithIndex'.
-  --
-  -- If you don't need access to the index, then 'mapped' is more flexible in what it accepts.
-  imapped :: IndexedSetter i (f a) (f b) a b
-  imapped = conjoined mapped (isets imap)
-  {-# INLINE imapped #-}
+-- | The 'IndexedSetter' for a 'FunctorWithIndex'.
+--
+-- If you don't need access to the index, then 'mapped' is more flexible in what it accepts.
+imapped :: FunctorWithIndex i f => IndexedSetter i (f a) (f b) a b
+imapped = conjoined mapped (isets imap)
+{-# INLINE imapped #-}
 
 -------------------------------------------------------------------------------
 -- FoldableWithIndex
@@ -250,19 +254,9 @@ class Foldable f => FoldableWithIndex i f | f -> i where
   ifoldMap :: Monoid m => (i -> a -> m) -> f a -> m
 #ifndef HLINT
   default ifoldMap :: (TraversableWithIndex i f, Monoid m) => (i -> a -> m) -> f a -> m
-  ifoldMap = ifoldMapOf itraversed
+  ifoldMap f = getConst #. itraverse (\i a -> Const (f i a))
   {-# INLINE ifoldMap #-}
 #endif
-
-  -- | The 'IndexedFold' of a 'FoldableWithIndex' container.
-  --
-  -- @'ifolded' '.' 'asIndex'@ is a fold over the keys of a 'FoldableWithIndex'.
-  --
-  -- >>> Data.Map.fromList [(2, "hello"), (1, "world")]^..ifolded.asIndex
-  -- [1,2]
-  ifolded :: IndexedFold i (f a) a
-  ifolded = conjoined folded $ \f -> phantom . getFolding . ifoldMap (\i -> Folding #. indexed f i)
-  {-# INLINE ifolded #-}
 
   -- | Right-associative fold of an indexed container with access to the index @i@.
   --
@@ -309,6 +303,16 @@ class Foldable f => FoldableWithIndex i f | f -> i where
   ifoldl' f z0 xs = ifoldr f' id xs z0
     where f' i x k z = k $! f i z x
   {-# INLINE ifoldl' #-}
+
+-- | The 'IndexedFold' of a 'FoldableWithIndex' container.
+--
+-- @'ifolded' '.' 'asIndex'@ is a fold over the keys of a 'FoldableWithIndex'.
+--
+-- >>> Data.Map.fromList [(2, "hello"), (1, "world")]^..ifolded.asIndex
+-- [1,2]
+ifolded :: FoldableWithIndex i f => IndexedFold i (f a) a
+ifolded = conjoined folded $ \f -> phantom . getFolding . ifoldMap (\i -> Folding #. indexed f i)
+{-# INLINE ifolded #-}
 
 -- | Return whether or not any element in a container satisfies a predicate, with access to the index @i@.
 --
@@ -487,14 +491,14 @@ class (FunctorWithIndex i t, FoldableWithIndex i t, Traversable t) => Traversabl
   itraverse :: Applicative f => (i -> a -> f b) -> t a -> f (t b)
 #ifndef HLINT
   default itraverse :: (i ~ Int, Applicative f) => (i -> a -> f b) -> t a -> f (t b)
-  itraverse = traversed .# Indexed
+  itraverse f s = snd $ runIndexing (traverse (\a -> Indexing (\i -> i `seq` (i + 1, f i a))) s) 0
   {-# INLINE itraverse #-}
 #endif
 
-  -- | The 'IndexedTraversal' of a 'TraversableWithIndex' container.
-  itraversed :: IndexedTraversal i (t a) (t b) a b
-  itraversed = conjoined traverse (itraverse . indexed)
-  {-# INLINE itraversed #-}
+-- | The 'IndexedTraversal' of a 'TraversableWithIndex' container.
+itraversed :: TraversableWithIndex i t => IndexedTraversal i (t a) (t b) a b
+itraversed = conjoined traverse (itraverse . indexed)
+{-# INLINE [0] itraversed #-}
 
 -- | Traverse with an index (and the arguments flipped).
 --
@@ -632,22 +636,16 @@ instance TraversableWithIndex k ((,) k) where
 -- | The position in the list is available as the index.
 instance FunctorWithIndex Int []
 instance FoldableWithIndex Int []
-instance TraversableWithIndex Int [] where
-  itraversed = traversed
-  {-# INLINE itraversed #-}
+instance TraversableWithIndex Int []
 
 -- | Same instance as for @[]@.
 instance FunctorWithIndex Int ZipList
 instance FoldableWithIndex Int ZipList
-instance TraversableWithIndex Int ZipList where
-  itraversed = traversed
-  {-# INLINE itraversed #-}
+instance TraversableWithIndex Int ZipList
 
 instance FunctorWithIndex Int NonEmpty
 instance FoldableWithIndex Int NonEmpty
-instance TraversableWithIndex Int NonEmpty where
-  itraverse = itraverseOf traversed
-  {-# INLINE itraverse #-}
+instance TraversableWithIndex Int NonEmpty
 
 instance FunctorWithIndex () Maybe where
   imap f = fmap (f ())
@@ -690,9 +688,7 @@ instance FoldableWithIndex Int Vector where
   {-# INLINE ifoldr' #-}
   ifoldl' = V.ifoldl' . flip
   {-# INLINE ifoldl' #-}
-instance TraversableWithIndex Int Vector where
-  itraversed = traversed
-  {-# INLINE itraversed #-}
+instance TraversableWithIndex Int Vector
 
 instance FunctorWithIndex Int IntMap
 instance FoldableWithIndex Int IntMap
