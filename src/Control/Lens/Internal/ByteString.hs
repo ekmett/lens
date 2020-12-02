@@ -214,5 +214,9 @@ create :: Int -> (Ptr Word8 -> IO ()) -> IO B.ByteString
 create l f = do
     fp <- mallocPlainForeignPtrBytes l
     withForeignPtr fp $ \p -> f p
+#if MIN_VERSION_bytestring(0,11,0)
+    return $! BI.BS fp l
+#else
     return $! BI.PS fp 0 l
+#endif
 {-# INLINE create #-}
