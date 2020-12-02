@@ -40,7 +40,7 @@ library
   build-depends:
     aeson,
     base       >= 4.5      && < 5,
-    bytestring >= 0.9.1.10 && < 0.11,
+    bytestring >= 0.9.1.10 && < 0.12,
     data-default-class,
     ghc-prim,
     lens
