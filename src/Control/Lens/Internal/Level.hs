@@ -30,6 +30,9 @@ import Prelude ()
 
 import Control.Lens.Internal.Prelude
 import Data.Functor.Apply
+import Data.Functor.WithIndex
+import Data.Foldable.WithIndex
+import Data.Traversable.WithIndex
 
 ------------------------------------------------------------------------------
 -- Levels
@@ -85,6 +88,27 @@ instance Traversable (Level i) where
     go (One i a) = One i <$> f a
     go Zero = pure Zero
   {-# INLINE traverse #-}
+
+instance FunctorWithIndex i (Level i) where
+  imap f = go where
+    go (Two n l r) = Two n (go l) (go r)
+    go (One i a)   = One i (f i a)
+    go Zero        = Zero
+  {-# INLINE imap #-}
+
+instance FoldableWithIndex i (Level i) where
+  ifoldMap f = go where
+    go (Two _ l r) = go l `mappend` go r
+    go (One i a)   = f i a
+    go Zero        = mempty
+  {-# INLINE ifoldMap #-}
+
+instance TraversableWithIndex i (Level i) where
+  itraverse f = go where
+    go (Two n l r) = Two n <$> go l <*> go r
+    go (One i a)   = One i <$> f i a
+    go Zero        = pure Zero
+  {-# INLINE itraverse #-}
 
 ------------------------------------------------------------------------------
 -- Generating Levels

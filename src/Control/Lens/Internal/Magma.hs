@@ -40,6 +40,9 @@ import Control.Lens.Internal.Context
 import Control.Lens.Internal.Indexed
 import Control.Lens.Internal.Prelude
 import Data.Functor.Apply
+import Data.Functor.WithIndex
+import Data.Foldable.WithIndex
+import Data.Traversable.WithIndex
 
 ------------------------------------------------------------------------------
 -- Magma
@@ -73,6 +76,27 @@ instance Traversable (Magma i t b) where
   traverse _ (MagmaPure x)    = pure (MagmaPure x)
   traverse f (MagmaFmap xy x) = MagmaFmap xy <$> traverse f x
   traverse f (Magma i a)  = Magma i <$> f a
+
+instance FunctorWithIndex i (Magma i t b) where
+  imap f (MagmaAp x y)    = MagmaAp (imap f x) (imap f y)
+  imap _ (MagmaPure x)    = MagmaPure x
+  imap f (MagmaFmap xy x) = MagmaFmap xy (imap f x)
+  imap f (Magma i a)      = Magma i (f i a)
+  {-# INLINE imap #-}
+
+instance FoldableWithIndex i (Magma i t b) where
+  ifoldMap f (MagmaAp x y)   = ifoldMap f x `mappend` ifoldMap f y
+  ifoldMap _ MagmaPure{}     = mempty
+  ifoldMap f (MagmaFmap _ x) = ifoldMap f x
+  ifoldMap f (Magma i a)     = f i a
+  {-# INLINE ifoldMap #-}
+
+instance TraversableWithIndex i (Magma i t b) where
+  itraverse f (MagmaAp x y)    = MagmaAp <$> itraverse f x <*> itraverse f y
+  itraverse _ (MagmaPure x)    = pure (MagmaPure x)
+  itraverse f (MagmaFmap xy x) = MagmaFmap xy <$> itraverse f x
+  itraverse f (Magma i a)      = Magma i <$> f i a
+  {-# INLINE itraverse #-}
 
 instance (Show i, Show a) => Show (Magma i t b a) where
   showsPrec d (MagmaAp x y) = showParen (d > 4) $
