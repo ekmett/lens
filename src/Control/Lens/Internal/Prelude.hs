@@ -109,6 +109,10 @@ import Data.Proxy (Proxy (..))
 import Data.Tagged (Tagged (..))
 import Data.Void (Void, absurd)
 
+-- TraversableWithIndex instances for tagged, vector and unordered-containers
+-- We import this here, so the instances propagate through all (most) of @lens@.
+import Data.Functor.WithIndex.Instances ()
+
 -- $setup
 -- >>> import Control.Lens
 -- >>> import Control.Monad.State
