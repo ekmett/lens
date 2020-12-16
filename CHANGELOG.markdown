@@ -21,6 +21,17 @@
     swapped = iso Swap.swap Swap.swap
   #endif
   ```
+* The `FunctorWithIndex`, `FoldableWithIndex` and `TraversableWithIndex` type classes
+  have been migrated to a new package,
+  [`indexed-traversable`](https://hackage.haskell.org/package/indexed-traversable).
+
+  The `imapped`, `ifolded` and `itraversed` methods are now top-level functions.
+  If you are not defining these methods in your instances,
+  you don't need to change your definitions.
+
+  Beware: the `optics-core` package (versions <0.4) defines similar classes,
+  and will also migrate to use `indexed-traversable` classes. Therefore, you
+  might get duplicate instance errors if your package defines both.
 * Make the functions in `Control.Lens.TH` work more robustly with poly-kinded
   data types. This can cause a breaking change under certain situations:
   * TH-generated optics for poly-kinded data types are now much more likely to
@@ -33,16 +44,6 @@
 * Add `Control.Lens.Review.reviewing`, which is like `review` but with a more
   polymorphic type.
 * Mark `Control.Lens.Equality` as Trustworthy
-* The `FunctorWithIndex`, `FoldableWithIndex` and `TraversableWithIndex` type classes
-  have been migrated to a new package, [`indexed-traversable`](https://hackage.haskell.org/package/indexed-traversable)
-
-  The `imapped`, `ifolded` and `itraversed` methods are now top-level functions.
-  If you are not defining these methods in your instances,
-  you don't need to change your definitions.
-
-  Beware: the `optics-core` package (versions <0.4) defines similar classes,
-  and will also migrate to use `indexed-traversable` classes. Therefore you
-  might get duplicate instance errors if your package defines both.
 
 4.19.2 [2020.04.15]
 -------------------
