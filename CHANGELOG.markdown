@@ -44,6 +44,7 @@
 * Add `Control.Lens.Review.reviewing`, which is like `review` but with a more
   polymorphic type.
 * Mark `Control.Lens.Equality` as Trustworthy
+* Generalize the types of generic and generic1
 
 4.19.2 [2020.04.15]
 -------------------
