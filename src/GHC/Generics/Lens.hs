@@ -67,12 +67,12 @@ import           Generics.Deriving.Base hiding (from, to)
 --
 -- >>> "hello"^.generic.from generic :: String
 -- "hello"
-generic :: Generic a => Iso' a (Rep a b)
+generic :: (Generic a, Generic b) => Iso a b (Rep a g) (Rep b h)
 generic = iso Generic.from Generic.to
 {-# INLINE generic #-}
 
 -- | Convert from the data type to its representation (or back)
-generic1 :: Generic1 f => Iso (f a) (f b) (Rep1 f a) (Rep1 f b)
+generic1 :: (Generic1 f, Generic1 g) => Iso (f a) (g b) (Rep1 f a) (Rep1 g b)
 generic1 = iso from1 to1
 {-# INLINE generic1 #-}
 
