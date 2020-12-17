@@ -39,12 +39,14 @@
     the `PolyKinds` extension at use sites in order to typecheck.
   * Because TH-generated optics now quantify more kind variables than they did
     previously, this can affect the order of visible type applications.
+* Generalize the types of `generic` and `generic1` to allow type-changing
+  updates. If you wish to use the old, more restricted types of these
+  functions, use `simple . generic` or `simple . generic1` instead.
 * Add `Control.Lens.Profunctor` with conversion functions to and from
-  profunctor optic representation
+  profunctor optic representation.
 * Add `Control.Lens.Review.reviewing`, which is like `review` but with a more
   polymorphic type.
-* Mark `Control.Lens.Equality` as Trustworthy
-* Generalize the types of generic and generic1
+* Mark `Control.Lens.Equality` as Trustworthy.
 
 4.19.2 [2020.04.15]
 -------------------
