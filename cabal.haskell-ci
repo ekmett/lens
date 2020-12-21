@@ -3,3 +3,14 @@ unconstrained:          False
 hlint:                  True
 apt:                    freeglut3-dev
 irc-channels:           irc.freenode.org#haskell-lens
+irc-if-in-origin-repo:  True
+
+-- Because we use a custom Setup script, --test-show-details can only support
+-- the options that come with the version of Cabal that is linked against.
+-- Unfortunately, --test-show-details=direct wasn't introduced until
+-- Cabal-1.24.*, and GHC 7.10 and earlier ship with an older version of Cabal
+-- than that. As a result, trying to pass --test-show-details=direct won't work
+-- on these GHC versions unless we rebuild Cabal from scratch, which is
+-- time-consuming. As a result, we simply disable --test-show-details=direct
+-- as a quick-but-dirty workaround.
+test-output-direct:     False

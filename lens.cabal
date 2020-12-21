@@ -95,7 +95,6 @@ description:
   exotic functionality, (/e.g./ getters, setters, indexed folds, isomorphisms).
 
 extra-source-files:
-  .travis.yml
   .gitignore
   .hlint.yaml
   .vim.custom
@@ -111,8 +110,6 @@ extra-source-files:
   lens-properties/LICENSE
   lens-properties/Setup.hs
   lens-properties/lens-properties.cabal
-  travis/cabal-apt-install
-  travis/config
   Warning.hs
   AUTHORS.markdown
   CHANGELOG.markdown
