@@ -1,5 +1,5 @@
-4.20 [2020.xx.yy]
------------------
+5 [2020.xx.yy]
+--------------
 * Support building with GHC 9.0.
 * Remove the `Swapped` type class in favor of `Swap` from the `assoc` package.
 * Remove the `Strict` type class in favor of `Strict` from the `strict` package.
