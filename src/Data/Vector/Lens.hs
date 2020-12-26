@@ -35,6 +35,10 @@ import Data.Vector as Vector hiding (zip, filter, indexed)
 import Prelude hiding ((++), length, null, head, tail, init, last, map, reverse)
 import Data.Monoid
 
+-- $setup
+-- >>> import Data.Vector as Vector
+-- >>> import Control.Lens
+
 -- | @sliced i n@ provides a 'Lens' that edits the @n@ elements starting
 -- at index @i@ from a 'Lens'.
 --

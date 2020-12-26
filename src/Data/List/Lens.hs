@@ -103,6 +103,7 @@ import Data.List
 
 -- $setup
 -- >>> :set -XNoOverloadedStrings
+-- >>> import Control.Lens
 -- >>> import Debug.SimpleReflect.Expr
 -- >>> import Debug.SimpleReflect.Vars as Vars hiding (f,g)
 -- >>> let f :: Expr -> Expr; f = Debug.SimpleReflect.Vars.f

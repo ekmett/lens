@@ -31,6 +31,9 @@ import Control.Lens hiding ((<.>))
 
 -- $setup
 -- >>> :set -XNoOverloadedStrings
+-- >>> import Control.Lens
+-- >>> import Control.Monad.State
+-- >>> import System.FilePath ((</>))
 
 {- NB: Be very careful if you are planning to modify the doctest output in
 this module! Path separators are OS-dependent (\\ with Windows, / with Posix),

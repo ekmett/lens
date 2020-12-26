@@ -40,16 +40,19 @@ import Data.Functor.Bind
 import Data.Functor.Plus
 import Data.Functor.Reverse
 
+-- $setup
+-- >>> import Control.Applicative (empty)
+
 -- | A Banker's deque based on Chris Okasaki's \"Purely Functional Data Structures\"
 data Deque a = BD !Int [a] !Int [a]
   deriving Show
 
 -- | /O(1)/. Determine if a 'Deque' is 'empty'.
 --
--- >>> null empty
+-- >>> Control.Lens.Internal.Deque.null empty
 -- True
 --
--- >>> null (singleton 1)
+-- >>> Control.Lens.Internal.Deque.null (singleton 1)
 -- False
 null :: Deque a -> Bool
 null (BD lf _ lr _) = lf + lr == 0

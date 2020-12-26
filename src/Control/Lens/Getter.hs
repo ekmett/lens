@@ -93,7 +93,9 @@ import Control.Monad.Writer (MonadWriter (..))
 -- $setup
 -- >>> :set -XNoOverloadedStrings
 -- >>> import Control.Lens
+-- >>> import Control.Monad.State
 -- >>> import Data.List.Lens
+-- >>> import Data.Semigroup (Semigroup (..))
 -- >>> import Debug.SimpleReflect.Expr
 -- >>> import Debug.SimpleReflect.Vars as Vars hiding (f,g)
 -- >>> let f :: Expr -> Expr; f = Debug.SimpleReflect.Vars.f

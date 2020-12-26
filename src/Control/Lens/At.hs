@@ -111,6 +111,9 @@ type instance Index LazyB.ByteString = Int64
 -- $setup
 -- >>> :set -XNoOverloadedStrings
 -- >>> import Control.Lens
+-- >>> import qualified Data.IntSet as IntSet
+-- >>> import qualified Data.Sequence as Seq
+-- >>> import qualified Data.Map as Map
 -- >>> import Debug.SimpleReflect.Expr
 -- >>> import Debug.SimpleReflect.Vars as Vars hiding (f,g)
 -- >>> let f  :: Expr -> Expr; f = Debug.SimpleReflect.Vars.f

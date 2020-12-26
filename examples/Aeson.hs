@@ -13,12 +13,17 @@ import Control.Lens
 import Data.Aeson
 import Data.ByteString.Lazy
 
+-- $setup
+-- >>> import Control.Lens
+-- >>> import Data.ByteString.Lazy
+
 -- |
 -- >>> review aeson 5
 -- "5"
 -- >>> [1,2,3]^.re aeson
 -- "[1,2,3]"
--- >>> aeson.both +~ 2 $ (2,3)^.re aeson
+-- >>> let intPair = simple :: Iso' (Int,Int) (Int, Int)
+-- >>> aeson.intPair.both +~ 2 $ (2,3)^.re aeson
 -- "[4,5]"
 aeson, aeson' :: (FromJSON a, ToJSON a) => Prism' ByteString a
 aeson  = prism' encode decode

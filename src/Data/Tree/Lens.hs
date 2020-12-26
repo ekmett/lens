@@ -23,6 +23,10 @@ import Control.Lens.Internal.Prelude
 import Control.Lens
 import Data.Tree
 
+-- $setup
+-- >>> import Control.Lens
+-- >>> import Data.Tree
+
 -- | A 'Lens' that focuses on the root of a 'Tree'.
 --
 -- >>> view root $ Node 42 []

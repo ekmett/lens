@@ -175,6 +175,7 @@ import qualified Data.Semigroup as Semi
 -- >>> import Control.Lens.Extras (is)
 -- >>> import Data.Function
 -- >>> import Data.List.Lens
+-- >>> import Data.List.NonEmpty (NonEmpty (..))
 -- >>> import Debug.SimpleReflect.Expr
 -- >>> import Debug.SimpleReflect.Vars as Vars hiding (f,g)
 -- >>> import Control.DeepSeq (NFData (..), force)

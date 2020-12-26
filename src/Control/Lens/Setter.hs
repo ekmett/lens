@@ -95,7 +95,7 @@ import Control.Monad.Writer.Class as Writer
 -- >>> import Data.Char
 -- >>> import Data.Functor.Contravariant (Predicate (..), Op (..))
 -- >>> import Data.Map as Map
--- >>> import Data.Semigroup (Sum (..), Product (..))
+-- >>> import Data.Semigroup (Sum (..), Product (..), Semigroup (..))
 -- >>> import Debug.SimpleReflect.Expr as Expr
 -- >>> import Debug.SimpleReflect.Vars as Vars
 -- >>> let f :: Expr -> Expr; f = Debug.SimpleReflect.Vars.f

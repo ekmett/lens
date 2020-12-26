@@ -55,6 +55,7 @@ import Control.Lens.Internal.Coerce
 -- >>> :set -XNoOverloadedStrings
 -- >>> import Control.Lens
 -- >>> import Numeric.Lens
+-- >>> import Data.Semigroup (Semigroup (..))
 --
 ------------------------------------------------------------------------------
 -- Conjoined

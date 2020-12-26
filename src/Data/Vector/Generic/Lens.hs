@@ -59,6 +59,7 @@ import Data.Vector.Fusion.Stream (Stream)
 
 -- $setup
 -- >>> import Data.Vector as Vector
+-- >>> import Control.Lens
 
 -- | @sliced i n@ provides a 'Lens' that edits the @n@ elements starting
 -- at index @i@ from a 'Lens'.

@@ -167,9 +167,11 @@ import GHC.Magic (inline)
 -- >>> :set -XNoOverloadedStrings -XFlexibleContexts
 -- >>> import Data.Char (toUpper)
 -- >>> import Control.Lens
+-- >>> import Control.Lens.Internal.Context
 -- >>> import Control.DeepSeq (NFData (..), force)
 -- >>> import Control.Exception (evaluate,try,ErrorCall(..))
 -- >>> import Data.Maybe (fromMaybe)
+-- >>> import Data.List.NonEmpty (NonEmpty (..))
 -- >>> import Debug.SimpleReflect.Vars
 -- >>> import Data.Void
 -- >>> import Data.List (sort)

@@ -28,9 +28,10 @@ import Control.Monad.State
 import Data.Bits
 import Data.Word
 
-
 -- $setup
 -- >>> :set -XNoOverloadedStrings
+-- >>> import Control.Lens
+-- >>> import Control.Monad.State
 -- >>> import Data.Word
 
 infixr 4 .|.~, .&.~, <.|.~, <.&.~, <<.|.~, <<.&.~

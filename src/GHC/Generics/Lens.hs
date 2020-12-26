@@ -62,6 +62,7 @@ import           Generics.Deriving.Base hiding (from, to)
 
 -- $setup
 -- >>> :set -XNoOverloadedStrings
+-- >>> import Control.Lens
 
 -- | Convert from the data type to its representation (or back)
 --

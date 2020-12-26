@@ -43,6 +43,7 @@ import Numeric (readInt, showIntAtBase)
 
 -- $setup
 -- >>> :set -XNoOverloadedStrings
+-- >>> import Control.Lens
 -- >>> import Data.Monoid (Sum(..))
 
 -- | This 'Prism' can be used to model the fact that every 'Integral'
