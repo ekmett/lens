@@ -45,6 +45,7 @@ import Data.Text.Lazy.Encoding
 -- $setup
 -- >>> :set -XOverloadedStrings
 -- >>> import Control.Lens
+-- >>> import Data.ByteString.Lazy as ByteString
 
 -- | This isomorphism can be used to 'pack' (or 'unpack') lazy 'Text'.
 --

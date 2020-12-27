@@ -34,6 +34,10 @@ import Control.Lens
 import Control.Lens.Internal.Prelude
 import Prelude ()
 
+-- $setup
+-- >>> :set -XNoOverloadedStrings
+-- >>> import Control.Lens
+
 -- | A lens product. There is no law-abiding way to do this in general.
 -- Result is only a valid 'Lens' if the input lenses project disjoint parts of
 -- the structure @s@. Otherwise "you get what you put in" law

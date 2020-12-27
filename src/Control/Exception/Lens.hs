@@ -213,6 +213,7 @@ import Prelude
 
 -- $setup
 -- >>> :set -XNoOverloadedStrings
+-- >>> import Control.Lens
 -- >>> :m + Control.Exception Control.Monad Data.List Prelude
 
 ------------------------------------------------------------------------------

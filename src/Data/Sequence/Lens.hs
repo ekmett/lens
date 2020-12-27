@@ -23,6 +23,8 @@ import Data.Sequence as Seq
 import Prelude
 
 -- $setup
+-- >>> import Control.Lens
+-- >>> import Data.Sequence as Seq
 -- >>> import Debug.SimpleReflect.Expr
 -- >>> import Debug.SimpleReflect.Vars as Vars hiding (f,g)
 -- >>> let f :: Expr -> Expr; f = Debug.SimpleReflect.Vars.f

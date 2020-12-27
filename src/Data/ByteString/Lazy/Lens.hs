@@ -35,7 +35,9 @@ import Data.Int (Int64)
 
 -- $setup
 -- >>> :set -XOverloadedStrings
+-- >>> import Control.Lens
 -- >>> import Numeric.Lens
+-- >>> import Data.ByteString.Lazy.Char8 as Char8
 
 -- | 'Data.ByteString.Lazy.pack' (or 'Data.ByteString.Lazy.unpack') a list of bytes into a 'ByteString'.
 --

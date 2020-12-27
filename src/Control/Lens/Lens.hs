@@ -147,6 +147,7 @@ import GHC.Exts (TYPE)
 -- $setup
 -- >>> :set -XNoOverloadedStrings
 -- >>> import Control.Lens
+-- >>> import Control.Arrow
 -- >>> import Control.Monad.State
 -- >>> import Data.Char (chr)
 -- >>> import Data.List.NonEmpty (NonEmpty ((:|)))

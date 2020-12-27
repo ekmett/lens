@@ -108,6 +108,7 @@ infixr 9 <.>, <., .>
 -- $setup
 -- >>> :set -XNoOverloadedStrings
 -- >>> import Control.Lens
+-- >>> import qualified Data.Map as Map
 
 -- | Compose an 'Indexed' function with a non-indexed function.
 --

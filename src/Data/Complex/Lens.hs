@@ -40,6 +40,8 @@ import Control.Lens.Internal.Prelude
 import Data.Complex
 
 -- $setup
+-- >>> import Control.Lens
+-- >>> import Data.Complex
 -- >>> import Debug.SimpleReflect
 -- >>> let { a ≈ b = abs (a - b) < 1e-6; infix 4 ≈ }
 

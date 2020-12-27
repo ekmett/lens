@@ -21,6 +21,7 @@ import Data.IntSet as IntSet
 -- $setup
 -- >>> :set -XNoOverloadedStrings
 -- >>> import Control.Lens
+-- >>> import Data.IntSet as IntSet
 
 -- | IntSet isn't Foldable, but this 'Fold' can be used to access the members of an 'IntSet'.
 --

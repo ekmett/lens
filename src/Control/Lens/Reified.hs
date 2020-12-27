@@ -44,6 +44,7 @@ import Data.Semigroup
 
 -- $setup
 -- >>> import Control.Lens
+-- >>> import Control.Applicative
 
 ------------------------------------------------------------------------------
 -- Lens

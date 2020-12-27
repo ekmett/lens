@@ -161,6 +161,8 @@ import qualified Data.Monoid as Monoid
 -- $setup
 -- >>> :set -XNoOverloadedStrings
 -- >>> import Control.Lens
+-- >>> import Data.Foldable (foldMap)
+-- >>> import Data.Monoid (Sum (..), Product (..), All (..), Any (..))
 
 -- | 'Wrapped' provides isomorphisms to wrap and unwrap newtypes or
 -- data types with one constructor.

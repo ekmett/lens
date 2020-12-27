@@ -49,7 +49,9 @@ import Data.Void
 -- $setup
 -- >>> :set -XNoOverloadedStrings
 -- >>> import Control.Lens
+-- >>> import Control.Monad.State
 -- >>> import Numeric.Lens
+-- >>> import Data.Semigroup (Semigroup (..))
 -- >>> let isLeft  (Left  _) = True; isLeft  _ = False
 -- >>> let isRight (Right _) = True; isRight _ = False
 

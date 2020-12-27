@@ -40,6 +40,7 @@ import           Data.Text.Lazy.Builder
 
 -- $setup
 -- >>> import Control.Lens
+-- >>> import Data.Text as Strict
 
 -- | Traversals for strict or lazy 'Text'
 class IsText t where

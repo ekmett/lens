@@ -29,6 +29,7 @@ import Data.Set as Set
 -- $setup
 -- >>> :set -XNoOverloadedStrings
 -- >>> import Control.Lens
+-- >>> import Data.Set as Set
 
 -- | This 'Setter' can be used to change the type of a 'Set' by mapping
 -- the elements to new values.

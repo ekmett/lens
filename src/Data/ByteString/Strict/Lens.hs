@@ -34,6 +34,7 @@ import Data.Word
 -- >>> :set -XOverloadedStrings
 -- >>> import Control.Lens
 -- >>> import Numeric.Lens
+-- >>> import Data.ByteString.Char8 as Char8
 
 -- | 'Data.ByteString.pack' (or 'Data.ByteString.unpack') a list of bytes into a 'ByteString'
 --

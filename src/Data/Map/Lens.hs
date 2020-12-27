@@ -70,6 +70,7 @@ import qualified Data.Map as Map
 -- $setup
 -- >>> import Control.Lens
 -- >>> import Data.Monoid
+-- >>> import qualified Data.Map as Map
 -- >>> :set -XNoOverloadedStrings
 
 -- | Construct a map from a 'IndexedGetter', 'Control.Lens.Fold.IndexedFold', 'Control.Lens.Traversal.IndexedTraversal' or 'Control.Lens.Lens.IndexedLens'
