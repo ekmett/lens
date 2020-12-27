@@ -58,6 +58,9 @@ import Data.Vector.Storable as Storable
 import GHC.Event
 #endif
 
+-- $setup
+-- >>> import Control.Lens
+
 class AsEmpty a where
   -- |
   --

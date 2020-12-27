@@ -52,7 +52,8 @@ import Control.Monad.Trans.Free
 
 -- $setup
 -- >>> import Control.Lens
--- >>> import Control.Monad.State
+-- >>> import Control.Monad.State as State
+-- >>> import Control.Monad.Reader as Reader
 -- >>> import Data.Map as Map
 -- >>> import Debug.SimpleReflect.Expr as Expr
 -- >>> import Debug.SimpleReflect.Vars as Vars

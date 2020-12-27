@@ -7,19 +7,13 @@
 -- Stability   :  provisional
 -- Portability :  portable
 --
--- This module provides doctests for a project based on the actual versions
--- of the packages it was built with. It requires a corresponding Setup.lhs
--- to be added to the project
+-- This module exists to add dependencies
 -----------------------------------------------------------------------------
 module Main where
 
-import Build_doctests (flags, pkgs, module_sources)
-import Data.Foldable (traverse_)
-import Test.DocTest
-
 main :: IO ()
 main = do
-    traverse_ putStrLn args
-    doctest args
-  where
-    args = flags ++ pkgs ++ module_sources
+    putStrLn "This test-suite exists only to add dependencies"
+    putStrLn "To run doctests: "
+    putStrLn "    cabal build all --enable-tests"
+    putStrLn "    cabal-docspec"
