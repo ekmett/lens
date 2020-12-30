@@ -8,9 +8,9 @@
 #
 # For more information, see https://github.com/haskell-CI/haskell-ci
 #
-# version: 0.11.20201221
+# version: 0.11.20201230
 #
-# REGENDATA ("0.11.20201221",["--config=cabal.haskell-ci","cabal.project"])
+# REGENDATA ("0.11.20201230",["--config=cabal.haskell-ci","cabal.project"])
 #
 name: Haskell-CI
 on:
@@ -105,7 +105,7 @@ jobs:
           mkdir -p $CABAL_DIR
           cat >> $CABAL_CONFIG <<EOF
           remote-build-reporting: anonymous
-          write-ghc-environment-files: always
+          write-ghc-environment-files: never
           remote-repo-cache: $CABAL_DIR/packages
           logs-dir:          $CABAL_DIR/logs
           world-file:        $CABAL_DIR/world
@@ -141,6 +141,16 @@ jobs:
           xz -d < cabal-plan.xz > $HOME/.cabal/bin/cabal-plan
           rm -f cabal-plan.xz
           chmod a+x $HOME/.cabal/bin/cabal-plan
+          cabal-plan --version
+      - name: install cabal-docspec
+        run: |
+          mkdir -p $HOME/.cabal/bin
+          curl -sL https://github.com/phadej/cabal-extras/releases/download/cabal-docspec-0.0.0.20201230.1/cabal-docspec-0.0.0.20201230.1.xz > cabal-docspec.xz
+          echo '18caf4f361fadd978782f08e78f42d21d4f177567419055ffccae19b8214852d  cabal-docspec.xz' | sha256sum -c -
+          xz -d < cabal-docspec.xz > $HOME/.cabal/bin/cabal-docspec
+          rm -f cabal-docspec.xz
+          chmod a+x $HOME/.cabal/bin/cabal-docspec
+          cabal-docspec --version
       - name: install hlint
         run: |
           if [ $((HCNUMVER >= 81000)) -ne 0 ] ; then HLINTVER=$(cd /tmp && (${CABAL} v2-install -v $ARG_COMPILER --dry-run hlint  --constraint='hlint ==3.2.*' |  perl -ne 'if (/\bhlint-(\d+(\.\d+)*)\b/) { print "$1"; last; }')); echo "HLint version $HLINTVER" ; fi
@@ -200,10 +210,14 @@ jobs:
           $CABAL v2-build $ARG_COMPILER $ARG_TESTS $ARG_BENCH --dependencies-only -j2 all
       - name: build
         run: |
-          $CABAL v2-build $ARG_COMPILER $ARG_TESTS $ARG_BENCH all
+          $CABAL v2-build $ARG_COMPILER $ARG_TESTS $ARG_BENCH all --write-ghc-environment-files=always
       - name: tests
         run: |
-          $CABAL v2-test $ARG_COMPILER $ARG_TESTS $ARG_BENCH all
+          $CABAL v2-test $ARG_COMPILER $ARG_TESTS $ARG_BENCH all --test-show-details=direct
+      - name: docspec
+        run: |
+          $CABAL v2-build $ARG_COMPILER $ARG_TESTS $ARG_BENCH all
+          cabal-docspec $ARG_COMPILER
       - name: hlint
         run: |
           if [ $((HCNUMVER >= 81000)) -ne 0 ] ; then (cd ${PKGDIR_lens} && hlint src) ; fi

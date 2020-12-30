@@ -10,7 +10,7 @@ stability:     provisional
 homepage:      http://github.com/ekmett/lens/
 bug-reports:   http://github.com/ekmett/lens/issues
 copyright:     Copyright (C) 2012-2016 Edward A. Kmett
-build-type:    Custom
+build-type:    Simple
 -- build-tools:   cpphs
 tested-with:   GHC == 7.8.4
              , GHC == 7.10.3
@@ -110,7 +110,6 @@ extra-source-files:
   lens-properties/LICENSE
   lens-properties/Setup.hs
   lens-properties/lens-properties.cabal
-  Warning.hs
   AUTHORS.markdown
   CHANGELOG.markdown
   README.markdown
@@ -121,13 +120,6 @@ extra-doc-files:
 source-repository head
   type: git
   location: https://github.com/ekmett/lens.git
-
-custom-setup
-  setup-depends:
-    Cabal >= 1.10 && <3.5,
-    base  >= 4.7 && <5,
-    cabal-doctest >= 1 && <1.1,
-    filepath
 
 -- Enable benchmarking against Neil Mitchell's uniplate library for comparative performance analysis. Defaults to being turned off to avoid
 -- the extra dependency.
@@ -150,11 +142,6 @@ flag inlining
 -- Make the test suites dump their template-haskell splices.
 flag dump-splices
   default: False
-  manual: True
-
--- You can disable the doctests test suite with -f-test-doctests
-flag test-doctests
-  default: True
   manual: True
 
 -- You can disable the hunit test suite with -f-test-hunit
@@ -348,6 +335,10 @@ library
 
   default-language: Haskell2010
 
+  -- future proof, whether the field will be comma separated or not.
+  x-docspec-extra-packages: simple-reflect
+  x-docspec-extra-packages: deepseq
+
 -- Verify that Template Haskell expansion works
 test-suite templates
   type: exitcode-stdio-1.0
@@ -412,40 +403,17 @@ test-suite hunit
       test-framework       >= 0.6,
       test-framework-hunit >= 0.2
 
--- Verify the results of the examples
+-- We need this dummy test-suite to add simple-reflect to the install plan
+--
+-- When cabal-install's extra-packages support becomes widely available
+-- (i.e. after 3.4 release), we can remove this test-suite.
 test-suite doctests
   type:              exitcode-stdio-1.0
   main-is:           doctests.hs
-  ghc-options:       -Wall -threaded
   hs-source-dirs:    tests
   default-language:  Haskell2010
-  x-doctest-options: --fast
 
-  if flag(trustworthy) && impl(ghc>=7.2)
-    other-extensions: Trustworthy
-    cpp-options: -DTRUSTWORTHY=1
-
-  if !flag(test-doctests)
-    buildable: False
-  else
-    build-depends:
-      base,
-      bytestring,
-      containers,
-      directory      >= 1.0,
-      deepseq,
-      doctest        >= 0.11.4 && < 0.12 || >= 0.13 && < 0.18,
-      filepath,
-      generic-deriving,
-      lens,
-      mtl,
-      nats,
-      parallel,
-      semigroups     >= 0.9,
-      simple-reflect >= 0.3.1,
-      text,
-      unordered-containers,
-      vector
+  build-depends: base, deepseq, simple-reflect >= 0.3.1
 
 -- Basic benchmarks for the uniplate-style combinators
 benchmark plated
