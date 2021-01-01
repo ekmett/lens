@@ -1,9 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE MagicHash #-}
 {-# LANGUAGE Rank2Types #-}
-#ifndef HLINT
 {-# LANGUAGE UnboxedTuples #-}
-#endif
 {-# LANGUAGE PatternGuards #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE FlexibleContexts #-}
@@ -325,13 +323,11 @@ fixEq f = go where
        where x' = f x
 {-# INLINE fixEq #-}
 
-#ifndef HLINT
 -- | inlineable 'unsafePerformIO'
 inlinePerformIO :: IO a -> a
 inlinePerformIO (IO m) = case m realWorld# of
   (# _, r #) -> r
 {-# INLINE inlinePerformIO #-}
-#endif
 
 -------------------------------------------------------------------------------
 -- Cache

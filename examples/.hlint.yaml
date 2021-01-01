@@ -1,4 +1,4 @@
-- arguments: [--cpp-define=HLINT, --cpp-ansi]
+- arguments: [--cpp-ansi]
 
 - fixity: "infixr 9 ..."
 - fixity: "infixl 1 &~"
