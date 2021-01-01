@@ -249,10 +249,8 @@ computeIsoType t' fields =
          b = toTupleT (map return                    fields)
          a = toTupleT (map return (substTypeVars sub fields))
 
-#ifndef HLINT
          ty | Map.null sub = appsT (conT iso'TypeName) [t,b]
             | otherwise    = appsT (conT isoTypeName) [s,t,a,b]
-#endif
 
      quantifyType [] <$> ty
 
@@ -415,9 +413,7 @@ makeClassyPrismClass ::
   DecQ
 makeClassyPrismClass t className methodName cons =
   do r <- newName "r"
-#ifndef HLINT
      let methodType = appsT (conT prism'TypeName) [varT r,return t]
-#endif
      methodss <- traverse (mkMethod r) cons'
      classD (cxt[]) className (D.plainTV r : vs) (fds r)
        ( sigD methodName methodType

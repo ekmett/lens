@@ -126,10 +126,8 @@ data Top
 -- unpacked and stored in 'Coil' form. Only one value of type @_ ':>' _@ exists
 -- at any particular time for any particular 'Zipper'.
 
-#ifndef HLINT
 data Zipper l h i b a x where
   Zipper :: Ord i => !(Coil l h i t b a) -> Int -> !(Path i t b b x) -> Int -> i -> x -> Zipper l h i b a x
-#endif
 
 instance Functor (Zipper l h i b a) where
   fmap f (Zipper h n p o i a) = Zipper h n (fmap f p) o i (f a)
@@ -157,11 +155,9 @@ instance Comonad (Zipper h i b a) where
 -- of a 'Coil' is known at compile time.
 --
 -- This is part of the internal structure of a 'Zipper'. You shouldn't need to manipulate this directly.
-#ifndef HLINT
 data Coil :: (* -> * -> * -> * -> * -> *) -> * -> * -> * -> * -> * -> * where
   Coil :: Coil SomeLens Top Int b b a
   Snoc :: Ord i => !(Coil l' h j v t s) -> Int -> SomeTraversal l i s t a b -> !(Path j v t t s) -> Int -> j -> (Jacket i s b b -> s) -> Coil l (Zipper l' h j t s s) i t b a
-#endif
 
 -- | This enables changing the type of the focus to change the current level's type if we're viewing through a lens.
 class Focused t x y where
