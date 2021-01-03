@@ -32,6 +32,39 @@
   Beware: the `optics-core` package (versions <0.4) defines similar classes,
   and will also migrate to use `indexed-traversable` classes. Therefore, you
   might get duplicate instance errors if your package defines both.
+
+  If you define your own `FunctorWithIndex` etc. instances,
+  we recommend that you depend directly on the `indexed-traversable` package.
+  If you want to continue support `lens-4` users, you may write
+
+  ```haskell
+  -- from indexed-traversable
+  import Data.Functor.WithIndex
+
+  -- from lens
+  import qualified Control.Lens as L
+
+  -- your (indexed) container
+  data MySeq a = ...
+
+  -- indexed-traversable instance
+  instance FunctorWithIndex     Int MySeq where imap = ...
+  instance FoldableWithIndex    Int MySeq where ifoldMap = ...
+  instance TraversableWithIndex Int MySeq where itraverse = ...
+
+  -- lens <5 instance, note the !
+  #if !MIN_VERSION_lens(5,0,0)
+  instance L.FunctorWithIndex     Int MySeq where imap = imap
+  instance L.FoldableWithIndex    Int MySeq where ifoldMap = ifoldMap
+  instance L.TraversableWithIndex Int MySeq where itraverse = itraverse
+  #endif
+  ```
+
+  In other words, always provide `indexed-traversable` instances.
+  If your package depends on `lens` and allows `lens-4`,
+  you should additionally provide instances for `lens-4` type classes
+  that can reuse the `indexed-traversable` instances.
+
 * Make the functions in `Control.Lens.TH` work more robustly with poly-kinded
   data types. This can cause a breaking change under certain situations:
   * TH-generated optics for poly-kinded data types are now much more likely to
