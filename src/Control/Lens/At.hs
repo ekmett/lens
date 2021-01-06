@@ -469,10 +469,7 @@ instance Ord k => At (Map k a) where
   {-# INLINE at #-}
 
 instance (Eq k, Hashable k) => At (HashMap k a) where
-  at k f m = f mv <&> \r -> case r of
-    Nothing -> maybe m (const (HashMap.delete k m)) mv
-    Just v' -> HashMap.insert k v' m
-    where mv = HashMap.lookup k m
+  at k f = HashMap.alterF f k
   {-# INLINE at #-}
 
 instance At IntSet where
