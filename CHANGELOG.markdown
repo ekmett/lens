@@ -82,6 +82,7 @@
 * Mark `Control.Lens.Equality` as Trustworthy.
 * The build-type has been changed from `Custom` to `Simple`.
   To achieve this, the `doctests` test suite has been removed in favor of using [`cabal-docspec`](https://github.com/phadej/cabal-extras/tree/master/cabal-docspec) to run the doctests.
+* Use `alterF` in `At (HashMap k)` instance implementation.
 
 4.19.2 [2020.04.15]
 -------------------
