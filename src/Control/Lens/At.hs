@@ -51,11 +51,13 @@ import Control.Lens.Traversal
 import Control.Lens.Lens
 import Control.Lens.Setter
 import Control.Lens.Indexed
+import Control.Monad (guard)
 import Data.Array.IArray as Array
 import Data.Array.Unboxed
 import Data.ByteString as StrictB
 import Data.ByteString.Lazy as LazyB
 import Data.Complex
+import Data.Functor (($>))
 import Data.Hashable
 import Data.HashMap.Lazy as HashMap
 import Data.HashSet as HashSet
@@ -63,6 +65,7 @@ import Data.Int
 import Data.IntMap as IntMap
 import Data.IntSet as IntSet
 import Data.Map as Map
+import Data.Maybe (isJust)
 import Data.Set as Set
 import Data.Sequence as Seq
 import Data.Text as StrictT
@@ -154,18 +157,38 @@ icontains i f = contains i (indexed f i)
 {-# INLINE icontains #-}
 
 instance Contains IntSet where
-  contains k f s = f (IntSet.member k s) <&> \b ->
-    if b then IntSet.insert k s else IntSet.delete k s
+#if MIN_VERSION_containers(0,6,3)
+  contains k f = IntSet.alterF f k
+#else
+  -- This is a flipped copy of the implementation of `IntSet.alterF`.  Unlike a
+  -- `Set`, we don't have to worry about expensive comparisons from descending
+  -- multiple times into an `IntSet`. We are careful to share the results of
+  -- insertion or deletion across multiple positions in the `Functor`.
+  contains k f s = fmap choose (f member_)
+    where
+      member_ = IntSet.member k s
+
+      (inserted, deleted)
+        | member_   = (s, IntSet.delete k s)
+        | otherwise = (IntSet.insert k s, s)
+
+      choose True  = inserted
+      choose False = deleted
+#endif
   {-# INLINE contains #-}
 
 instance Ord a => Contains (Set a) where
+#if MIN_VERSION_containers(0,6,3)
+  contains k f = Set.alterF f k
+#else
   contains k f s = f (Set.member k s) <&> \b ->
     if b then Set.insert k s else Set.delete k s
+#endif
   {-# INLINE contains #-}
 
 instance (Eq a, Hashable a) => Contains (HashSet a) where
-  contains k f s = f (HashSet.member k s) <&> \b ->
-    if b then HashSet.insert k s else HashSet.delete k s
+  contains k f s = HashSet.fromMap <$>
+    HashMap.alterF (fmap guard . f . isJust) k (HashSet.toMap s)
   {-# INLINE contains #-}
 
 -- | This provides a common notion of a value at an index that is shared by both 'Ixed' and 'At'.
@@ -226,8 +249,8 @@ instance Eq e => Ixed (e -> a) where
 
 type instance IxValue (Maybe a) = a
 instance Ixed (Maybe a) where
-  ix () f (Just a) = Just <$> f a
-  ix () _ Nothing  = pure Nothing
+  ix ~() f (Just a) = Just <$> f a
+  ix ~() _ Nothing  = pure Nothing
   {-# INLINE ix #-}
 
 type instance IxValue [a] = a
@@ -249,7 +272,7 @@ instance Ixed (NonEmpty a) where
 
 type instance IxValue (Identity a) = a
 instance Ixed (Identity a) where
-  ix () f (Identity a) = Identity <$> f a
+  ix ~() f (Identity a) = Identity <$> f a
   {-# INLINE ix #-}
 
 type instance IxValue (Tree a) = a
@@ -292,21 +315,21 @@ instance (Eq k, Hashable k) => Ixed (HashMap k a) where
 type instance IxValue (Set k) = ()
 instance Ord k => Ixed (Set k) where
   ix k f m = if Set.member k m
-     then f () <&> \() -> Set.insert k m
+     then f () $> m
      else pure m
   {-# INLINE ix #-}
 
 type instance IxValue IntSet = ()
 instance Ixed IntSet where
   ix k f m = if IntSet.member k m
-     then f () <&> \() -> IntSet.insert k m
+     then f () $> m
      else pure m
   {-# INLINE ix #-}
 
 type instance IxValue (HashSet k) = ()
 instance (Eq k, Hashable k) => Ixed (HashSet k) where
   ix k f m = if HashSet.member k m
-     then f () <&> \() -> HashSet.insert k m
+     then f () $> m
      else pure m
   {-# INLINE ix #-}
 
@@ -443,7 +466,7 @@ iat i f = at i (indexed f i)
 {-# INLINE iat #-}
 
 instance At (Maybe a) where
-  at () f = f
+  at ~() f = f
   {-# INLINE at #-}
 
 instance At (IntMap a) where
@@ -473,24 +496,36 @@ instance (Eq k, Hashable k) => At (HashMap k a) where
   {-# INLINE at #-}
 
 instance At IntSet where
-  at k f m = f mv <&> \r -> case r of
-    Nothing -> maybe m (const (IntSet.delete k m)) mv
-    Just () -> IntSet.insert k m
-    where mv = if IntSet.member k m then Just () else Nothing
+  -- This is a gently modified copy of the implementation of `IntSet.alterF`.
+  -- Unlike a `Set`, we don't have to worry about expensive comparisons from
+  -- descending multiple times into an `IntSet`. We are careful to share the
+  -- results of insertion or deletion across multiple positions in the
+  -- `Functor`.
+  at k f s = fmap choose (f (guard member_))
+    where
+      member_ = IntSet.member k s
+
+      (inserted, deleted)
+        | member_   = (s, IntSet.delete k s)
+        | otherwise = (IntSet.insert k s, s)
+
+      choose (Just ~()) = inserted
+      choose Nothing = deleted
   {-# INLINE at #-}
 
 instance Ord k => At (Set k) where
+#if MIN_VERSION_containers(0,6,3)
+  at k f = Set.alterF (fmap isJust . f . guard) k
+#else
   at k f m = f mv <&> \r -> case r of
     Nothing -> maybe m (const (Set.delete k m)) mv
-    Just () -> Set.insert k m
+    Just ~() -> maybe (Set.insert k m) (const m) mv
     where mv = if Set.member k m then Just () else Nothing
+#endif
   {-# INLINE at #-}
 
 instance (Eq k, Hashable k) => At (HashSet k) where
-  at k f m = f mv <&> \r -> case r of
-    Nothing -> maybe m (const (HashSet.delete k m)) mv
-    Just () -> HashSet.insert k m
-    where mv = if HashSet.member k m then Just () else Nothing
+  at k f s = HashSet.fromMap <$> HashMap.alterF f k (HashSet.toMap s)
   {-# INLINE at #-}
 
 
