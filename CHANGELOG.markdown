@@ -83,6 +83,13 @@
 * The build-type has been changed from `Custom` to `Simple`.
   To achieve this, the `doctests` test suite has been removed in favor of using [`cabal-docspec`](https://github.com/phadej/cabal-extras/tree/master/cabal-docspec) to run the doctests.
 * Use `alterF` in `At (HashMap k)` instance implementation.
+* Use `alterF` in `At` and `Contains` instances for `Set`, `IntSet`, and
+  `HashSet`.
+* Avoid re-inserting keys already present in `ix` for `Set`, `IntSet`,
+  and `HashSet`. For `Set` and `HashSet`, this changes the semantics
+  slightly; if the user-supplied key is `==` to one already present in
+  the set, then the latter will not be replaced in the result.
+* Consume `()` values lazily in `Control.Lens.At`.
 
 4.19.2 [2020.04.15]
 -------------------
