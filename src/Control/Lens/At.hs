@@ -365,30 +365,30 @@ instance (IArray UArray e, Ix i) => Ixed (UArray i e) where
 
 type instance IxValue (Vector.Vector a) = a
 instance Ixed (Vector.Vector a) where
-  ix i f v
-    | 0 <= i && i < Vector.length v = f (v Vector.! i) <&> \a -> v Vector.// [(i, a)]
-    | otherwise                     = pure v
+  ix i f v = case v Vector.!? i of
+    Just x -> f x <&> \x' -> v Vector.// [(i, x')]
+    Nothing -> pure v
   {-# INLINE ix #-}
 
 type instance IxValue (Prim.Vector a) = a
 instance Prim a => Ixed (Prim.Vector a) where
-  ix i f v
-    | 0 <= i && i < Prim.length v = f (v Prim.! i) <&> \a -> v Prim.// [(i, a)]
-    | otherwise                   = pure v
+  ix i f v = case v Prim.!? i of
+    Just x -> f x <&> \x' -> v Prim.// [(i, x')]
+    Nothing -> pure v
   {-# INLINE ix #-}
 
 type instance IxValue (Storable.Vector a) = a
 instance Storable a => Ixed (Storable.Vector a) where
-  ix i f v
-    | 0 <= i && i < Storable.length v = f (v Storable.! i) <&> \a -> v Storable.// [(i, a)]
-    | otherwise                       = pure v
+  ix i f v = case v Storable.!? i of
+    Just x -> f x <&> \x' -> v Storable.// [(i, x')]
+    Nothing -> pure v
   {-# INLINE ix #-}
 
 type instance IxValue (Unboxed.Vector a) = a
 instance Unbox a => Ixed (Unboxed.Vector a) where
-  ix i f v
-    | 0 <= i && i < Unboxed.length v = f (v Unboxed.! i) <&> \a -> v Unboxed.// [(i, a)]
-    | otherwise                      = pure v
+  ix i f v = case v Unboxed.!? i of
+    Just x -> f x <&> \x' -> v Unboxed.// [(i, x')]
+    Nothing -> pure v
   {-# INLINE ix #-}
 
 type instance IxValue StrictT.Text = Char
