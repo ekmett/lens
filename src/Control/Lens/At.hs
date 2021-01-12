@@ -286,9 +286,15 @@ instance Ixed (Tree a) where
 
 type instance IxValue (Seq a) = a
 instance Ixed (Seq a) where
+#if MIN_VERSION_containers(0,5,8)
+  ix i f m = case Seq.lookup i m of
+    Just x -> f x <&> \x' -> Seq.update i x' m
+    Nothing -> pure m
+#else
   ix i f m
     | 0 <= i && i < Seq.length m = f (Seq.index m i) <&> \a -> Seq.update i a m
     | otherwise                  = pure m
+#endif
   {-# INLINE ix #-}
 
 type instance IxValue (IntMap a) = a
