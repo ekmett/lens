@@ -118,6 +118,13 @@ import Data.Data.Lens
 import Data.Tree
 import GHC.Generics
 
+-- $setup
+-- >>> :set -XDeriveGeneric -XDeriveDataTypeable
+-- >>> import Control.Applicative
+-- >>> import Data.Data (Data, Typeable)
+-- >>> import GHC.Generics (Generic)
+-- >>> import Control.Lens
+
 -- | A 'Plated' type is one where we know how to extract its immediate self-similar children.
 --
 -- /Example 1/:
@@ -721,6 +728,41 @@ parts = partsOf plate
 -------------------------------------------------------------------------------
 
 -- | Implement 'plate' operation for a type using its 'Generic' instance.
+--
+-- Note: the behavior may be different than with 'uniplate' in some special cases.
+-- 'gplate' doesn't look through other types in a group of mutually
+-- recursive types.
+--
+-- For example consider mutually recursive even and odd natural numbers:
+--
+-- >>> data Even = Z | E Odd deriving (Show, Generic, Typeable, Data); data Odd = O Even deriving (Show, Generic, Typeable, Data)
+--
+-- Then 'uniplate', which is based on `Data`, finds
+-- all even numbers less or equal than four:
+--
+-- >>> import Data.Data.Lens (uniplate)
+-- >>> universeOf uniplate (E (O (E (O Z))))
+-- [E (O (E (O Z))),E (O Z),Z]
+--
+-- but 'gplate' doesn't see through @Odd@.
+--
+-- >>> universeOf gplate (E (O (E (O Z))))
+-- [E (O (E (O Z)))]
+--
+-- If using 'Data' is not an option, you can still write the traversal manually.
+-- It is sometimes useful to use helper traversals
+--
+-- >>> :{
+-- let oddeven :: Traversal' Odd Even
+--     oddeven f (O n) = O <$> f n
+--     evenplate :: Traversal' Even Even
+--     evenplate f Z     = pure Z
+--     evenplate f (E n) = E <$> oddeven f n
+-- :}
+--
+-- >>> universeOf evenplate (E (O (E (O Z))))
+-- [E (O (E (O Z))),E (O Z),Z]
+--
 gplate :: (Generic a, GPlated a (Rep a)) => Traversal' a a
 gplate f x = GHC.Generics.to <$> gplate' f (GHC.Generics.from x)
 {-# INLINE gplate #-}
