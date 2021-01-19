@@ -176,7 +176,7 @@ library
     base-orphans                  >= 0.5.2    && < 1,
     bifunctors                    >= 5.1      && < 6,
     bytestring                    >= 0.10.4.0 && < 0.12,
-    call-stack                    >= 0.1      && < 0.3,
+    call-stack                    >= 0.1      && < 0.4,
     comonad                       >= 5.0.7    && < 6,
     containers                    >= 0.5.5.1  && < 0.7,
     contravariant                 >= 1.3      && < 2,
