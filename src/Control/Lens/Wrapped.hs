@@ -128,7 +128,8 @@ import           Data.Functor.Reverse
 import           Data.Hashable
 import qualified Data.IntSet as IntSet
 import           Data.IntSet (IntSet)
-import           Data.IntMap as IntMap
+import qualified Data.IntMap as IntMap
+import           Data.IntMap (IntMap)
 import qualified Data.HashSet as HashSet
 import           Data.HashSet (HashSet)
 import qualified Data.HashMap.Lazy as HashMap

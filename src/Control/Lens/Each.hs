@@ -39,7 +39,7 @@ import qualified Data.ByteString as StrictB
 import qualified Data.ByteString.Lazy as LazyB
 import Data.Complex
 import Data.HashMap.Lazy (HashMap)
-import Data.IntMap as IntMap
+import Data.IntMap (IntMap)
 import Data.Map (Map)
 import Data.Sequence (Seq)
 import Data.Text.Lens (text)
