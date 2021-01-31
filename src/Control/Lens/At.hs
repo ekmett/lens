@@ -66,7 +66,8 @@ import Data.IntMap as IntMap
 import Data.IntSet as IntSet
 import Data.Map as Map
 import Data.Maybe (isJust)
-import Data.Set as Set
+import qualified Data.Set as Set
+import Data.Set (Set)
 import qualified Data.Sequence as Seq
 import Data.Sequence (Seq)
 import qualified Data.Text as StrictT

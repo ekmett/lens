@@ -47,7 +47,8 @@ import Data.Monoid
 import Data.Map as Map
 import Data.Maybe
 import qualified Data.Sequence as Seq
-import Data.Set as Set
+import qualified Data.Set as Set
+import Data.Set (Set)
 import qualified Data.Text as StrictT
 import qualified Data.Text.Lazy as LazyT
 import qualified Data.Vector as Vector
