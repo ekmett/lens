@@ -60,7 +60,8 @@ import Data.Complex
 import Data.Functor (($>))
 import Data.Hashable
 import Data.HashMap.Lazy as HashMap
-import Data.HashSet as HashSet
+import qualified Data.HashSet as HashSet
+import Data.HashSet (HashSet)
 import Data.Int
 import Data.IntMap as IntMap
 import Data.IntSet as IntSet

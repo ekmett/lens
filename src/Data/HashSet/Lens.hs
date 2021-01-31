@@ -17,7 +17,8 @@ module Data.HashSet.Lens
 import Control.Lens.Getter (Getting, views)
 import Control.Lens.Setter (setting)
 import Control.Lens.Type
-import Data.HashSet as HashSet
+import qualified Data.HashSet as HashSet
+import Data.HashSet (HashSet)
 import Data.Hashable
 
 -- $setup
