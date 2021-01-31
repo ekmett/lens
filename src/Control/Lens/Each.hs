@@ -43,8 +43,8 @@ import Data.IntMap as IntMap
 import Data.Map as Map
 import Data.Sequence as Seq
 import Data.Text.Lens (text)
-import Data.Text as StrictT
-import Data.Text.Lazy as LazyT
+import qualified Data.Text as StrictT
+import qualified Data.Text.Lazy as LazyT
 import Data.Tree as Tree
 import Data.Vector.Generic.Lens (vectorTraverse)
 import qualified Data.Vector as Vector

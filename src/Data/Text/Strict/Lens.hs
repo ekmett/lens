@@ -37,10 +37,12 @@ import Control.Lens.Setter
 import Control.Lens.Traversal
 import Data.ByteString (ByteString)
 import Data.Monoid
-import Data.Text as Strict
+import qualified Data.Text as Strict
+import Data.Text (Text)
 import Data.Text.Encoding
 import Data.Text.Lazy (toStrict)
-import Data.Text.Lazy.Builder
+import qualified Data.Text.Lazy.Builder as Builder
+import Data.Text.Lazy.Builder (Builder)
 
 -- $setup
 -- >>> :set -XOverloadedStrings
@@ -59,7 +61,7 @@ import Data.Text.Lazy.Builder
 -- 'packed' ≡ 'iso' 'pack' 'unpack'
 -- @
 packed :: Iso' String Text
-packed = iso pack unpack
+packed = iso Strict.pack Strict.unpack
 {-# INLINE packed #-}
 
 -- | This isomorphism can be used to 'unpack' (or 'pack') lazy 'Text'.
@@ -79,7 +81,7 @@ packed = iso pack unpack
 -- 'unpacked' ≡ 'iso' 'unpack' 'pack'
 -- @
 unpacked :: Iso' Text String
-unpacked = iso unpack pack
+unpacked = iso Strict.unpack Strict.pack
 {-# INLINE unpacked #-}
 
 -- | This is an alias for 'unpacked' that makes it more obvious how to use it with '#'
@@ -97,7 +99,7 @@ _Text = unpacked
 -- 'toStrict' ('toLazyText' x) ≡ x '^.' 'from' 'builder'
 -- @
 builder :: Iso' Text Builder
-builder = iso fromText (toStrict . toLazyText)
+builder = iso Builder.fromText (toStrict . Builder.toLazyText)
 {-# INLINE builder #-}
 
 -- | Traverse the individual characters in strict 'Text'.

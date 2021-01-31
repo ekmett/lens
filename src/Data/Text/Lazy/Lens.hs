@@ -38,8 +38,10 @@ import Control.Lens.Setter
 import Control.Lens.Traversal
 import Data.ByteString.Lazy (ByteString)
 import Data.Monoid
-import Data.Text.Lazy as Text
-import Data.Text.Lazy.Builder
+import Data.Text.Lazy (Text)
+import qualified Data.Text.Lazy as Text
+import qualified Data.Text.Lazy.Builder as Builder
+import Data.Text.Lazy.Builder (Builder)
 import Data.Text.Lazy.Encoding
 
 -- $setup
@@ -99,7 +101,7 @@ _Text = from packed
 -- 'toLazyText' x ≡ x '^.' 'from' 'builder'
 -- @
 builder :: Iso' Text Builder
-builder = iso fromLazyText toLazyText
+builder = iso Builder.fromLazyText Builder.toLazyText
 {-# INLINE builder #-}
 
 -- | Traverse the individual characters in a 'Text'.

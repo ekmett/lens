@@ -32,15 +32,15 @@ import           Control.Lens.Review
 #endif
 import           Control.Lens.Iso
 import           Control.Lens.Traversal
-import           Data.Text as Strict
+import qualified Data.Text as Strict
 import qualified Data.Text.Strict.Lens as Strict
-import           Data.Text.Lazy as Lazy
+import qualified Data.Text.Lazy as Lazy
 import qualified Data.Text.Lazy.Lens as Lazy
-import           Data.Text.Lazy.Builder
+import           Data.Text.Lazy.Builder (Builder)
 
 -- $setup
 -- >>> import Control.Lens
--- >>> import Data.Text as Strict
+-- >>> import qualified Data.Text as Strict
 
 -- | Traversals for strict or lazy 'Text'
 class IsText t where

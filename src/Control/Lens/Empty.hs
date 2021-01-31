@@ -48,8 +48,8 @@ import Data.Map as Map
 import Data.Maybe
 import qualified Data.Sequence as Seq
 import Data.Set as Set
-import Data.Text as StrictT
-import Data.Text.Lazy as LazyT
+import qualified Data.Text as StrictT
+import qualified Data.Text.Lazy as LazyT
 import qualified Data.Vector as Vector
 import qualified Data.Vector.Unboxed as Unboxed
 import Data.Vector.Unboxed (Unbox)

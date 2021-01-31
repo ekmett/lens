@@ -25,8 +25,8 @@ import Control.Lens.Internal.Coerce
 import qualified Data.ByteString       as StrictB
 import qualified Data.ByteString.Lazy  as LazyB
 import qualified Data.List.NonEmpty    as NonEmpty
-import Data.Text                       as StrictT
-import Data.Text.Lazy                  as LazyT
+import qualified Data.Text             as StrictT
+import qualified Data.Text.Lazy        as LazyT
 import qualified Data.Vector           as Vector
 import qualified Data.Vector.Primitive as Prim
 import Data.Vector.Primitive (Prim)
