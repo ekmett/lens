@@ -36,7 +36,8 @@ module Data.Vector.Generic.Lens
   , vectorTraverse
   ) where
 
-import Control.Applicative
+import Prelude ()
+
 import Control.Lens.Type
 import Control.Lens.Lens
 import Control.Lens.Getter
@@ -46,10 +47,10 @@ import Control.Lens.Indexed
 import Control.Lens.Setter
 import Control.Lens.Traversal
 import Control.Lens.Internal.List (ordinalNub)
-import Data.Monoid
-import Data.Vector.Generic as V hiding (zip, filter, indexed)
+import Control.Lens.Internal.Prelude
+import qualified Data.Vector.Generic as V
+import Data.Vector.Generic (Vector)
 import Data.Vector.Generic.New (New)
-import Prelude hiding ((++), length, null, head, tail, init, last, map, reverse)
 
 #if MIN_VERSION_vector(0,11,0)
 import Data.Vector.Fusion.Bundle (Bundle)
@@ -58,7 +59,7 @@ import Data.Vector.Fusion.Stream (Stream)
 #endif
 
 -- $setup
--- >>> import Data.Vector as Vector
+-- >>> import qualified Data.Vector as Vector
 -- >>> import Control.Lens
 
 -- | @sliced i n@ provides a 'Lens' that edits the @n@ elements starting
@@ -79,7 +80,7 @@ sliced :: Vector v a
        => Int -- ^ @i@ starting index
        -> Int -- ^ @n@ length
        -> Lens' (v a) (v a)
-sliced i n f v = f (slice i n v) <&> \ v0 -> v // zip [i..i+n-1] (V.toList v0)
+sliced i n f v = f (V.slice i n v) <&> \ v0 -> v V.// zip [i..i+n-1] (V.toList v0)
 {-# INLINE sliced #-}
 
 -- | Similar to 'toListOf', but returning a 'Vector'.
@@ -87,7 +88,7 @@ sliced i n f v = f (slice i n v) <&> \ v0 -> v // zip [i..i+n-1] (V.toList v0)
 -- >>> (toVectorOf both (8,15) :: Vector.Vector Int) == Vector.fromList [8,15]
 -- True
 toVectorOf :: Vector v a => Getting (Endo [a]) s a -> s -> v a
-toVectorOf l s = fromList (toListOf l s)
+toVectorOf l s = V.fromList (toListOf l s)
 {-# INLINE toVectorOf #-}
 
 -- | Convert a list to a 'Vector' (or back.)
@@ -98,7 +99,7 @@ toVectorOf l s = fromList (toListOf l s)
 -- >>> Vector.fromList [0,8,15] ^. from vector
 -- [0,8,15]
 vector :: (Vector v a, Vector v b) => Iso [a] [b] (v a) (v b)
-vector = iso fromList V.toList
+vector = iso V.fromList V.toList
 {-# INLINE vector #-}
 
 #if MIN_VERSION_vector(0,11,0)
@@ -108,7 +109,7 @@ asStream :: (Vector v a, Vector v b) => Iso (v a) (v b) (Bundle v a) (Bundle v b
 -- | Convert a 'Vector' to a finite 'Stream' (or back.)
 asStream :: (Vector v a, Vector v b) => Iso (v a) (v b) (Stream a) (Stream b)
 #endif
-asStream = iso stream unstream
+asStream = iso V.stream V.unstream
 {-# INLINE asStream #-}
 
 #if MIN_VERSION_vector(0,11,0)
@@ -120,19 +121,19 @@ asStreamR :: (Vector v a, Vector v b) => Iso (v a) (v b) (Bundle v a) (Bundle v 
 -- back.)
 asStreamR :: (Vector v a, Vector v b) => Iso (v a) (v b) (Stream a) (Stream b)
 #endif
-asStreamR = iso streamR unstreamR
+asStreamR = iso V.streamR V.unstreamR
 {-# INLINE asStreamR #-}
 
 -- | Convert a 'Vector' back and forth to an initializer that when run
 -- produces a copy of the 'Vector'.
 cloned :: Vector v a => Iso' (v a) (New v a)
-cloned = iso clone new
+cloned = iso V.clone V.new
 {-# INLINE cloned #-}
 
 -- | Convert a 'Vector' to a version that doesn't retain any extra
 -- memory.
 forced :: Vector v a => Iso' (v a) (v a)
-forced = involuted force
+forced = involuted V.force
 {-# INLINE forced #-}
 
 -- | This 'Traversal' will ignore any duplicates in the supplied list
@@ -141,7 +142,7 @@ forced = involuted force
 -- >>> toListOf (ordinals [1,3,2,5,9,10]) $ Vector.fromList [2,4..40]
 -- [4,8,6,12,20,22]
 ordinals :: Vector v a => [Int] -> IndexedTraversal' Int (v a) a
-ordinals is f v = fmap (v //) $ traverse (\i -> (,) i <$> indexed f i (v ! i)) $ ordinalNub (length v) is
+ordinals is f v = fmap (v V.//) $ traverse (\i -> (,) i <$> indexed f i (v V.! i)) $ ordinalNub (V.length v) is
 {-# INLINE ordinals #-}
 
 -- | Like 'ix' but polymorphic in the vector type.
@@ -165,4 +166,4 @@ vectorTraverse f v = V.fromListN (V.length v) <$> traversed f (V.toList v)
 
 -- | Different vector implementations are isomorphic to each other.
 converted :: (Vector v a, Vector w a, Vector v b, Vector w b) => Iso (v a) (v b) (w a) (w b)
-converted = iso convert convert
+converted = iso V.convert V.convert

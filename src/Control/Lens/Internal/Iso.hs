@@ -22,16 +22,19 @@ import Data.Profunctor
 import Data.Profunctor.Unsafe
 import Control.Lens.Internal.Coerce
 
-import Data.ByteString       as StrictB
-import Data.ByteString.Lazy  as LazyB
-import Data.List.NonEmpty    as NonEmpty
-import Data.Text             as StrictT
-import Data.Text.Lazy        as LazyT
-import Data.Vector           as Vector
-import Data.Vector.Primitive as Prim
-import Data.Vector.Storable  as Storable
-import Data.Vector.Unboxed   as Unbox
-import Data.Sequence         as Seq
+import Data.ByteString                 as StrictB
+import Data.ByteString.Lazy            as LazyB
+import Data.List.NonEmpty              as NonEmpty
+import Data.Text                       as StrictT
+import Data.Text.Lazy                  as LazyT
+import qualified Data.Vector           as Vector
+import qualified Data.Vector.Primitive as Prim
+import Data.Vector.Primitive (Prim)
+import qualified Data.Vector.Storable  as Storable
+import qualified Data.Vector.Unboxed   as Unbox
+import Data.Vector.Unboxed (Unbox)
+import Data.Sequence                   as Seq
+import Foreign.Storable (Storable)
 
 ------------------------------------------------------------------------------
 -- Isomorphism: Exchange

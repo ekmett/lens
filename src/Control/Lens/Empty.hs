@@ -50,9 +50,11 @@ import qualified Data.Sequence as Seq
 import Data.Set as Set
 import Data.Text as StrictT
 import Data.Text.Lazy as LazyT
-import Data.Vector as Vector
-import Data.Vector.Unboxed as Unboxed
-import Data.Vector.Storable as Storable
+import qualified Data.Vector as Vector
+import qualified Data.Vector.Unboxed as Unboxed
+import Data.Vector.Unboxed (Unbox)
+import qualified Data.Vector.Storable as Storable
+import Foreign.Storable (Storable)
 
 #if !defined(mingw32_HOST_OS) && !defined(ghcjs_HOST_OS)
 import GHC.Event

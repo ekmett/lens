@@ -71,11 +71,14 @@ import Data.Sequence as Seq
 import Data.Text as StrictT
 import Data.Text.Lazy as LazyT
 import Data.Tree
-import Data.Vector as Vector hiding (indexed)
-import Data.Vector.Primitive as Prim
-import Data.Vector.Storable as Storable
-import Data.Vector.Unboxed as Unboxed hiding (indexed)
+import qualified Data.Vector as Vector
+import qualified Data.Vector.Primitive as Prim
+import Data.Vector.Primitive (Prim)
+import qualified Data.Vector.Storable as Storable
+import qualified Data.Vector.Unboxed as Unboxed
+import Data.Vector.Unboxed (Unbox)
 import Data.Word
+import Foreign.Storable (Storable)
 
 type family Index (s :: *) :: *
 type instance Index (e -> a) = e
