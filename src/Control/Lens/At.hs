@@ -59,7 +59,8 @@ import qualified Data.ByteString.Lazy as LazyB
 import Data.Complex
 import Data.Functor (($>))
 import Data.Hashable
-import Data.HashMap.Lazy as HashMap
+import qualified Data.HashMap.Lazy as HashMap
+import Data.HashMap.Lazy (HashMap)
 import qualified Data.HashSet as HashSet
 import Data.HashSet (HashSet)
 import Data.Int

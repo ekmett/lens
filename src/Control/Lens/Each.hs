@@ -38,7 +38,7 @@ import Data.Array.IArray as IArray
 import qualified Data.ByteString as StrictB
 import qualified Data.ByteString.Lazy as LazyB
 import Data.Complex
-import Data.HashMap.Lazy as HashMap
+import Data.HashMap.Lazy (HashMap)
 import Data.IntMap as IntMap
 import Data.Map (Map)
 import Data.Sequence (Seq)
