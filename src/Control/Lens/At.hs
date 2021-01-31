@@ -64,7 +64,8 @@ import Data.HashMap.Lazy (HashMap)
 import qualified Data.HashSet as HashSet
 import Data.HashSet (HashSet)
 import Data.Int
-import Data.IntMap as IntMap
+import qualified Data.IntMap as IntMap
+import Data.IntMap (IntMap)
 import qualified Data.IntSet as IntSet
 import Data.IntSet (IntSet)
 import qualified Data.Map as Map
