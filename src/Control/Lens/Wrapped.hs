@@ -142,7 +142,8 @@ import qualified Data.Semigroupoid.Dual as Semigroupoid
 import           Data.Semigroupoid.Static
 import qualified Data.Sequence as Seq
 import           Data.Sequence (Seq)
-import           Data.Set as Set
+import qualified Data.Set as Set
+import           Data.Set (Set)
 import           Data.Tagged
 import qualified Data.Vector as Vector
 import qualified Data.Vector.Primitive as Prim

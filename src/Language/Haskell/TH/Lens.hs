@@ -418,7 +418,8 @@ import Control.Lens.Traversal
 import Data.Map as Map hiding (toList,map)
 import Data.Maybe (fromMaybe)
 import Data.Monoid
-import Data.Set as Set hiding (toList,map)
+import qualified Data.Set as Set
+import Data.Set (Set)
 import Data.Set.Lens
 import Language.Haskell.TH
 import Language.Haskell.TH.Datatype.TyVarBndr

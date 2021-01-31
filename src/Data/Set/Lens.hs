@@ -23,13 +23,14 @@ module Data.Set.Lens
 import Control.Lens.Getter ( Getting, views )
 import Control.Lens.Setter ( setting )
 import Control.Lens.Type
-import Data.Set as Set
+import qualified Data.Set as Set
+import Data.Set (Set)
 
 
 -- $setup
 -- >>> :set -XNoOverloadedStrings
 -- >>> import Control.Lens
--- >>> import Data.Set as Set
+-- >>> import qualified Data.Set as Set
 
 -- | This 'Setter' can be used to change the type of a 'Set' by mapping
 -- the elements to new values.
@@ -37,7 +38,7 @@ import Data.Set as Set
 -- Sadly, you can't create a valid 'Traversal' for a 'Set', but you can
 -- manipulate it by reading using 'Control.Lens.Fold.folded' and reindexing it via 'setmapped'.
 --
--- >>> over setmapped (+1) (fromList [1,2,3,4])
+-- >>> over setmapped (+1) (Set.fromList [1,2,3,4])
 -- fromList [2,3,4,5]
 setmapped :: Ord j => IndexPreservingSetter (Set i) (Set j) i j
 setmapped = setting Set.map
