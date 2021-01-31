@@ -40,7 +40,8 @@ import Control.Lens.Review
 import qualified Data.ByteString as StrictB
 import qualified Data.ByteString.Lazy as LazyB
 import Data.HashMap.Lazy as HashMap
-import Data.HashSet as HashSet
+import qualified Data.HashSet as HashSet
+import Data.HashSet (HashSet)
 import Data.IntMap as IntMap
 import Data.IntSet as IntSet
 import Data.Monoid
