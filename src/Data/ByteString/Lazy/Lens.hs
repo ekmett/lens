@@ -28,8 +28,9 @@ module Data.ByteString.Lazy.Lens
 
 import Control.Lens
 import Control.Lens.Internal.ByteString
-import Data.ByteString.Lazy       as Words
-import Data.ByteString.Lazy.Char8 as Char8
+import Data.ByteString.Lazy (ByteString)
+import qualified Data.ByteString.Lazy       as Words
+import qualified Data.ByteString.Lazy.Char8 as Char8
 import Data.Word (Word8)
 import Data.Int (Int64)
 
@@ -37,7 +38,7 @@ import Data.Int (Int64)
 -- >>> :set -XOverloadedStrings
 -- >>> import Control.Lens
 -- >>> import Numeric.Lens
--- >>> import Data.ByteString.Lazy.Char8 as Char8
+-- >>> import qualified Data.ByteString.Lazy.Char8 as Char8
 
 -- | 'Data.ByteString.Lazy.pack' (or 'Data.ByteString.Lazy.unpack') a list of bytes into a 'ByteString'.
 --

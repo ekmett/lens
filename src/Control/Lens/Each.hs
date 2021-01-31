@@ -35,8 +35,8 @@ import Control.Lens.Internal.ByteString
 import Control.Lens.Internal.Prelude
 import Data.Array.Unboxed as Unboxed
 import Data.Array.IArray as IArray
-import Data.ByteString as StrictB
-import Data.ByteString.Lazy as LazyB
+import qualified Data.ByteString as StrictB
+import qualified Data.ByteString.Lazy as LazyB
 import Data.Complex
 import Data.HashMap.Lazy as HashMap
 import Data.IntMap as IntMap

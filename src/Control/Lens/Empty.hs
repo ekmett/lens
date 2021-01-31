@@ -37,8 +37,8 @@ import Control.Lens.Fold
 import Control.Lens.Prism
 import Control.Lens.Internal.Prelude as Prelude
 import Control.Lens.Review
-import Data.ByteString as StrictB
-import Data.ByteString.Lazy as LazyB
+import qualified Data.ByteString as StrictB
+import qualified Data.ByteString.Lazy as LazyB
 import Data.HashMap.Lazy as HashMap
 import Data.HashSet as HashSet
 import Data.IntMap as IntMap

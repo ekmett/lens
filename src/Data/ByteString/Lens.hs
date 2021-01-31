@@ -26,9 +26,9 @@ module Data.ByteString.Lens
 
 import           Control.Lens
 import           Data.Word (Word8)
-import           Data.ByteString as Strict
+import qualified Data.ByteString as Strict
 import qualified Data.ByteString.Strict.Lens as Strict
-import           Data.ByteString.Lazy as Lazy
+import qualified Data.ByteString.Lazy as Lazy
 import qualified Data.ByteString.Lazy.Lens as Lazy
 
 -- | Traversals for ByteStrings.
@@ -113,7 +113,7 @@ unpackedBytes = from packedBytes
 #if __GLASGOW_HASKELL__ >= 710
 pattern Bytes b <- (view unpackedBytes -> b) where
   Bytes b = review unpackedBytes b
-  
+
 pattern Chars b <- (view unpackedChars -> b) where
   Chars b = review unpackedChars b
 #endif
