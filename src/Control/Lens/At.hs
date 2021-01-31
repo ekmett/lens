@@ -68,8 +68,8 @@ import Data.Map as Map
 import Data.Maybe (isJust)
 import Data.Set as Set
 import Data.Sequence as Seq
-import Data.Text as StrictT
-import Data.Text.Lazy as LazyT
+import qualified Data.Text as StrictT
+import qualified Data.Text.Lazy as LazyT
 import Data.Tree
 import qualified Data.Vector as Vector
 import qualified Data.Vector.Primitive as Prim
