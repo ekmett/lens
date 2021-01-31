@@ -39,7 +39,8 @@ import Control.Lens.Internal.Prelude as Prelude
 import Control.Lens.Review
 import qualified Data.ByteString as StrictB
 import qualified Data.ByteString.Lazy as LazyB
-import Data.HashMap.Lazy as HashMap
+import qualified Data.HashMap.Lazy as HashMap
+import Data.HashMap.Lazy (HashMap)
 import qualified Data.HashSet as HashSet
 import Data.HashSet (HashSet)
 import Data.IntMap as IntMap

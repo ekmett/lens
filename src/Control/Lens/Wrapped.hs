@@ -130,7 +130,8 @@ import           Data.IntSet as IntSet
 import           Data.IntMap as IntMap
 import qualified Data.HashSet as HashSet
 import           Data.HashSet (HashSet)
-import           Data.HashMap.Lazy as HashMap
+import qualified Data.HashMap.Lazy as HashMap
+import           Data.HashMap.Lazy (HashMap)
 import           Data.List.NonEmpty (NonEmpty(..))
 import qualified Data.Map as Map
 import           Data.Map (Map)
