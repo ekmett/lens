@@ -415,7 +415,8 @@ import Control.Lens.Lens
 import Control.Lens.Prism
 import Control.Lens.Tuple
 import Control.Lens.Traversal
-import Data.Map as Map hiding (toList,map)
+import qualified Data.Map as Map
+import Data.Map (Map)
 import Data.Maybe (fromMaybe)
 import Data.Monoid
 import qualified Data.Set as Set

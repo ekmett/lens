@@ -664,7 +664,7 @@ l <<.~ b = l $ \a -> (a, b)
 --
 -- If you do not need the old value ('Control.Lens.Setter.?~') is more flexible.
 --
--- >>> import Data.Map as Map
+-- >>> import qualified Data.Map as Map
 -- >>> _2.at "hello" <<?~ "world" $ (42,Map.fromList [("goodnight","gracie")])
 -- (Nothing,(42,fromList [("goodnight","gracie"),("hello","world")]))
 --

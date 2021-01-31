@@ -126,7 +126,7 @@ import GHC.Exts (TYPE)
 -- $setup
 -- >>> :set -XNoOverloadedStrings
 -- >>> import Control.Lens
--- >>> import Data.Map as Map
+-- >>> import qualified Data.Map as Map
 -- >>> import Data.Foldable
 -- >>> import Data.Monoid
 
@@ -325,7 +325,7 @@ mapping k = withIso k $ \ sa bt -> iso (fmap sa) (fmap bt)
 -- and when have deleting the last entry from the nested 'Data.Map.Map' mean that we
 -- should delete its entry from the surrounding one:
 --
--- >>> fromList [("hello",fromList [("world","!!!")])] & at "hello" . non Map.empty . at "world" .~ Nothing
+-- >>> Map.fromList [("hello",Map.fromList [("world","!!!")])] & at "hello" . non Map.empty . at "world" .~ Nothing
 -- fromList []
 --
 -- It can also be used in reverse to exclude a given value:
@@ -346,7 +346,7 @@ non a = non' $ only a
 -- >>> Map.singleton "hello" Map.empty & at "hello" . non' _Empty . at "world" ?~ "!!!"
 -- fromList [("hello",fromList [("world","!!!")])]
 --
--- >>> fromList [("hello",fromList [("world","!!!")])] & at "hello" . non' _Empty . at "world" .~ Nothing
+-- >>> Map.fromList [("hello",Map.fromList [("world","!!!")])] & at "hello" . non' _Empty . at "world" .~ Nothing
 -- fromList []
 non' :: APrism' a () -> Iso' (Maybe a) a
 non' p = iso (fromMaybe def) go where
@@ -362,7 +362,7 @@ non' p = iso (fromMaybe def) go where
 -- >>> Map.empty & at "hello" . anon Map.empty Map.null . at "world" ?~ "!!!"
 -- fromList [("hello",fromList [("world","!!!")])]
 --
--- >>> fromList [("hello",fromList [("world","!!!")])] & at "hello" . anon Map.empty Map.null . at "world" .~ Nothing
+-- >>> Map.fromList [("hello",Map.fromList [("world","!!!")])] & at "hello" . anon Map.empty Map.null . at "world" .~ Nothing
 -- fromList []
 anon :: a -> (a -> Bool) -> Iso' (Maybe a) a
 anon a p = iso (fromMaybe a) go where

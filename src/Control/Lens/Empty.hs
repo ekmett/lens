@@ -45,7 +45,8 @@ import Data.HashSet (HashSet)
 import Data.IntMap as IntMap
 import Data.IntSet as IntSet
 import Data.Monoid
-import Data.Map as Map
+import qualified Data.Map as Map
+import Data.Map (Map)
 import Data.Maybe
 import qualified Data.Sequence as Seq
 import qualified Data.Set as Set
