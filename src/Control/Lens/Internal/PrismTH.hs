@@ -29,7 +29,7 @@ import Control.Lens.Lens
 import Control.Lens.Setter
 import Control.Monad
 import Data.Char (isUpper)
-import Data.List
+import qualified Data.List as List
 import Data.Set.Lens
 import Data.Traversable
 import Language.Haskell.TH
@@ -212,7 +212,7 @@ stabType (Stab _ o _ _ _ _) = o
 
 computeOpticType :: Type -> [NCon] -> NCon -> Q Stab
 computeOpticType t cons con =
-  do let cons' = delete con cons
+  do let cons' = List.delete con cons
      if null (_nconVars con)
          then computePrismType t (view nconCxt con) cons' con
          else computeReviewType t (view nconCxt con) (view nconTypes con)
@@ -485,7 +485,7 @@ data NCon = NCon
 
 instance HasTypeVars NCon where
   typeVarsEx s f (NCon x vars y z) = NCon x vars <$> typeVarsEx s' f y <*> typeVarsEx s' f z
-    where s' = foldl' (flip Set.insert) s vars
+    where s' = List.foldl' (flip Set.insert) s vars
 
 nconName :: Lens' NCon Name
 nconName f x = fmap (\y -> x {_nconName = y}) (f (_nconName x))

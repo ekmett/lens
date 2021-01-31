@@ -99,7 +99,7 @@ import Prelude ()
 import Control.Monad (guard)
 import Control.Lens.Internal.Prelude
 import Control.Lens
-import Data.List
+import qualified Data.List as List
 
 -- $setup
 -- >>> :set -XNoOverloadedStrings
@@ -121,7 +121,7 @@ import Data.List
 -- >>> prefixed "pre" # "amble"
 -- "preamble"
 prefixed :: Eq a => [a] -> Prism' [a] [a]
-prefixed ps = prism' (ps ++) (stripPrefix ps)
+prefixed ps = prism' (ps ++) (List.stripPrefix ps)
 {-# INLINE prefixed #-}
 
 -- | A 'Prism' stripping a suffix from a list when used as a 'Traversal', or

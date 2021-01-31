@@ -23,7 +23,7 @@ module Main (main) where
 import Control.Lens
 import Control.Monad.State
 import Data.Char
-import Data.List as List
+import qualified Data.List as List
 import Data.Map as Map
 #if !(MIN_VERSION_base(4,11,0))
 import Data.Monoid
