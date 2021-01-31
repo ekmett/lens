@@ -19,12 +19,14 @@ module Data.Sequence.Lens
 import Control.Applicative
 import Control.Lens
 import Data.Monoid
-import Data.Sequence as Seq
+import qualified Data.Sequence as Seq
+import Data.Sequence (Seq, ViewL(EmptyL), ViewR(EmptyR), (><), viewl, viewr)
 import Prelude
 
 -- $setup
 -- >>> import Control.Lens
--- >>> import Data.Sequence as Seq
+-- >>> import qualified Data.Sequence as Seq
+-- >>> import Data.Sequence (ViewL(EmptyL), ViewR(EmptyR))
 -- >>> import Debug.SimpleReflect.Expr
 -- >>> import Debug.SimpleReflect.Vars as Vars hiding (f,g)
 -- >>> let f :: Expr -> Expr; f = Debug.SimpleReflect.Vars.f
@@ -45,7 +47,7 @@ import Prelude
 -- >>> EmptyL ^. from viewL
 -- fromList []
 --
--- >>> review viewL $ a Seq.:< fromList [b,c]
+-- >>> review viewL $ a Seq.:< Seq.fromList [b,c]
 -- fromList [a,b,c]
 viewL :: Iso (Seq a) (Seq b) (ViewL a) (ViewL b)
 viewL = iso viewl $ \ xs -> case xs of
@@ -66,7 +68,7 @@ viewL = iso viewl $ \ xs -> case xs of
 -- >>> EmptyR ^. from viewR
 -- fromList []
 --
--- >>> review viewR $ fromList [a,b] Seq.:> c
+-- >>> review viewR $ Seq.fromList [a,b] Seq.:> c
 -- fromList [a,b,c]
 viewR :: Iso (Seq a) (Seq b) (ViewR a) (ViewR b)
 viewR = iso viewr $ \xs -> case xs of
@@ -76,13 +78,13 @@ viewR = iso viewr $ \xs -> case xs of
 
 -- | Traverse the first @n@ elements of a 'Seq'
 --
--- >>> fromList [a,b,c,d,e] ^.. slicedTo 2
+-- >>> Seq.fromList [a,b,c,d,e] ^.. slicedTo 2
 -- [a,b]
 --
--- >>> fromList [a,b,c,d,e] & slicedTo 2 %~ f
+-- >>> Seq.fromList [a,b,c,d,e] & slicedTo 2 %~ f
 -- fromList [f a,f b,c,d,e]
 --
--- >>> fromList [a,b,c,d,e] & slicedTo 10 .~ x
+-- >>> Seq.fromList [a,b,c,d,e] & slicedTo 10 .~ x
 -- fromList [x,x,x,x,x]
 slicedTo :: Int -> IndexedTraversal' Int (Seq a) a
 slicedTo n f m = case Seq.splitAt n m of
@@ -91,13 +93,13 @@ slicedTo n f m = case Seq.splitAt n m of
 
 -- | Traverse all but the first @n@ elements of a 'Seq'
 --
--- >>> fromList [a,b,c,d,e] ^.. slicedFrom 2
+-- >>> Seq.fromList [a,b,c,d,e] ^.. slicedFrom 2
 -- [c,d,e]
 --
--- >>> fromList [a,b,c,d,e] & slicedFrom 2 %~ f
+-- >>> Seq.fromList [a,b,c,d,e] & slicedFrom 2 %~ f
 -- fromList [a,b,f c,f d,f e]
 --
--- >>> fromList [a,b,c,d,e] & slicedFrom 10 .~ x
+-- >>> Seq.fromList [a,b,c,d,e] & slicedFrom 10 .~ x
 -- fromList [a,b,c,d,e]
 slicedFrom :: Int -> IndexedTraversal' Int (Seq a) a
 slicedFrom n f m = case Seq.splitAt n m of
@@ -106,13 +108,13 @@ slicedFrom n f m = case Seq.splitAt n m of
 
 -- | Traverse all the elements numbered from @i@ to @j@ of a 'Seq'
 --
--- >>> fromList [a,b,c,d,e] & sliced 1 3 %~ f
+-- >>> Seq.fromList [a,b,c,d,e] & sliced 1 3 %~ f
 -- fromList [a,f b,f c,d,e]
 
--- >>> fromList [a,b,c,d,e] ^.. sliced 1 3
+-- >>> Seq.fromList [a,b,c,d,e] ^.. sliced 1 3
 -- [f b,f c]
 --
--- >>> fromList [a,b,c,d,e] & sliced 1 3 .~ x
+-- >>> Seq.fromList [a,b,c,d,e] & sliced 1 3 .~ x
 -- fromList [a,x,x,b,e]
 sliced :: Int -> Int -> IndexedTraversal' Int (Seq a) a
 sliced i j f s = case Seq.splitAt i s of

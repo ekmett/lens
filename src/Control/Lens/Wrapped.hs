@@ -140,7 +140,8 @@ import qualified Data.Semigroup as S
 import           Data.Semigroupoid
 import qualified Data.Semigroupoid.Dual as Semigroupoid
 import           Data.Semigroupoid.Static
-import           Data.Sequence as Seq hiding (length)
+import qualified Data.Sequence as Seq
+import           Data.Sequence (Seq)
 import           Data.Set as Set
 import           Data.Tagged
 import qualified Data.Vector as Vector
