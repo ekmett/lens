@@ -55,7 +55,7 @@ import qualified Data.ByteString.Lazy as LazyB
 import           Data.Coerce
 import           Data.Monoid
 import qualified Data.Sequence as Seq
-import           Data.Sequence hiding ((<|), (|>), (:<), (:>))
+import           Data.Sequence (Seq, ViewL(EmptyL), ViewR(EmptyR), viewl, viewr)
 import qualified Data.Text      as StrictT
 import qualified Data.Text.Lazy as LazyT
 import           Data.Vector (Vector)

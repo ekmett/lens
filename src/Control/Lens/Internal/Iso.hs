@@ -33,7 +33,8 @@ import Data.Vector.Primitive (Prim)
 import qualified Data.Vector.Storable  as Storable
 import qualified Data.Vector.Unboxed   as Unbox
 import Data.Vector.Unboxed (Unbox)
-import Data.Sequence                   as Seq
+import qualified Data.Sequence         as Seq
+import Data.Sequence (Seq)
 import Foreign.Storable (Storable)
 
 ------------------------------------------------------------------------------
