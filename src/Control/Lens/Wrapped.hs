@@ -143,12 +143,15 @@ import           Data.Semigroupoid.Static
 import           Data.Sequence as Seq hiding (length)
 import           Data.Set as Set
 import           Data.Tagged
-import           Data.Vector as Vector
-import           Data.Vector.Primitive as Prim
-import           Data.Vector.Unboxed as Unboxed
-import           Data.Vector.Storable as Storable
+import qualified Data.Vector as Vector
+import qualified Data.Vector.Primitive as Prim
+import           Data.Vector.Primitive (Prim)
+import qualified Data.Vector.Unboxed as Unboxed
+import           Data.Vector.Unboxed (Unbox)
+import qualified Data.Vector.Storable as Storable
 import           Foreign.C.Error
 import           Foreign.C.Types
+import           Foreign.Storable (Storable)
 import qualified GHC.Generics as Generic
 import           GHC.Generics hiding (from, to)
 import           System.Posix.Types
