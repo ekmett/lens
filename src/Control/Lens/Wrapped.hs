@@ -130,7 +130,7 @@ import           Data.IntSet as IntSet
 import           Data.IntMap as IntMap
 import           Data.HashSet as HashSet
 import           Data.HashMap.Lazy as HashMap
-import           Data.List.NonEmpty
+import           Data.List.NonEmpty (NonEmpty(..))
 import           Data.Map as Map
 import           Data.Monoid
 import qualified Data.Profunctor as Profunctor
