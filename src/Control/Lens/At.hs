@@ -65,7 +65,8 @@ import Data.HashSet (HashSet)
 import Data.Int
 import Data.IntMap as IntMap
 import Data.IntSet as IntSet
-import Data.Map as Map
+import qualified Data.Map as Map
+import Data.Map (Map)
 import Data.Maybe (isJust)
 import qualified Data.Set as Set
 import Data.Set (Set)

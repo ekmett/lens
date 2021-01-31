@@ -94,7 +94,7 @@ import Control.Monad.Writer.Class as Writer
 -- >>> import Control.Monad.State
 -- >>> import Data.Char
 -- >>> import Data.Functor.Contravariant (Predicate (..), Op (..))
--- >>> import Data.Map as Map
+-- >>> import qualified Data.Map as Map
 -- >>> import Data.Semigroup (Sum (..), Product (..), Semigroup (..))
 -- >>> import Debug.SimpleReflect.Expr as Expr
 -- >>> import Debug.SimpleReflect.Vars as Vars
@@ -527,7 +527,7 @@ l <.~ b = \s -> (b, set l b s)
 --
 -- If you do not need a copy of the intermediate result, then using @l '?~' d@ directly is a good idea.
 --
--- >>> import Data.Map as Map
+-- >>> import qualified Data.Map as Map
 -- >>> _2.at "hello" <?~ "world" $ (42,Map.fromList [("goodnight","gracie")])
 -- ("world",(42,fromList [("goodnight","gracie"),("hello","world")]))
 --

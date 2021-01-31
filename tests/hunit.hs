@@ -24,7 +24,8 @@ import Control.Lens
 import Control.Monad.State
 import Data.Char
 import qualified Data.List as List
-import Data.Map as Map
+import qualified Data.Map as Map
+import Data.Map (Map)
 #if !(MIN_VERSION_base(4,11,0))
 import Data.Monoid
 #endif
@@ -75,8 +76,8 @@ trig =
   { _points = [ Point { _x = 0, _y = 0 }
               , Point { _x = 4, _y = 7 }
               , Point { _x = 8, _y = 0 } ]
-  , _labels = fromList [ (Point { _x = 0, _y = 0 }, "Origin")
-                       , (Point { _x = 4, _y = 7 }, "Peak") ]
+  , _labels = Map.fromList [ (Point { _x = 0, _y = 0 }, "Origin")
+                           , (Point { _x = 4, _y = 7 }, "Peak") ]
   , _box = Box { _low = Point { _x = 0, _y = 0 }
                , _high = Point { _x = 8, _y = 7 } }
   }
@@ -249,18 +250,18 @@ case_read_state_map_entry = runState test trig @?= ("Origin", trig)
 
 case_modify_map_entry =
   (trig & labels.ix origin %~ List.map toUpper)
-    @?= trig { _labels = fromList [ (Point { _x = 0, _y = 0 }, "ORIGIN")
-                                  , (Point { _x = 4, _y = 7 }, "Peak") ] }
+    @?= trig { _labels = Map.fromList [ (Point { _x = 0, _y = 0 }, "ORIGIN")
+                                      , (Point { _x = 4, _y = 7 }, "Peak") ] }
 
 case_insert_maybe_map_entry =
   (trig & labels.at (Point { _x = 8, _y = 0 }) .~ Just "Right")
-    @?= trig { _labels = fromList [ (Point { _x = 0, _y = 0 }, "Origin")
-                                  , (Point { _x = 4, _y = 7 }, "Peak")
-                                  , (Point { _x = 8, _y = 0 }, "Right") ] }
+    @?= trig { _labels = Map.fromList [ (Point { _x = 0, _y = 0 }, "Origin")
+                                      , (Point { _x = 4, _y = 7 }, "Peak")
+                                      , (Point { _x = 8, _y = 0 }, "Right") ] }
 
 case_delete_maybe_map_entry =
   (trig & labels.at origin .~ Nothing)
-    @?= trig { _labels = fromList [ (Point { _x = 4, _y = 7 }, "Peak") ] }
+    @?= trig { _labels = Map.fromList [ (Point { _x = 4, _y = 7 }, "Peak") ] }
 
 case_read_list_entry =
   (trig ^? points.element 0)

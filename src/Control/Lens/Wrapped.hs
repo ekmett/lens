@@ -132,7 +132,8 @@ import qualified Data.HashSet as HashSet
 import           Data.HashSet (HashSet)
 import           Data.HashMap.Lazy as HashMap
 import           Data.List.NonEmpty (NonEmpty(..))
-import           Data.Map as Map
+import qualified Data.Map as Map
+import           Data.Map (Map)
 import           Data.Monoid
 import qualified Data.Profunctor as Profunctor
 import           Data.Profunctor hiding (WrappedArrow(..))
