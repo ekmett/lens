@@ -54,8 +54,8 @@ import Control.Lens.Indexed
 import Control.Monad (guard)
 import Data.Array.IArray as Array
 import Data.Array.Unboxed
-import Data.ByteString as StrictB
-import Data.ByteString.Lazy as LazyB
+import qualified Data.ByteString as StrictB
+import qualified Data.ByteString.Lazy as LazyB
 import Data.Complex
 import Data.Functor (($>))
 import Data.Hashable

@@ -26,15 +26,16 @@ module Data.ByteString.Strict.Lens
 
 import Control.Lens
 import Control.Lens.Internal.ByteString
-import Data.ByteString       as Words
-import Data.ByteString.Char8 as Char8
+import Data.ByteString (ByteString)
+import qualified Data.ByteString       as Words
+import qualified Data.ByteString.Char8 as Char8
 import Data.Word
 
 -- $setup
 -- >>> :set -XOverloadedStrings
 -- >>> import Control.Lens
 -- >>> import Numeric.Lens
--- >>> import Data.ByteString.Char8 as Char8
+-- >>> import qualified Data.ByteString.Char8 as Char8
 
 -- | 'Data.ByteString.pack' (or 'Data.ByteString.unpack') a list of bytes into a 'ByteString'
 --

@@ -11,11 +11,10 @@ module Aeson where
 
 import Control.Lens
 import Data.Aeson
-import Data.ByteString.Lazy
+import Data.ByteString.Lazy (ByteString)
 
 -- $setup
 -- >>> import Control.Lens
--- >>> import Data.ByteString.Lazy
 
 -- |
 -- >>> review aeson 5

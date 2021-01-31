@@ -22,8 +22,8 @@ import Data.Profunctor
 import Data.Profunctor.Unsafe
 import Control.Lens.Internal.Coerce
 
-import Data.ByteString                 as StrictB
-import Data.ByteString.Lazy            as LazyB
+import qualified Data.ByteString       as StrictB
+import qualified Data.ByteString.Lazy  as LazyB
 import Data.List.NonEmpty              as NonEmpty
 import Data.Text                       as StrictT
 import Data.Text.Lazy                  as LazyT
