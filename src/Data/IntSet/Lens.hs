@@ -16,12 +16,13 @@ module Data.IntSet.Lens
   ) where
 
 import Control.Lens
-import Data.IntSet as IntSet
+import qualified Data.IntSet as IntSet
+import Data.IntSet (IntSet)
 
 -- $setup
 -- >>> :set -XNoOverloadedStrings
 -- >>> import Control.Lens
--- >>> import Data.IntSet as IntSet
+-- >>> import qualified Data.IntSet as IntSet
 
 -- | IntSet isn't Foldable, but this 'Fold' can be used to access the members of an 'IntSet'.
 --
@@ -38,7 +39,7 @@ members = folding IntSet.toAscList
 -- elements might change but you can manipulate it by reading using 'folded' and
 -- reindexing it via 'setmapped'.
 --
--- >>> over setmapped (+1) (fromList [1,2,3,4])
+-- >>> over setmapped (+1) (IntSet.fromList [1,2,3,4])
 -- fromList [2,3,4,5]
 setmapped :: IndexPreservingSetter' IntSet Int
 setmapped = setting IntSet.map

@@ -126,7 +126,8 @@ import           Data.Functor.Constant
 import           Data.Functor.Identity
 import           Data.Functor.Reverse
 import           Data.Hashable
-import           Data.IntSet as IntSet
+import qualified Data.IntSet as IntSet
+import           Data.IntSet (IntSet)
 import           Data.IntMap as IntMap
 import qualified Data.HashSet as HashSet
 import           Data.HashSet (HashSet)
