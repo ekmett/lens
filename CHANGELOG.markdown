@@ -1,4 +1,4 @@
-5 [2020.xx.yy]
+5 [2021.02.17]
 --------------
 * Support building with GHC 9.0.
 * Remove the `Swapped` type class in favor of `Swap` from the `assoc` package.
