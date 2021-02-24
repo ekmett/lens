@@ -49,7 +49,7 @@ import Language.Haskell.TH.Lens
 import Language.Haskell.TH
 import qualified Language.Haskell.TH.Datatype as D
 import qualified Language.Haskell.TH.Datatype.TyVarBndr as D
-import Data.Maybe (isJust,maybeToList)
+import Data.Maybe (fromMaybe,isJust,maybeToList)
 import Data.List (nub, findIndices)
 import Data.Either (partitionEithers)
 import Data.Semigroup (Any (..))
@@ -249,9 +249,52 @@ buildStab s categorizedFields =
 
   where
   (fixedFields, targetFields) = partitionEithers categorizedFields
-  fixedTypeVars               = setOf typeVars fixedFields
-  unfixedTypeVars             = setOf typeVars s Set.\\ fixedTypeVars
 
+  fixedTypeVars, unfixedTypeVars :: Set Name
+  fixedTypeVars   = closeOverKinds $ setOf typeVars fixedFields
+  unfixedTypeVars = setOf typeVars s Set.\\ fixedTypeVars
+
+  -- Compute the kind variables that appear in the kind of a type variable
+  -- binder. For example, @kindVarsOfTvb (x :: (a, b)) = (x, {a, b})@. If a
+  -- type variable binder lacks an explicit kind annotation, this
+  -- conservatively assumes that there are no kind variables. For example,
+  -- @kindVarsOfTvb (y) = (y, {})@.
+  kindVarsOfTvb :: D.TyVarBndr_ flag -> (Name, Set Name)
+  kindVarsOfTvb = D.elimTV (\n   -> (n, Set.empty))
+                           (\n k -> (n, setOf typeVars k))
+
+  -- For each type variable name that appears in @s@, map to the kind variables
+  -- that appear in that type variable's kind.
+  sKindVarMap :: Map Name (Set Name)
+  sKindVarMap = Map.fromList $ map kindVarsOfTvb $ D.freeVariablesWellScoped [s]
+
+  lookupSKindVars :: Name -> Set Name
+  lookupSKindVars n = fromMaybe Set.empty $ Map.lookup n sKindVarMap
+
+  -- Consider this example (adapted from #972):
+  --
+  --   data Dart (s :: k) = Dart { _arc :: Proxy s, _direction :: Int }
+  --   $(makeLenses ''Dart)
+  --
+  -- When generating a Lens for `direction`, the type variable `s` should be
+  -- fixed. But note that (s :: k), and as a result, the kind variable `k`
+  -- needs to be fixed as well. This is because a type like this would be
+  -- ill kinded:
+  --
+  --   direction :: Lens (Dart (s :: k1)) (Dart (s :: k2)) Direction Direction
+  --
+  -- However, only `s` is mentioned syntactically in the type of `_arc`, so we
+  -- have to infer that `k` is mentioned in the kind of `s`. We accomplish this
+  -- with `closeOverKinds`, which does the following:
+  --
+  -- 1. Use freeVariablesWellScoped to compute the free type variables of
+  --    `Dart (s :: k)`, which gives us `(s :: k)`.
+  -- 2. For each type variable name in `Proxy s`, the type of `_arc`, look up
+  --    the kind variables in the type variable's kind. In the case of `s`,
+  --    the only kind variable is `k`.
+  -- 3. Add these kind variables to the set of fixed type variables.
+  closeOverKinds :: Set Name -> Set Name
+  closeOverKinds st = foldl' Set.union Set.empty (Set.map lookupSKindVars st) `Set.union` st
 
 -- | Build the signature and definition for a single field optic.
 -- In the case of a singleton constructor irrefutable matches are
