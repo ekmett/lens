@@ -1,3 +1,7 @@
 packages: .
           ./examples
           ./lens-properties
+
+allow-newer:
+  cassava:base,
+  vector-binary-instances:base
