@@ -1,5 +1,5 @@
-next [????.??.??]
------------------
+5.0.1 [2021.02.24]
+------------------
 * Fix a bug in which `makeLenses` could produce ill kinded optics for
   poly-kinded datatypes in certain situations.
 
