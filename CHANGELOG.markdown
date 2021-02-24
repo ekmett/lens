@@ -1,3 +1,8 @@
+next [????.??.??]
+-----------------
+* Fix a bug in which `makeLenses` could produce ill kinded optics for
+  poly-kinded datatypes in certain situations.
+
 5 [2021.02.17]
 --------------
 * Support building with GHC 9.0.
