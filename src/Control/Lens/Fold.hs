@@ -285,7 +285,7 @@ replicated n0 f a = go n0 where
 --
 -- >>> [Just ('a', 10), Nothing, Just ('b', 20)] ^.. folded . beneath (_Just . _1)
 -- [(Just ('a',10),'a'),(Just ('b',20),'b')]
-beneath :: Fold s a -> Fold s (s, a);
+beneath :: Fold s a -> Fold s (s, a)
 beneath fo f s = phantom $ foldrOf fo (\a' fa' -> f (s, a') *> fa') noEffect s
 
 -- | Transform a non-empty 'Fold' into a 'Fold1' that loops over its elements over and over.
