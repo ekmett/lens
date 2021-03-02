@@ -141,7 +141,7 @@ without k k' =
     Right u -> bimap Right Right (uevc u)
 {-# INLINE without #-}
 
--- | Use a 'Prism' to work over part of a structure.
+-- | Use a 'Prism' to work over part of a structure. See also 'beneath'.
 --
 aside :: APrism s t a b -> Prism (e, s) (e, t) (e, a) (e, b)
 aside k =

@@ -65,6 +65,7 @@ module Control.Lens.Fold
   , backwards
   , repeated
   , replicated
+  , beneath
   , cycled
   , takingWhile
   , droppingWhile
@@ -278,6 +279,14 @@ replicated n0 f a = go n0 where
   go 0 = noEffect
   go n = m *> go (n - 1)
 {-# INLINE replicated #-}
+
+-- | Use a 'Fold' to work over part of a structure. This is a version of 'aside' that takes a Fold
+-- instead. The resulting 'Fold' has as many targets as the provided 'Fold'.
+--
+-- >>> [Just ('a', 10), Nothing, Just ('b', 20)] ^.. folded . beneath (_Just . _1)
+-- [(Just ('a',10),'a'),(Just ('b',20),'b')]
+beneath :: Fold s a -> Fold s (s, a);
+beneath fo f s = phantom $ foldrOf fo (\a' fa' -> f (s, a') *> fa') noEffect s
 
 -- | Transform a non-empty 'Fold' into a 'Fold1' that loops over its elements over and over.
 --
