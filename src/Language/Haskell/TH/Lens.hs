@@ -2472,6 +2472,20 @@ _UnboxedSumP
       remitter _ = Nothing
 #endif
 
+-- |
+-- @
+-- _ConP :: 'Prism'' 'Pat' ('Name', ['Type'], 'Pat') -- template-haskell-2.18+
+-- _ConP :: 'Prism'' 'Pat' ('Name',         'Pat') -- Earlier versions
+-- @
+#if MIN_VERSION_template_haskell(2,18,0)
+_ConP :: Prism' Pat (Name, [Type], [Pat])
+_ConP
+  = prism' reviewer remitter
+  where
+      reviewer (x, y, z) = ConP x y z
+      remitter (ConP x y z) = Just (x, y, z)
+      remitter _ = Nothing
+#else
 _ConP :: Prism' Pat (Name, [Pat])
 _ConP
   = prism' reviewer remitter
@@ -2479,6 +2493,7 @@ _ConP
       reviewer (x, y) = ConP x y
       remitter (ConP x y) = Just (x, y)
       remitter _ = Nothing
+#endif
 
 _InfixP :: Prism' Pat (Pat, Name, Pat)
 _InfixP

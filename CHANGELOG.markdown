@@ -2,6 +2,7 @@
 ----------------
 * Removed `Wrapped` and `Rewrapped` instances for `Data.Semigroup.Option`,
   which was removed in `base-4.16`.
+* Allow building with GHC 9.2.
 
 5.0.1 [2021.02.24]
 ------------------
