@@ -127,10 +127,12 @@ instance Semigroup (Deepening i a) where
 instance Monoid (Deepening i a) where
   mempty = Deepening $ \ _ k -> k Zero False
   {-# INLINE mempty #-}
+#if !(MIN_VERSION_base(4,11,0))
   mappend (Deepening l) (Deepening r) = Deepening $ \ n k -> case n of
     0 -> k Zero True
     _ -> let n' = n - 1 in l n' $ \x a -> r n' $ \y b -> k (lappend x y) (a || b)
   {-# INLINE mappend #-}
+#endif
 
 -- | Generate the leaf of a given 'Deepening' based on whether or not we're at the correct depth.
 deepening :: i -> a -> Deepening i a

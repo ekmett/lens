@@ -177,7 +177,7 @@ instance Monad m => Functor (Handler e m) where
   {-# INLINE fmap #-}
 
 instance Monad m => Semigroup (Handler e m a) where
-  (<>) = M.mappend
+  (<>) = (<!>)
   {-# INLINE (<>) #-}
 
 instance Monad m => Alt (Handler e m) where
@@ -193,8 +193,10 @@ instance Monad m => Plus (Handler e m) where
 instance Monad m => M.Monoid (Handler e m a) where
   mempty = zero
   {-# INLINE mempty #-}
+#if !(MIN_VERSION_base(4,11,0))
   mappend = (<!>)
   {-# INLINE mappend #-}
+#endif
 
 instance Handleable e m (Handler e m) where
   handler = Handler . preview

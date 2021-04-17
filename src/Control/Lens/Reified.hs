@@ -416,8 +416,10 @@ instance Semigroup (ReifiedFold s a) where
 instance Monoid (ReifiedFold s a) where
   mempty = Fold ignored
   {-# INLINE mempty #-}
+#if !(MIN_VERSION_base(4,11,0))
   mappend = (<|>)
   {-# INLINE mappend #-}
+#endif
 
 instance Alt (ReifiedFold s) where
   (<!>) = (<|>)
@@ -440,8 +442,10 @@ instance Semigroup (ReifiedIndexedFold i s a) where
 instance Monoid (ReifiedIndexedFold i s a) where
   mempty = IndexedFold ignored
   {-# INLINE mempty #-}
+#if !(MIN_VERSION_base(4,11,0))
   mappend = (<!>)
   {-# INLINE mappend #-}
+#endif
 
 instance Alt (ReifiedIndexedFold i s) where
   IndexedFold ma <!> IndexedFold mb = IndexedFold $

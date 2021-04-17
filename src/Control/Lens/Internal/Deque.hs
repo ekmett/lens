@@ -173,10 +173,12 @@ instance Semigroup (Deque a) where
 instance Monoid (Deque a) where
   mempty = BD 0 [] 0 []
   {-# INLINE mempty #-}
+#if !(MIN_VERSION_base(4,11,0))
   mappend xs ys
     | size xs < size ys = foldr cons ys xs
     | otherwise         = foldl snoc xs ys
   {-# INLINE mappend #-}
+#endif
 
 -- | Check that a 'Deque' satisfies the balance invariants and rebalance if not.
 check :: Int -> [a] -> Int -> [a] -> Deque a

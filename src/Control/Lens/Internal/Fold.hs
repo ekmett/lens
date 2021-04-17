@@ -54,8 +54,10 @@ instance (Contravariant f, Applicative f) => Semigroup (Folding f a) where
 instance (Contravariant f, Applicative f) => Monoid (Folding f a) where
   mempty = Folding noEffect
   {-# INLINE mempty #-}
+#if !(MIN_VERSION_base(4,11,0))
   Folding fr `mappend` Folding fs = Folding (fr *> fs)
   {-# INLINE mappend #-}
+#endif
 
 ------------------------------------------------------------------------------
 -- Traversed
@@ -74,8 +76,10 @@ instance Applicative f => Semigroup (Traversed a f) where
 instance Applicative f => Monoid (Traversed a f) where
   mempty = Traversed (pure (error "Traversed: value used"))
   {-# INLINE mempty #-}
+#if !(MIN_VERSION_base(4,11,0))
   Traversed ma `mappend` Traversed mb = Traversed (ma *> mb)
   {-# INLINE mappend #-}
+#endif
 
 ------------------------------------------------------------------------------
 -- TraversedF
@@ -93,8 +97,10 @@ instance Apply f => Semigroup (TraversedF a f) where
 instance (Apply f, Applicative f) => Monoid (TraversedF a f) where
   mempty = TraversedF (pure (error "TraversedF: value used"))
   {-# INLINE mempty #-}
+#if !(MIN_VERSION_base(4,11,0))
   TraversedF ma `mappend` TraversedF mb = TraversedF (ma *> mb)
   {-# INLINE mappend #-}
+#endif
 
 ------------------------------------------------------------------------------
 -- Sequenced
@@ -114,8 +120,10 @@ instance Monad m => Semigroup (Sequenced a m) where
 instance Monad m => Monoid (Sequenced a m) where
   mempty = Sequenced (return (error "Sequenced: value used"))
   {-# INLINE mempty #-}
+#if !(MIN_VERSION_base(4,11,0))
   Sequenced ma `mappend` Sequenced mb = Sequenced (ma >> mb)
   {-# INLINE mappend #-}
+#endif
 
 ------------------------------------------------------------------------------
 -- NonEmptyDList
@@ -135,23 +143,25 @@ instance Semigroup (NonEmptyDList a) where
 data Leftmost a = LPure | LLeaf a | LStep (Leftmost a)
 
 instance Semigroup (Leftmost a) where
-  (<>) = mappend
-  {-# INLINE (<>) #-}
-
-instance Monoid (Leftmost a) where
-  mempty = LPure
-  {-# INLINE mempty #-}
-  mappend x y = LStep $ case x of
+  x <> y = LStep $ case x of
     LPure    -> y
     LLeaf _  -> x
     LStep x' -> case y of
       -- The last two cases make firstOf produce a Just as soon as any element
       -- is encountered, and possibly serve as a micro-optimisation; this
-      -- behaviour can be disabled by replacing them with _ -> mappend x y'.
+      -- behaviour can be disabled by replacing them with _ -> x <> y'.
       -- Note that this means that firstOf (backwards folded) [1..] is Just _|_.
       LPure    -> x'
       LLeaf a  -> LLeaf $ fromMaybe a (getLeftmost x')
       LStep y' -> mappend x' y'
+
+instance Monoid (Leftmost a) where
+  mempty = LPure
+  {-# INLINE mempty #-}
+#if !(MIN_VERSION_base(4,11,0))
+  mappend = (<>)
+  {-# INLINE mappend #-}
+#endif
 
 -- | Extract the 'Leftmost' element. This will fairly eagerly determine that it can return 'Just'
 -- the moment it sees any element at all.
@@ -164,23 +174,25 @@ getLeftmost (LStep x) = getLeftmost x
 data Rightmost a = RPure | RLeaf a | RStep (Rightmost a)
 
 instance Semigroup (Rightmost a) where
-  (<>) = mappend
-  {-# INLINE (<>) #-}
-
-instance Monoid (Rightmost a) where
-  mempty = RPure
-  {-# INLINE mempty #-}
-  mappend x y = RStep $ case y of
+  x <> y = RStep $ case y of
     RPure    -> x
     RLeaf _  -> y
     RStep y' -> case x of
       -- The last two cases make lastOf produce a Just as soon as any element
       -- is encountered, and possibly serve as a micro-optimisation; this
-      -- behaviour can be disabled by replacing them with _ -> mappend x y'.
+      -- behaviour can be disabled by replacing them with _ -> x <> y'.
       -- Note that this means that lastOf folded [1..] is Just _|_.
       RPure    -> y'
       RLeaf a  -> RLeaf $ fromMaybe a (getRightmost y')
       RStep x' -> mappend x' y'
+
+instance Monoid (Rightmost a) where
+  mempty = RPure
+  {-# INLINE mempty #-}
+#if !(MIN_VERSION_base(4,11,0))
+  mappend = (<>)
+  {-# INLINE mappend #-}
+#endif
 
 -- | Extract the 'Rightmost' element. This will fairly eagerly determine that it can return 'Just'
 -- the moment it sees any element at all.

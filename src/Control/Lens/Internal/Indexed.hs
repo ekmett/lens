@@ -282,10 +282,12 @@ instance Monoid (f a) => Monoid (Indexing f a) where
     mempty = Indexing $ \i -> (i, mempty)
     {-# INLINE mempty #-}
 
+#if !(MIN_VERSION_base(4,11,0))
     mappend (Indexing mx) (Indexing my) = Indexing $ \i -> case mx i of
       (j, x) -> case my j of
          ~(k, y) -> (k, mappend x y)
     {-# INLINE mappend #-}
+#endif
 
 -- | Transform a 'Control.Lens.Traversal.Traversal' into an 'Control.Lens.Traversal.IndexedTraversal' or
 -- a 'Control.Lens.Fold.Fold' into an 'Control.Lens.Fold.IndexedFold', etc.

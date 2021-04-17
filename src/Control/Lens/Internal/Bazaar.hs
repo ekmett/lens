@@ -226,8 +226,10 @@ instance Contravariant g => Semigroup (BazaarT p g a b t) where
 instance Contravariant g => Monoid (BazaarT p g a b t) where
   mempty = BazaarT $ \_ -> pure (error "mempty: BazaarT")
   {-# INLINE mempty #-}
+#if !(MIN_VERSION_base(4,11,0))
   BazaarT a `mappend` BazaarT b = BazaarT $ \f -> a f <* b f
   {-# INLINE mappend #-}
+#endif
 
 
 ------------------------------------------------------------------------------

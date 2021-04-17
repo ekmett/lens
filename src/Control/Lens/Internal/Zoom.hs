@@ -153,10 +153,12 @@ instance Semigroup a => Semigroup (May a) where
 instance Monoid a => Monoid (May a) where
   mempty = May (Just mempty)
   {-# INLINE mempty #-}
+#if !(MIN_VERSION_base(4,11,0))
   May Nothing `mappend` _ = May Nothing
   _ `mappend` May Nothing = May Nothing
   May (Just a) `mappend` May (Just b) = May (Just (mappend a b))
   {-# INLINE mappend #-}
+#endif
 
 ------------------------------------------------------------------------------
 -- FocusingMay
@@ -195,10 +197,12 @@ instance Semigroup a => Semigroup (Err e a) where
 instance Monoid a => Monoid (Err e a) where
   mempty = Err (Right mempty)
   {-# INLINE mempty #-}
+#if !(MIN_VERSION_base(4,11,0))
   Err (Left e) `mappend` _ = Err (Left e)
   _ `mappend` Err (Left e) = Err (Left e)
   Err (Right a) `mappend` Err (Right b) = Err (Right (mappend a b))
   {-# INLINE mappend #-}
+#endif
 
 ------------------------------------------------------------------------------
 -- FocusingErr
@@ -238,10 +242,12 @@ instance (Applicative f, Semigroup a, Monad m) => Semigroup (Freed f m a) where
 instance (Applicative f, Monoid a, Monad m) => Monoid (Freed f m a) where
   mempty = Freed $ Pure mempty
 
+#if !(MIN_VERSION_base(4,11,0))
   Freed (Pure a) `mappend` Freed (Pure b) = Freed $ Pure $ a `mappend` b
   Freed (Pure a) `mappend` Freed (Free g) = Freed $ Free $ liftA2 (liftM2 mappend) (pure $ return a) g
   Freed (Free f) `mappend` Freed (Pure b) = Freed $ Free $ liftA2 (liftM2 mappend) f (pure $ return b)
   Freed (Free f) `mappend` Freed (Free g) = Freed $ Free $ liftA2 (liftM2 mappend) f g
+#endif
 
 ------------------------------------------------------------------------------
 -- FocusingFree
@@ -288,8 +294,10 @@ instance (Monad m, Semigroup r) => Semigroup (Effect m r a) where
 instance (Monad m, Monoid r) => Monoid (Effect m r a) where
   mempty = Effect (return mempty)
   {-# INLINE mempty #-}
+#if !(MIN_VERSION_base(4,11,0))
   Effect ma `mappend` Effect mb = Effect (liftM2 mappend ma mb)
   {-# INLINE mappend #-}
+#endif
 
 instance (Apply m, Semigroup r) => Apply (Effect m r) where
   Effect ma <.> Effect mb = Effect (liftF2 (<>) ma mb)
