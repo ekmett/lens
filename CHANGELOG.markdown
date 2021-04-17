@@ -1,3 +1,8 @@
+5.1 [????.??.??]
+----------------
+* Removed `Wrapped` and `Rewrapped` instances for `Data.Semigroup.Option`,
+  which was removed in `base-4.16`.
+
 5.0.1 [2021.02.24]
 ------------------
 * Fix a bug in which `makeLenses` could produce ill kinded optics for
