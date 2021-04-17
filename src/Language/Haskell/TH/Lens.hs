@@ -387,6 +387,9 @@ module Language.Haskell.TH.Lens
   -- ** TyLit Prisms
   , _NumTyLit
   , _StrTyLit
+#if MIN_VERSION_template_haskell(2,18,0)
+  , _CharTyLit
+#endif
 #if !MIN_VERSION_template_haskell(2,10,0)
   -- ** Pred Prisms
   , _ClassP
@@ -2908,6 +2911,16 @@ _StrTyLit
       reviewer = StrTyLit
       remitter (StrTyLit x) = Just x
       remitter _ = Nothing
+
+#if MIN_VERSION_template_haskell(2,18,0)
+_CharTyLit :: Prism' TyLit Char
+_CharTyLit
+  = prism' reviewer remitter
+  where
+      reviewer = CharTyLit
+      remitter (CharTyLit x) = Just x
+      remitter _ = Nothing
+#endif
 
 #if !MIN_VERSION_template_haskell(2,10,0)
 _ClassP :: Prism' Pred (Name, [Type])
