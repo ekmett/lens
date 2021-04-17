@@ -434,15 +434,27 @@ strict = iso toStrict toLazy
 {-# INLINE strict #-}
 
 #if __GLASGOW_HASKELL__ >= 710
+# if __GLASGOW_HASKELL__ >= 800
+pattern Strict :: Strict s t => t -> s
+# endif
 pattern Strict a <- (view strict -> a) where
   Strict a = review strict a
 
+# if __GLASGOW_HASKELL__ >= 800
+pattern Lazy :: Strict t s => t -> s
+# endif
 pattern Lazy a <- (view lazy -> a) where
   Lazy a = review lazy a
 
+# if __GLASGOW_HASKELL__ >= 800
+pattern Swapped :: Swap p => p b a -> p a b
+# endif
 pattern Swapped a <- (view swapped -> a) where
   Swapped a = review swapped a
 
+# if __GLASGOW_HASKELL__ >= 800
+pattern Reversed :: Reversing t => t -> t
+# endif
 pattern Reversed a <- (view reversed -> a) where
   Reversed a = review reversed a
 #endif
@@ -484,6 +496,9 @@ involuted a = iso a a
 {-# INLINE involuted #-}
 
 #if __GLASGOW_HASKELL__ >= 710
+# if __GLASGOW_HASKELL__ >= 800
+pattern List :: Exts.IsList l => [Exts.Item l] -> l
+# endif
 pattern List a <- (Exts.toList -> a) where
   List a = Exts.fromList a
 #endif

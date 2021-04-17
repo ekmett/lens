@@ -111,9 +111,15 @@ unpackedBytes = from packedBytes
 {-# INLINE unpackedBytes #-}
 
 #if __GLASGOW_HASKELL__ >= 710
+# if __GLASGOW_HASKELL__ >= 800
+pattern Bytes :: IsByteString s => [Word8] -> s
+# endif
 pattern Bytes b <- (view unpackedBytes -> b) where
   Bytes b = review unpackedBytes b
 
+# if __GLASGOW_HASKELL__ >= 800
+pattern Chars :: IsByteString s => String -> s
+# endif
 pattern Chars b <- (view unpackedChars -> b) where
   Chars b = review unpackedChars b
 #endif

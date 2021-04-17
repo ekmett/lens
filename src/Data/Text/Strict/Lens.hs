@@ -144,6 +144,9 @@ utf8 = prism' encodeUtf8 (preview _Right . decodeUtf8')
 {-# INLINE utf8 #-}
 
 #if __GLASGOW_HASKELL__ >= 710
+# if __GLASGOW_HASKELL__ >= 800
+pattern Text :: String -> Text
+# endif
 pattern Text a <- (view _Text -> a) where
   Text a = review _Text a
 #endif

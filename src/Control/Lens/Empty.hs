@@ -80,6 +80,9 @@ class AsEmpty a where
   {-# INLINE _Empty #-}
 
 #if __GLASGOW_HASKELL__ >= 710
+# if __GLASGOW_HASKELL__ >= 800
+pattern Empty :: AsEmpty s => s
+# endif
 pattern Empty <- (has _Empty -> True) where
   Empty = review _Empty ()
 #endif

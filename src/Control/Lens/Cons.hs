@@ -86,12 +86,18 @@ infixl 5 |>, `snoc`
 
 #if __GLASGOW_HASKELL__ >= 710
 
+# if __GLASGOW_HASKELL__ >= 800
+pattern (:<) :: Cons b b a a => a -> b -> b
+# endif
 pattern (:<) a s <- (preview _Cons -> Just (a,s)) where
   (:<) a s = _Cons # (a,s)
 
 infixr 5 :<
 infixl 5 :>
 
+# if __GLASGOW_HASKELL__ >= 800
+pattern (:>) :: Snoc a a b b => a -> b -> a
+# endif
 pattern (:>) s a <- (preview _Snoc -> Just (s,a)) where
   (:>) a s = _Snoc # (a,s)
 

@@ -204,9 +204,15 @@ type instance GUnwrapped (D1 d (C1 c (S1 s (Rec0 a)))) = a
 
 #if __GLASGOW_HASKELL__ >= 710
 
+# if __GLASGOW_HASKELL__ >= 800
+pattern Wrapped :: Rewrapped s s => Unwrapped s -> s
+# endif
 pattern Wrapped a <- (view _Wrapped -> a) where
   Wrapped a = review _Wrapped a
 
+# if __GLASGOW_HASKELL__ >= 800
+pattern Unwrapped :: Rewrapped t t => t -> Unwrapped t
+# endif
 pattern Unwrapped a <- (view _Unwrapped -> a) where
   Unwrapped a = review _Unwrapped a
 

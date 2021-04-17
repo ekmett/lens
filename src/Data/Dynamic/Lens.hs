@@ -51,6 +51,9 @@ instance AsDynamic SomeException where
   {-# INLINE _Dynamic #-}
 
 #if __GLASGOW_HASKELL__ >= 710
+# if __GLASGOW_HASKELL__ >= 800
+pattern Dynamic :: (AsDynamic s, Typeable a) => a -> s
+# endif
 pattern Dynamic a <- (preview _Dynamic -> Just a) where
   Dynamic a = review _Dynamic a
 #endif

@@ -58,6 +58,9 @@ integral = prism toInteger $ \ i -> let a = fromInteger i in
   else Left i
 
 #if __GLASGOW_HASKELL__ >= 710
+# if __GLASGOW_HASKELL__ >= 800
+pattern Integral :: Integral a => a -> Integer
+# endif
 pattern Integral a <- (preview integral -> Just a) where
   Integral a = review integral a
 #endif

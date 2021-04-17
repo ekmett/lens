@@ -107,6 +107,9 @@ _Text = from packed
 {-# INLINE _Text #-}
 
 #if __GLASGOW_HASKELL__ >= 710
+# if __GLASGOW_HASKELL__ >= 800
+pattern Text :: IsText s => String -> s
+# endif
 pattern Text a <- (view _Text -> a) where
   Text a = review _Text a
 #endif

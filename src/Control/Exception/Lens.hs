@@ -233,6 +233,9 @@ exception = prism' toException fromException
 {-# INLINE exception #-}
 
 #if __GLASGOW_HASKELL__ >= 710
+# if __GLASGOW_HASKELL__ >= 800
+pattern Exception :: Exception a => a -> SomeException
+# endif
 pattern Exception e <- (preview exception -> Just e) where
   Exception e = review exception e
 #endif
@@ -493,6 +496,9 @@ instance AsIOException SomeException where
   {-# INLINE _IOException #-}
 
 #if __GLASGOW_HASKELL__ >= 710
+# if __GLASGOW_HASKELL__ >= 800
+pattern IOException_ :: AsIOException s => IOException -> s
+# endif
 pattern IOException_ a <- (preview _IOException -> Just a) where
   IOException_ a = review _IOException a
 #endif
@@ -511,6 +517,9 @@ class AsArithException t where
   _ArithException :: Prism' t ArithException
 
 #if __GLASGOW_HASKELL__ >= 710
+# if __GLASGOW_HASKELL__ >= 800
+pattern ArithException_ :: AsArithException s => ArithException -> s
+# endif
 pattern ArithException_ a <- (preview _ArithException -> Just a) where
   ArithException_ a = review _ArithException a
 #endif
@@ -540,6 +549,9 @@ _Overflow = _ArithException . dimap seta (either id id) . right' . rmap (Overflo
 {-# INLINE _Overflow #-}
 
 #if __GLASGOW_HASKELL__ >= 710
+# if __GLASGOW_HASKELL__ >= 800
+pattern Overflow_ :: AsArithException s => s
+# endif
 pattern Overflow_ <- (has _Overflow -> True) where
   Overflow_ = review _Overflow ()
 #endif
@@ -561,6 +573,9 @@ _Underflow = _ArithException . dimap seta (either id id) . right' . rmap (Underf
 {-# INLINE _Underflow #-}
 
 #if __GLASGOW_HASKELL__ >= 710
+# if __GLASGOW_HASKELL__ >= 800
+pattern Underflow_ :: AsArithException s => s
+# endif
 pattern Underflow_ <- (has _Underflow -> True) where
   Underflow_ = review _Underflow ()
 #endif
@@ -582,6 +597,9 @@ _LossOfPrecision = _ArithException . dimap seta (either id id) . right' . rmap (
 {-# INLINE _LossOfPrecision #-}
 
 #if __GLASGOW_HASKELL__ >= 710
+# if __GLASGOW_HASKELL__ >= 800
+pattern LossOfPrecision_ :: AsArithException s => s
+# endif
 pattern LossOfPrecision_ <- (has _LossOfPrecision -> True) where
   LossOfPrecision_ = review _LossOfPrecision ()
 #endif
@@ -603,6 +621,9 @@ _DivideByZero = _ArithException . dimap seta (either id id) . right' . rmap (Div
 {-# INLINE _DivideByZero #-}
 
 #if __GLASGOW_HASKELL__ >= 710
+# if __GLASGOW_HASKELL__ >= 800
+pattern DivideByZero_ :: AsArithException s => s
+# endif
 pattern DivideByZero_ <- (has _DivideByZero -> True) where
   DivideByZero_ = review _DivideByZero ()
 #endif
@@ -624,6 +645,9 @@ _Denormal = _ArithException . dimap seta (either id id) . right' . rmap (Denorma
 {-# INLINE _Denormal #-}
 
 #if __GLASGOW_HASKELL__ >= 710
+# if __GLASGOW_HASKELL__ >= 800
+pattern Denormal_ :: AsArithException s => s
+# endif
 pattern Denormal_ <- (has _Denormal -> True) where
   Denormal_ = review _Denormal ()
 #endif
@@ -645,6 +669,9 @@ _RatioZeroDenominator = _ArithException . dimap seta (either id id) . right' . r
 {-# INLINE _RatioZeroDenominator #-}
 
 #if __GLASGOW_HASKELL__ >= 710
+# if __GLASGOW_HASKELL__ >= 800
+pattern RatioZeroDenominator_ :: AsArithException s => s
+# endif
 pattern RatioZeroDenominator_ <- (has _RatioZeroDenominator -> True) where
   RatioZeroDenominator_ = review _RatioZeroDenominator ()
 #endif
@@ -672,6 +699,9 @@ instance AsArrayException SomeException where
   {-# INLINE _ArrayException #-}
 
 #if __GLASGOW_HASKELL__ >= 710
+# if __GLASGOW_HASKELL__ >= 800
+pattern ArrayException_ :: AsArrayException s => ArrayException -> s
+# endif
 pattern ArrayException_ e <- (preview _ArrayException -> Just e) where
   ArrayException_ e = review _ArrayException e
 #endif
@@ -693,6 +723,9 @@ _IndexOutOfBounds = _ArrayException . dimap seta (either id id) . right' . rmap 
 {-# INLINE _IndexOutOfBounds #-}
 
 #if __GLASGOW_HASKELL__ >= 710
+# if __GLASGOW_HASKELL__ >= 800
+pattern IndexOutOfBounds_ :: AsArrayException s => String -> s
+# endif
 pattern IndexOutOfBounds_ e <- (preview _IndexOutOfBounds -> Just e) where
   IndexOutOfBounds_ e = review _IndexOutOfBounds e
 #endif
@@ -714,6 +747,9 @@ _UndefinedElement = _ArrayException . dimap seta (either id id) . right' . rmap 
 {-# INLINE _UndefinedElement #-}
 
 #if __GLASGOW_HASKELL__ >= 710
+# if __GLASGOW_HASKELL__ >= 800
+pattern UndefinedElement_ :: AsArrayException s => String -> s
+# endif
 pattern UndefinedElement_ e <- (preview _UndefinedElement -> Just e) where
   UndefinedElement_ e = review _UndefinedElement e
 #endif
@@ -756,9 +792,15 @@ instance AsAssertionFailed SomeException where
   {-# INLINE __AssertionFailed #-}
 
 #if __GLASGOW_HASKELL__ >= 710
+# if __GLASGOW_HASKELL__ >= 800
+pattern AssertionFailed__ :: AsAssertionFailed s => AssertionFailed -> s
+# endif
 pattern AssertionFailed__ e <- (preview __AssertionFailed -> Just e) where
   AssertionFailed__ e = review __AssertionFailed e
 
+# if __GLASGOW_HASKELL__ >= 800
+pattern AssertionFailed_ :: AsAssertionFailed s => String -> s
+# endif
 pattern AssertionFailed_ e <- (preview _AssertionFailed -> Just e) where
   AssertionFailed_ e = review _AssertionFailed e
 #endif
@@ -786,6 +828,9 @@ instance AsAsyncException SomeException where
   {-# INLINE _AsyncException #-}
 
 #if __GLASGOW_HASKELL__ >= 710
+# if __GLASGOW_HASKELL__ >= 800
+pattern AsyncException_ :: AsAsyncException s => AsyncException -> s
+# endif
 pattern AsyncException_ e <- (preview _AsyncException -> Just e) where
   AsyncException_ e = review _AsyncException e
 #endif
@@ -805,6 +850,9 @@ _StackOverflow = _AsyncException . dimap seta (either id id) . right' . rmap (St
 {-# INLINE _StackOverflow #-}
 
 #if __GLASGOW_HASKELL__ >= 710
+# if __GLASGOW_HASKELL__ >= 800
+pattern StackOverflow_ :: AsAsyncException s => s
+# endif
 pattern StackOverflow_ <- (has _StackOverflow -> True) where
   StackOverflow_ = review _StackOverflow ()
 #endif
@@ -829,6 +877,9 @@ _HeapOverflow = _AsyncException . dimap seta (either id id) . right' . rmap (Hea
 {-# INLINE _HeapOverflow #-}
 
 #if __GLASGOW_HASKELL__ >= 710
+# if __GLASGOW_HASKELL__ >= 800
+pattern HeapOverflow_ :: AsAsyncException s => s
+# endif
 pattern HeapOverflow_ <- (has _HeapOverflow -> True) where
   HeapOverflow_ = review _HeapOverflow ()
 #endif
@@ -848,6 +899,9 @@ _ThreadKilled = _AsyncException . dimap seta (either id id) . right' . rmap (Thr
 {-# INLINE _ThreadKilled #-}
 
 #if __GLASGOW_HASKELL__ >= 710
+# if __GLASGOW_HASKELL__ >= 800
+pattern ThreadKilled_ :: AsAsyncException s => s
+# endif
 pattern ThreadKilled_ <- (has _ThreadKilled -> True) where
   ThreadKilled_ = review _ThreadKilled ()
 #endif
@@ -867,6 +921,9 @@ _UserInterrupt = _AsyncException . dimap seta (either id id) . right' . rmap (Us
 {-# INLINE _UserInterrupt #-}
 
 #if __GLASGOW_HASKELL__ >= 710
+# if __GLASGOW_HASKELL__ >= 800
+pattern UserInterrupt_ :: AsAsyncException s => s
+# endif
 pattern UserInterrupt_ <- (has _UserInterrupt -> True) where
   UserInterrupt_ = review _UserInterrupt ()
 #endif
@@ -908,9 +965,15 @@ instance AsNonTermination SomeException where
   {-# INLINE __NonTermination #-}
 
 #if __GLASGOW_HASKELL__ >= 710
+# if __GLASGOW_HASKELL__ >= 800
+pattern NonTermination__ :: AsNonTermination s => NonTermination -> s
+# endif
 pattern NonTermination__ e <- (preview __NonTermination -> Just e) where
   NonTermination__ e = review __NonTermination e
 
+# if __GLASGOW_HASKELL__ >= 800
+pattern NonTermination_ :: AsNonTermination s => s
+# endif
 pattern NonTermination_ <- (has _NonTermination -> True) where
   NonTermination_ = review _NonTermination ()
 #endif
@@ -951,9 +1014,15 @@ instance AsNestedAtomically SomeException where
   {-# INLINE __NestedAtomically #-}
 
 #if __GLASGOW_HASKELL__ >= 710
+# if __GLASGOW_HASKELL__ >= 800
+pattern NestedAtomically__ :: AsNestedAtomically s => NestedAtomically -> s
+# endif
 pattern NestedAtomically__ e <- (preview __NestedAtomically -> Just e) where
   NestedAtomically__ e = review __NestedAtomically e
 
+# if __GLASGOW_HASKELL__ >= 800
+pattern NestedAtomically_ :: AsNestedAtomically s => s
+# endif
 pattern NestedAtomically_ <- (has _NestedAtomically -> True) where
   NestedAtomically_ = review _NestedAtomically ()
 #endif
@@ -995,9 +1064,15 @@ instance AsBlockedIndefinitelyOnMVar SomeException where
   {-# INLINE __BlockedIndefinitelyOnMVar #-}
 
 #if __GLASGOW_HASKELL__ >= 710
+# if __GLASGOW_HASKELL__ >= 800
+pattern BlockedIndefinitelyOnMVar__ :: AsBlockedIndefinitelyOnMVar s => BlockedIndefinitelyOnMVar -> s
+# endif
 pattern BlockedIndefinitelyOnMVar__ e <- (preview __BlockedIndefinitelyOnMVar -> Just e) where
   BlockedIndefinitelyOnMVar__ e = review __BlockedIndefinitelyOnMVar e
 
+# if __GLASGOW_HASKELL__ >= 800
+pattern BlockedIndefinitelyOnMVar_ :: AsBlockedIndefinitelyOnMVar s => s
+# endif
 pattern BlockedIndefinitelyOnMVar_ <- (has _BlockedIndefinitelyOnMVar -> True) where
   BlockedIndefinitelyOnMVar_ = review _BlockedIndefinitelyOnMVar ()
 #endif
@@ -1039,9 +1114,15 @@ instance AsBlockedIndefinitelyOnSTM SomeException where
   {-# INLINE __BlockedIndefinitelyOnSTM #-}
 
 #if __GLASGOW_HASKELL__ >= 710
+# if __GLASGOW_HASKELL__ >= 800
+pattern BlockedIndefinitelyOnSTM__ :: AsBlockedIndefinitelyOnSTM s => BlockedIndefinitelyOnSTM -> s
+# endif
 pattern BlockedIndefinitelyOnSTM__ e <- (preview __BlockedIndefinitelyOnSTM -> Just e) where
   BlockedIndefinitelyOnSTM__ e = review __BlockedIndefinitelyOnSTM e
 
+# if __GLASGOW_HASKELL__ >= 800
+pattern BlockedIndefinitelyOnSTM_ :: AsBlockedIndefinitelyOnSTM s => s
+# endif
 pattern BlockedIndefinitelyOnSTM_ <- (has _BlockedIndefinitelyOnSTM -> True) where
   BlockedIndefinitelyOnSTM_ = review _BlockedIndefinitelyOnSTM ()
 #endif
@@ -1082,9 +1163,15 @@ instance AsDeadlock SomeException where
   {-# INLINE __Deadlock #-}
 
 #if __GLASGOW_HASKELL__ >= 710
+# if __GLASGOW_HASKELL__ >= 800
+pattern Deadlock__ :: AsDeadlock s => Deadlock -> s
+# endif
 pattern Deadlock__ e <- (preview __Deadlock -> Just e) where
   Deadlock__ e = review __Deadlock e
 
+# if __GLASGOW_HASKELL__ >= 800
+pattern Deadlock_ :: AsDeadlock s => s
+# endif
 pattern Deadlock_ <- (has _Deadlock -> True) where
   Deadlock_ = review _Deadlock ()
 #endif
@@ -1125,9 +1212,15 @@ instance AsNoMethodError SomeException where
   {-# INLINE __NoMethodError #-}
 
 #if __GLASGOW_HASKELL__ >= 710
+# if __GLASGOW_HASKELL__ >= 800
+pattern NoMethodError__ :: AsNoMethodError s => NoMethodError -> s
+# endif
 pattern NoMethodError__ e <- (preview __NoMethodError -> Just e) where
   NoMethodError__ e = review __NoMethodError e
 
+# if __GLASGOW_HASKELL__ >= 800
+pattern NoMethodError_ :: AsNoMethodError s => String -> s
+# endif
 pattern NoMethodError_ e <- (preview _NoMethodError -> Just e) where
   NoMethodError_ e = review _NoMethodError e
 #endif
@@ -1167,9 +1260,15 @@ instance AsPatternMatchFail SomeException where
   {-# INLINE __PatternMatchFail #-}
 
 #if __GLASGOW_HASKELL__ >= 710
+# if __GLASGOW_HASKELL__ >= 800
+pattern PatternMatchFail__ :: AsPatternMatchFail s => PatternMatchFail -> s
+# endif
 pattern PatternMatchFail__ e <- (preview __PatternMatchFail -> Just e) where
   PatternMatchFail__ e = review __PatternMatchFail e
 
+# if __GLASGOW_HASKELL__ >= 800
+pattern PatternMatchFail_ :: AsPatternMatchFail s => String -> s
+# endif
 pattern PatternMatchFail_ e <- (preview _PatternMatchFail -> Just e) where
   PatternMatchFail_ e = review _PatternMatchFail e
 #endif
@@ -1210,9 +1309,15 @@ instance AsRecConError SomeException where
   {-# INLINE __RecConError #-}
 
 #if __GLASGOW_HASKELL__ >= 710
+# if __GLASGOW_HASKELL__ >= 800
+pattern RecConError__ :: AsRecConError s => RecConError -> s
+# endif
 pattern RecConError__ e <- (preview __RecConError -> Just e) where
   RecConError__ e = review __RecConError e
 
+# if __GLASGOW_HASKELL__ >= 800
+pattern RecConError_ :: AsRecConError s => String -> s
+# endif
 pattern RecConError_ e <- (preview _RecConError -> Just e) where
   RecConError_ e = review _RecConError e
 #endif
@@ -1254,9 +1359,15 @@ instance AsRecSelError SomeException where
   {-# INLINE __RecSelError #-}
 
 #if __GLASGOW_HASKELL__ >= 710
+# if __GLASGOW_HASKELL__ >= 800
+pattern RecSelError__ :: AsRecSelError s => RecSelError -> s
+# endif
 pattern RecSelError__ e <- (preview __RecSelError -> Just e) where
   RecSelError__ e = review __RecSelError e
 
+# if __GLASGOW_HASKELL__ >= 800
+pattern RecSelError_ :: AsRecSelError s => String -> s
+# endif
 pattern RecSelError_ e <- (preview _RecSelError -> Just e) where
   RecSelError_ e = review _RecSelError e
 #endif
@@ -1298,9 +1409,15 @@ instance AsRecUpdError SomeException where
   {-# INLINE __RecUpdError #-}
 
 #if __GLASGOW_HASKELL__ >= 710
+# if __GLASGOW_HASKELL__ >= 800
+pattern RecUpdError__ :: AsRecUpdError s => RecUpdError -> s
+# endif
 pattern RecUpdError__ e <- (preview __RecUpdError -> Just e) where
   RecUpdError__ e = review __RecUpdError e
 
+# if __GLASGOW_HASKELL__ >= 800
+pattern RecUpdError_ :: AsRecUpdError s => String -> s
+# endif
 pattern RecUpdError_ e <- (preview _RecUpdError -> Just e) where
   RecUpdError_ e = review _RecUpdError e
 #endif
@@ -1345,9 +1462,15 @@ instance AsErrorCall SomeException where
   {-# INLINE __ErrorCall #-}
 
 #if __GLASGOW_HASKELL__ >= 710
+# if __GLASGOW_HASKELL__ >= 800
+pattern ErrorCall__ :: AsErrorCall s => ErrorCall -> s
+# endif
 pattern ErrorCall__ e <- (preview __ErrorCall -> Just e) where
   ErrorCall__ e = review __ErrorCall e
 
+# if __GLASGOW_HASKELL__ >= 800
+pattern ErrorCall_ :: AsErrorCall s => String -> s
+# endif
 pattern ErrorCall_ e <- (preview _ErrorCall -> Just e) where
   ErrorCall_ e = review _ErrorCall e
 #endif
@@ -1388,9 +1511,15 @@ instance AsAllocationLimitExceeded SomeException where
   __AllocationLimitExceeded = exception
   {-# INLINE __AllocationLimitExceeded #-}
 
+# if __GLASGOW_HASKELL__ >= 800
+pattern AllocationLimitExceeded__ :: AsAllocationLimitExceeded s => AllocationLimitExceeded -> s
+# endif
 pattern AllocationLimitExceeded__ e <- (preview __AllocationLimitExceeded -> Just e) where
   AllocationLimitExceeded__ e = review __AllocationLimitExceeded e
 
+# if __GLASGOW_HASKELL__ >= 800
+pattern AllocationLimitExceeded_ :: AsAllocationLimitExceeded s => s
+# endif
 pattern AllocationLimitExceeded_ <- (has _AllocationLimitExceeded -> True) where
   AllocationLimitExceeded_ = review _AllocationLimitExceeded ()
 #endif
@@ -1431,9 +1560,11 @@ instance AsTypeError SomeException where
   __TypeError = exception
   {-# INLINE __TypeError #-}
 
+pattern TypeError__ :: AsTypeError s => TypeError -> s
 pattern TypeError__ e <- (preview __TypeError -> Just e) where
   TypeError__ e = review __TypeError e
 
+pattern TypeError_ :: AsTypeError s => String -> s
 pattern TypeError_ e <- (preview _TypeError -> Just e) where
   TypeError_ e = review _TypeError e
 #endif
@@ -1474,9 +1605,11 @@ instance AsCompactionFailed SomeException where
   __CompactionFailed = exception
   {-# INLINE __CompactionFailed #-}
 
+pattern CompactionFailed__ :: AsCompactionFailed s => CompactionFailed -> s
 pattern CompactionFailed__ e <- (preview __CompactionFailed -> Just e) where
   CompactionFailed__ e = review __CompactionFailed e
 
+pattern CompactionFailed_ :: AsCompactionFailed s => String -> s
 pattern CompactionFailed_ e <- (preview _CompactionFailed -> Just e) where
   CompactionFailed_ e = review _CompactionFailed e
 #endif
@@ -1517,9 +1650,15 @@ instance AsHandlingException SomeException where
   {-# INLINE __HandlingException #-}
 
 #if __GLASGOW_HASKELL__ >= 710
+# if __GLASGOW_HASKELL__ >= 800
+pattern HandlingException__ :: AsHandlingException s => HandlingException -> s
+# endif
 pattern HandlingException__ e <- (preview __HandlingException -> Just e) where
   HandlingException__ e = review __HandlingException e
 
+# if __GLASGOW_HASKELL__ >= 800
+pattern HandlingException_ :: AsHandlingException s => s
+# endif
 pattern HandlingException_ <- (has _HandlingException -> True) where
   HandlingException_ = review _HandlingException ()
 #endif
