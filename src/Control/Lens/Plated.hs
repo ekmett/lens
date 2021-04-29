@@ -33,7 +33,7 @@
 -- used by the \"Scrap Your Boilerplate\" papers, and later inherited by Neil
 -- Mitchell's \"Uniplate\".
 --
--- <http://community.haskell.org/~ndm/uniplate/>
+-- <https://www.cs.york.ac.uk/fp/darcs/uniplate/uniplate.htm>
 --
 -- The combinators in here are designed to be compatible with and subsume the
 -- @uniplate@ API with the notion of a 'Traversal' replacing
