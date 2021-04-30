@@ -42,6 +42,7 @@ import Control.Lens.Internal.Prelude
 import Data.Functor.Apply
 import Data.Functor.WithIndex
 import Data.Foldable.WithIndex
+import Data.Kind
 import Data.Traversable.WithIndex
 
 ------------------------------------------------------------------------------
@@ -229,7 +230,7 @@ instance IndexedFunctor Mafic where
 --
 -- In @'TakingWhile' p g a b t@, @g@ has a @nominal@ role to avoid exposing an illegal _|_ via 'Contravariant',
 -- while the remaining arguments are degraded to a @nominal@ role by the invariants of 'Magma'
-data TakingWhile p (g :: * -> *) a b t = TakingWhile Bool t (Bool -> Magma () t b (Corep p a))
+data TakingWhile p (g :: Type -> Type) a b t = TakingWhile Bool t (Bool -> Magma () t b (Corep p a))
 type role TakingWhile nominal nominal nominal nominal nominal
 
 -- | Generate a 'Magma' with leaves only while the predicate holds from left to right.

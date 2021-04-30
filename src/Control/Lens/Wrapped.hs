@@ -127,6 +127,7 @@ import qualified Data.HashSet as HashSet
 import           Data.HashSet (HashSet)
 import qualified Data.HashMap.Lazy as HashMap
 import           Data.HashMap.Lazy (HashMap)
+import           Data.Kind
 import           Data.List.NonEmpty (NonEmpty(..))
 import qualified Data.Map as Map
 import           Data.Map (Map)
@@ -167,7 +168,7 @@ import           Data.Ord (Down(Down))
 -- | 'Wrapped' provides isomorphisms to wrap and unwrap newtypes or
 -- data types with one constructor.
 class Wrapped s where
-  type Unwrapped s :: *
+  type Unwrapped s :: Type
   type Unwrapped s = GUnwrapped (Rep s)
 
   -- | An isomorphism between @s@ and @a@.
@@ -189,7 +190,7 @@ _GWrapped' = iso Generic.from Generic.to . iso remitter reviewer
     reviewer x = M1 (M1 (M1 (K1 x)))
 {-# INLINE _GWrapped' #-}
 
-type family GUnwrapped (rep :: * -> *) :: *
+type family GUnwrapped (rep :: Type -> Type) :: Type
 type instance GUnwrapped (D1 d (C1 c (S1 s (Rec0 a)))) = a
 
 pattern Wrapped :: Rewrapped s s => Unwrapped s -> s
@@ -201,7 +202,7 @@ pattern Unwrapped a <- (view _Unwrapped -> a) where
   Unwrapped a = review _Unwrapped a
 
 -- This can be used to help inference between the wrappers
-class Wrapped s => Rewrapped (s :: *) (t :: *)
+class Wrapped s => Rewrapped (s :: Type) (t :: Type)
 
 class    (Rewrapped s t, Rewrapped t s) => Rewrapping s t
 instance (Rewrapped s t, Rewrapped t s) => Rewrapping s t

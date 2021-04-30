@@ -310,9 +310,6 @@ library
   ghc-options: -Wall -Wtabs -O2 -fdicts-cheap -funbox-strict-fields -fmax-simplifier-iterations=10
                -Wno-trustworthy-safe -Wno-missing-pattern-synonym-signatures -Wno-redundant-constraints
 
-  if impl(ghc >= 8.6)
-    ghc-options: -Wno-star-is-type
-
   hs-source-dirs: src
 
   include-dirs: include
@@ -334,9 +331,6 @@ test-suite templates
   ghc-options: -Wall -threaded
   hs-source-dirs: tests
   default-language: Haskell2010
-
-  if impl(ghc >= 8.6)
-    ghc-options: -Wno-star-is-type
 
   if flag(dump-splices)
     ghc-options: -ddump-splices

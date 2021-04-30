@@ -49,6 +49,7 @@ import Control.Monad.Trans.List
 import Control.Monad.Trans.Identity
 import Control.Monad.Trans.Maybe
 import Control.Monad.Trans.Free
+import Data.Kind
 
 -- $setup
 -- >>> import Control.Lens
@@ -69,7 +70,7 @@ infixr 2 `zoom`, `magnify`
 ------------------------------------------------------------------------------
 
 -- | This type family is used by 'Control.Lens.Zoom.Zoom' to describe the common effect type.
-type family Zoomed (m :: * -> *) :: * -> * -> *
+type family Zoomed (m :: Type -> Type) :: Type -> Type -> Type
 type instance Zoomed (Strict.StateT s z) = Focusing z
 type instance Zoomed (Lazy.StateT s z) = Focusing z
 type instance Zoomed (ReaderT e m) = Zoomed m
@@ -89,7 +90,7 @@ type instance Zoomed (FreeT f m) = FocusingFree f m (Zoomed m)
 ------------------------------------------------------------------------------
 
 -- | This type family is used by 'Control.Lens.Zoom.Magnify' to describe the common effect type.
-type family Magnified (m :: * -> *) :: * -> * -> *
+type family Magnified (m :: Type -> Type) :: Type -> Type -> Type
 type instance Magnified (ReaderT b m) = Effect m
 type instance Magnified ((->)b) = Const
 type instance Magnified (Strict.RWST a w s m) = EffectRWS w s m
