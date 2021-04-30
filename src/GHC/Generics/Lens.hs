@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE EmptyCase #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MagicHash #-}
@@ -56,10 +55,6 @@ import           GHC.Exts (Char(..), Double(..), Float(..),
                            Int(..), Ptr(..), Word(..))
 import qualified GHC.Generics as Generic
 import           GHC.Generics hiding (from, to)
-
-#if !(MIN_VERSION_base(4,9,0))
-import           Generics.Deriving.Base hiding (from, to)
-#endif
 
 -- $setup
 -- >>> :set -XNoOverloadedStrings

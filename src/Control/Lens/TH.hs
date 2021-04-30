@@ -469,13 +469,8 @@ declareLensesWith rules = declareWith $ \dec -> do
 -- | Transform @NewtypeD@s declarations to @DataD@s and @NewtypeInstD@s to
 -- @DataInstD@s.
 deNewtype :: Dec -> Dec
-#if MIN_VERSION_template_haskell(2,11,0)
 deNewtype (NewtypeD ctx tyName args kind c d) = DataD ctx tyName args kind [c] d
 deNewtype (NewtypeInstD ctx tyName args kind c d) = DataInstD ctx tyName args kind [c] d
-#else
-deNewtype (NewtypeD ctx tyName args c d) = DataD ctx tyName args [c] d
-deNewtype (NewtypeInstD ctx tyName args c d) = DataInstD ctx tyName args [c] d
-#endif
 deNewtype d = d
 
 
@@ -491,11 +486,7 @@ apps = Prelude.foldl AppT
 
 makeDataDecl :: Dec -> Maybe DataDecl
 makeDataDecl dec = case deNewtype dec of
-  DataD ctx tyName args
-#if MIN_VERSION_template_haskell(2,11,0)
-        _
-#endif
-        cons _ -> Just DataDecl
+  DataD ctx tyName args _ cons _ -> Just DataDecl
     { dataContext = ctx
     , tyConName = Just tyName
     , dataParameters = args
@@ -505,11 +496,7 @@ makeDataDecl dec = case deNewtype dec of
 #if MIN_VERSION_template_haskell(2,15,0)
   DataInstD ctx _ fnArgs _ cons _
 #else
-  DataInstD ctx familyName args
-#if MIN_VERSION_template_haskell(2,11,0)
-            _
-#endif
-            cons _
+  DataInstD ctx familyName args _ cons _
 #endif
                     -> Just DataDecl
     { dataContext = ctx
@@ -589,11 +576,7 @@ makeRewrappedInstance dataDecl = do
        appliedType' = return (fullType dataDecl (map VarT typeArgs'))
 
        -- Con a' b' c'... ~ t
-#if MIN_VERSION_template_haskell(2,10,0)
        eq = AppT. AppT EqualityT <$> appliedType' <*> t
-#else
-       eq = equalP appliedType' t
-#endif
 
        -- Rewrapped (Con a b c...) t
        klass = conT rewrappedTypeName `appsT` [appliedType, t]
@@ -855,16 +838,11 @@ traverseDataAndNewtype f = traverse go
 
       -- Recurse into instance declarations because they main contain
       -- associated data family instances.
-#if MIN_VERSION_template_haskell(2,11,0)
       InstanceD moverlap ctx inst body -> InstanceD moverlap ctx inst <$> traverse go body
-#else
-      InstanceD ctx inst body -> InstanceD  ctx inst <$> traverse go body
-#endif
       _ -> pure dec
 
 stripFields :: Dec -> Dec
 stripFields dec = case dec of
-#if MIN_VERSION_template_haskell(2,11,0)
   DataD ctx tyName tyArgs kind cons derivings ->
     DataD ctx tyName tyArgs kind (map deRecord cons) derivings
   NewtypeD ctx tyName tyArgs kind con derivings ->
@@ -873,16 +851,6 @@ stripFields dec = case dec of
     DataInstD ctx tyName tyArgs kind (map deRecord cons) derivings
   NewtypeInstD ctx tyName tyArgs kind con derivings ->
     NewtypeInstD ctx tyName tyArgs kind (deRecord con) derivings
-#else
-  DataD ctx tyName tyArgs cons derivings ->
-    DataD ctx tyName tyArgs (map deRecord cons) derivings
-  NewtypeD ctx tyName tyArgs con derivings ->
-    NewtypeD ctx tyName tyArgs (deRecord con) derivings
-  DataInstD ctx tyName tyArgs cons derivings ->
-    DataInstD ctx tyName tyArgs (map deRecord cons) derivings
-  NewtypeInstD ctx tyName tyArgs con derivings ->
-    NewtypeInstD ctx tyName tyArgs (deRecord con) derivings
-#endif
   _ -> dec
 
 deRecord :: Con -> Con
@@ -890,14 +858,8 @@ deRecord con@NormalC{} = con
 deRecord con@InfixC{} = con
 deRecord (ForallC tyVars ctx con) = ForallC tyVars ctx $ deRecord con
 deRecord (RecC conName fields) = NormalC conName (map dropFieldName fields)
-#if MIN_VERSION_template_haskell(2,11,0)
 deRecord con@GadtC{} = con
 deRecord (RecGadtC ns fields retTy) = GadtC ns (map dropFieldName fields) retTy
-#endif
 
-#if MIN_VERSION_template_haskell(2,11,0)
-dropFieldName :: VarBangType   -> BangType
-#else
-dropFieldName :: VarStrictType -> StrictType
-#endif
+dropFieldName :: VarBangType -> BangType
 dropFieldName (_, str, typ) = (str, typ)

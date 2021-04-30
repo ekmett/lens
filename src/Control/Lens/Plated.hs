@@ -11,13 +11,6 @@
 {-# LANGUAGE Trustworthy #-} -- template-haskell
 #endif
 
-#if __GLASGOW_HASKELL__ < 710
-{-# LANGUAGE OverlappingInstances #-}
-#define OVERLAPPING_PRAGMA
-#else
-#define OVERLAPPING_PRAGMA {-# OVERLAPPING #-}
-#endif
-
 #include "lens-common.h"
 
 -------------------------------------------------------------------------------
@@ -783,7 +776,7 @@ instance (GPlated a f, GPlated a g) => GPlated a (f :*: g) where
   gplate' f (x :*: y) = (:*:) <$> gplate' f x <*> gplate' f y
   {-# INLINE gplate' #-}
 
-instance OVERLAPPING_PRAGMA GPlated a (K1 i a) where
+instance {-# OVERLAPPING #-} GPlated a (K1 i a) where
   gplate' f (K1 x) = K1 <$> f x
   {-# INLINE gplate' #-}
 
@@ -799,11 +792,9 @@ instance GPlated a V1 where
   gplate' _ v = v `seq` error "GPlated/V1"
   {-# INLINE gplate' #-}
 
-#if MIN_VERSION_base(4,9,0)
 instance GPlated a (URec b) where
   gplate' _ = pure
   {-# INLINE gplate' #-}
-#endif
 
 -- | Implement 'plate' operation for a type using its 'Generic1' instance.
 gplate1 :: (Generic1 f, GPlated1 f (Rep1 f)) => Traversal' (f a) (f a)
@@ -850,7 +841,7 @@ instance GPlated1 f V1 where
   {-# INLINE gplate1' #-}
 
 -- | match
-instance OVERLAPPING_PRAGMA GPlated1 f (Rec1 f) where
+instance {-# OVERLAPPING #-} GPlated1 f (Rec1 f) where
   gplate1' f (Rec1 x) = Rec1 <$> f x
   {-# INLINE gplate1' #-}
 
@@ -864,9 +855,7 @@ instance (Traversable t, GPlated1 f g) => GPlated1 f (t :.: g) where
   gplate1' f (Comp1 x) = Comp1 <$> traverse (gplate1' f) x
   {-# INLINE gplate1' #-}
 
-#if MIN_VERSION_base(4,9,0)
 -- | ignored
 instance GPlated1 f (URec a) where
   gplate1' _ = pure
   {-# INLINE gplate1' #-}
-#endif

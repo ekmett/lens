@@ -84,9 +84,7 @@ unfoldType = go []
     go acc (ForallT _ _ ty) = go acc ty
     go acc (AppT ty1 ty2)   = go (ty2:acc) ty1
     go acc (SigT ty _)      = go acc ty
-#if MIN_VERSION_template_haskell(2,11,0)
     go acc (ParensT ty)     = go acc ty
-#endif
 #if MIN_VERSION_template_haskell(2,15,0)
     go acc (AppKindT ty _)  = go acc ty
 #endif
@@ -141,15 +139,7 @@ quantifyType' exclude c t = ForallT vs c t
   where
   vs = filter (\tvb -> D.tvName tvb `Set.notMember` exclude)
      $ D.changeTVFlags D.SpecifiedSpec
-     $ D.freeVariablesWellScoped (t:concatMap predTypes c) -- stable order
-
-  predTypes :: Pred -> [Type]
-#if MIN_VERSION_template_haskell(2,10,0)
-  predTypes p = [p]
-#else
-  predTypes (ClassP _ ts)  = ts
-  predTypes (EqualP t1 t2) = [t1, t2]
-#endif
+     $ D.freeVariablesWellScoped (t:c) -- stable order
 
 -- | Convert a 'TyVarBndr' into its corresponding 'Type'.
 tvbToType :: D.TyVarBndr_ flag -> Type
@@ -256,19 +246,11 @@ idValName                = mkNameG_v "base" "GHC.Base" "id"
 fmapValName             :: Name
 fmapValName              = mkNameG_v "base" "GHC.Base" "fmap"
 
-#if MIN_VERSION_base(4,8,0)
 pureValName             :: Name
 pureValName              = mkNameG_v "base" "GHC.Base" "pure"
 
 apValName               :: Name
 apValName                = mkNameG_v "base" "GHC.Base" "<*>"
-#else
-pureValName             :: Name
-pureValName              = mkNameG_v "base" "Control.Applicative" "pure"
-
-apValName               :: Name
-apValName                = mkNameG_v "base" "Control.Applicative" "<*>"
-#endif
 
 rightDataName           :: Name
 rightDataName            = mkNameG_d "base" "Data.Either" "Right"

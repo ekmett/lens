@@ -1,9 +1,6 @@
-{-# LANGUAGE CPP, MultiParamTypeClasses, DeriveGeneric, DeriveDataTypeable #-}
+{-# LANGUAGE MultiParamTypeClasses, DeriveGeneric, DeriveDataTypeable #-}
 module Plates where
 
-#if !(MIN_VERSION_base(4,8,0))
-import Control.Applicative
-#endif
 import Control.Lens
 import GHC.Generics
 import Data.Data

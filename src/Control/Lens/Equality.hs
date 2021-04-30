@@ -3,11 +3,8 @@
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
-{-# LANGUAGE PolyKinds #-}
-#if __GLASGOW_HASKELL__ >= 800
 {-# LANGUAGE TypeInType #-}
 {-# LANGUAGE Trustworthy #-}
-#endif
 
 -----------------------------------------------------------------------------
 -- |
@@ -48,10 +45,8 @@ module Control.Lens.Equality
 import Control.Lens.Type
 import Data.Proxy (Proxy)
 import Data.Type.Equality ((:~:)(..))
-#if __GLASGOW_HASKELL__ >= 800
 import GHC.Exts (TYPE)
 import Data.Kind (Type)
-#endif
 
 -- $setup
 -- >>> import Control.Lens
@@ -78,22 +73,14 @@ runEq l = case l Identical of Identical -> Identical
 {-# INLINE runEq #-}
 
 -- | Substituting types with 'Equality'.
-#if __GLASGOW_HASKELL__ >= 800
 substEq :: forall s t a b rep (r :: TYPE rep).
            AnEquality s t a b -> ((s ~ a, t ~ b) => r) -> r
-#else
-substEq :: AnEquality s t a b -> ((s ~ a, t ~ b) => r) -> r
-#endif
 substEq l = case runEq l of
   Identical -> \r -> r
 {-# INLINE substEq #-}
 
 -- | We can use 'Equality' to do substitution into anything.
-#if __GLASGOW_HASKELL__ >= 800
 mapEq :: forall k1 k2 (s :: k1) (t :: k2) (a :: k1) (b :: k2) (f :: k1 -> Type) . AnEquality s t a b -> f s -> f a
-#else
-mapEq :: forall (s :: k1) (t :: k2) (a :: k1) (b :: k2) (f :: k1 -> *) . AnEquality s t a b -> f s -> f a
-#endif
 mapEq l r = substEq l r
 {-# INLINE mapEq #-}
 
@@ -104,12 +91,8 @@ fromEq l = substEq l id
 
 -- | This is an adverb that can be used to modify many other 'Lens' combinators to make them require
 -- simple lenses, simple traversals, simple prisms or simple isos as input.
-#if __GLASGOW_HASKELL__ >= 800
 simply :: forall p f s a rep (r :: TYPE rep).
   (Optic' p f s a -> r) -> Optic' p f s a -> r
-#else
-simply :: (Optic' p f s a -> r) -> Optic' p f s a -> r
-#endif
 simply = id
 {-# INLINE simply #-}
 
@@ -168,12 +151,7 @@ fromLeibniz' f = case f Refl of Refl -> id
 
 -- | A version of 'substEq' that provides explicit, rather than implicit,
 -- equality evidence.
-#if __GLASGOW_HASKELL__ >= 800
 withEquality :: forall s t a b rep (r :: TYPE rep).
    AnEquality s t a b -> (s :~: a -> b :~: t -> r) -> r
-#else
-withEquality :: forall s t a b r.
-   AnEquality s t a b -> (s :~: a -> b :~: t -> r) -> r
-#endif
 withEquality an = substEq an (\f -> f Refl Refl)
 {-# INLINE withEquality #-}

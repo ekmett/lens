@@ -6,9 +6,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE Trustworthy #-}
-#if __GLASGOW_HASKELL__ >= 800
 {-# LANGUAGE TypeInType #-}
-#endif
 
 #include "lens-common.h"
 
@@ -140,9 +138,7 @@ import Data.Functor.Apply
 import Data.Functor.Reverse
 import Data.Functor.Yoneda
 import Data.Semigroup.Traversable
-#if __GLASGOW_HASKELL__ >= 800
 import GHC.Exts (TYPE)
-#endif
 
 -- $setup
 -- >>> :set -XNoOverloadedStrings
@@ -220,12 +216,8 @@ lens sa sbt afb s = sbt s <$> afb (sa s)
 {-# INLINE lens #-}
 
 -- | Obtain a getter and a setter from a lens, reversing 'lens'.
-#if __GLASGOW_HASKELL__ >= 800
 withLens :: forall s t a b rep (r :: TYPE rep).
             ALens s t a b -> ((s -> a) -> (s -> b -> t) -> r) -> r
-#else
-withLens :: ALens s t a b -> ((s -> a) -> (s -> b -> t) -> r) -> r
-#endif
 withLens l f = f (^# l) (flip (storing l))
 {-# INLINE withLens #-}
 

@@ -6,7 +6,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies #-}
 
-#if __GLASGOW_HASKELL__ >= 800 && __GLASGOW_HASKELL__ < 806
+#if __GLASGOW_HASKELL__ < 806
 {-# LANGUAGE TypeInType #-}
 #endif
 module T917 where
@@ -14,7 +14,7 @@ module T917 where
 import Control.Lens
 import Data.Proxy
 
-#if __GLASGOW_HASKELL__ >= 800 && __GLASGOW_HASKELL__ < 806
+#if __GLASGOW_HASKELL__ < 806
 import Data.Kind
 #endif
 
@@ -34,7 +34,6 @@ data family   T917DataFam (a :: k)
 data instance T917DataFam (a :: *) = MkT917DataFam { _unT917DataFam :: Proxy a }
 $(makeLenses 'MkT917DataFam)
 
-#if __GLASGOW_HASKELL__ >= 800
 data T917GadtOne (a :: k) where
   MkT917GadtOne :: T917GadtOne (a :: *)
 $(makePrisms ''T917GadtOne)
@@ -42,4 +41,3 @@ $(makePrisms ''T917GadtOne)
 data T917GadtTwo (a :: k) where
   MkT917GadtTwo :: T917GadtTwo (a :: *)
 $(makePrisms ''T917GadtTwo)
-#endif

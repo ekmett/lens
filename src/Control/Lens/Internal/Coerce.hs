@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE Trustworthy #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -23,11 +22,7 @@ import Data.Profunctor.Unsafe
 import Data.Coerce
 
 coerce' :: forall a b. Coercible a b => b -> a
-#if __GLASGOW_HASKELL__ <710
-coerce' = coerce (id :: a -> a)
-#else
 coerce' = coerce
-#endif
 {-# INLINE coerce' #-}
 
 (#..) :: (Profunctor p, Coercible c b) => (b -> c) -> p a b -> p a c

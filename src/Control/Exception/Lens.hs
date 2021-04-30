@@ -4,14 +4,11 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE ViewPatterns #-}
 
 #ifdef TRUSTWORTHY
 {-# LANGUAGE Trustworthy #-}
-#endif
-
-#if __GLASGOW_HASKELL__ >= 710
-{-# LANGUAGE PatternSynonyms #-}
-{-# LANGUAGE ViewPatterns #-}
 #endif
 
 #include "lens-common.h"
@@ -55,21 +52,16 @@ module Control.Exception.Lens
   , mappedException, mappedException'
   -- * Exceptions
   , exception
-#if __GLASGOW_HASKELL__ >= 710
   , pattern Exception
-#endif
   -- * Exception Handlers
   , Handleable(..)
   -- ** IOExceptions
   , AsIOException(..)
-#if __GLASGOW_HASKELL__ >= 710
   , pattern IOException_
-#endif
   -- ** Arithmetic Exceptions
   , AsArithException(..)
   , _Overflow, _Underflow, _LossOfPrecision, _DivideByZero, _Denormal
   , _RatioZeroDenominator
-#if __GLASGOW_HASKELL__ >= 710
   , pattern ArithException_
   , pattern Overflow_
   , pattern Underflow_
@@ -77,108 +69,79 @@ module Control.Exception.Lens
   , pattern DivideByZero_
   , pattern Denormal_
   , pattern RatioZeroDenominator_
-#endif
   -- ** Array Exceptions
   , AsArrayException(..)
   , _IndexOutOfBounds
   , _UndefinedElement
-#if __GLASGOW_HASKELL__ >= 710
   , pattern ArrayException_
   , pattern IndexOutOfBounds_
   , pattern UndefinedElement_
-#endif
   -- ** Assertion Failed
   , AsAssertionFailed(..)
-#if __GLASGOW_HASKELL__ >= 710
   , pattern AssertionFailed__
   , pattern AssertionFailed_
-#endif
   -- ** Async Exceptions
   , AsAsyncException(..)
   , _StackOverflow
   , _HeapOverflow
   , _ThreadKilled
   , _UserInterrupt
-#if __GLASGOW_HASKELL__ >= 710
   , pattern AsyncException_
   , pattern StackOverflow_
   , pattern HeapOverflow_
   , pattern ThreadKilled_
   , pattern UserInterrupt_
-#endif
   -- ** Non-Termination
   , AsNonTermination(..)
-#if __GLASGOW_HASKELL__ >= 710
   , pattern NonTermination__
   , pattern NonTermination_
-#endif
   -- ** Nested Atomically
   , AsNestedAtomically(..)
-#if __GLASGOW_HASKELL__ >= 710
   , pattern NestedAtomically__
   , pattern NestedAtomically_
-#endif
   -- ** Blocked Indefinitely
   -- *** on MVar
   , AsBlockedIndefinitelyOnMVar(..)
-#if __GLASGOW_HASKELL__ >= 710
   , pattern BlockedIndefinitelyOnMVar__
   , pattern BlockedIndefinitelyOnMVar_
-#endif
   -- *** on STM
   , AsBlockedIndefinitelyOnSTM(..)
-#if __GLASGOW_HASKELL__ >= 710
   , pattern BlockedIndefinitelyOnSTM__
   , pattern BlockedIndefinitelyOnSTM_
-#endif
   -- ** Deadlock
   , AsDeadlock(..)
-#if __GLASGOW_HASKELL__ >= 710
   , pattern Deadlock__
   , pattern Deadlock_
-#endif
   -- ** No Such Method
   , AsNoMethodError(..)
-#if __GLASGOW_HASKELL__ >= 710
   , pattern NoMethodError__
   , pattern NoMethodError_
-#endif
   -- ** Pattern Match Failure
   , AsPatternMatchFail(..)
-#if __GLASGOW_HASKELL__ >= 710
   , pattern PatternMatchFail__
   , pattern PatternMatchFail_
-#endif
   -- ** Record
   , AsRecConError(..)
   , AsRecSelError(..)
   , AsRecUpdError(..)
-#if __GLASGOW_HASKELL__ >= 710
   , pattern RecConError__
   , pattern RecConError_
   , pattern RecSelError__
   , pattern RecSelError_
   , pattern RecUpdError__
   , pattern RecUpdError_
-#endif
   -- ** Error Call
   , AsErrorCall(..)
-#if __GLASGOW_HASKELL__ >= 710
   , pattern ErrorCall__
   , pattern ErrorCall_
-#endif
-#if MIN_VERSION_base(4,8,0)
   -- ** Allocation Limit Exceeded
   , AsAllocationLimitExceeded(..)
   , pattern AllocationLimitExceeded__
   , pattern AllocationLimitExceeded_
-#endif
-#if MIN_VERSION_base(4,9,0)
   -- ** Type Error
   , AsTypeError(..)
   , pattern TypeError__
   , pattern TypeError_
-#endif
 #if MIN_VERSION_base(4,10,0)
   -- ** Compaction Failed
   , AsCompactionFailed(..)
@@ -187,10 +150,8 @@ module Control.Exception.Lens
 #endif
   -- * Handling Exceptions
   , AsHandlingException(..)
-#if __GLASGOW_HASKELL__ >= 710
   , pattern HandlingException__
   , pattern HandlingException_
-#endif
   ) where
 
 import Control.Applicative
@@ -206,9 +167,7 @@ import Prelude
   ( const, either, flip, id
   , (.)
   , Maybe(..), Either(..), String
-#if __GLASGOW_HASKELL__ >= 710
   , Bool(..)
-#endif
   )
 
 -- $setup
@@ -232,13 +191,9 @@ exception :: Exception a => Prism' SomeException a
 exception = prism' toException fromException
 {-# INLINE exception #-}
 
-#if __GLASGOW_HASKELL__ >= 710
-# if __GLASGOW_HASKELL__ >= 800
 pattern Exception :: Exception a => a -> SomeException
-# endif
 pattern Exception e <- (preview exception -> Just e) where
   Exception e = review exception e
-#endif
 
 ------------------------------------------------------------------------------
 -- Catching
@@ -495,13 +450,9 @@ instance AsIOException SomeException where
   _IOException = exception
   {-# INLINE _IOException #-}
 
-#if __GLASGOW_HASKELL__ >= 710
-# if __GLASGOW_HASKELL__ >= 800
 pattern IOException_ :: AsIOException s => IOException -> s
-# endif
 pattern IOException_ a <- (preview _IOException -> Just a) where
   IOException_ a = review _IOException a
-#endif
 
 ----------------------------------------------------------------------------
 -- ArithException
@@ -516,13 +467,9 @@ class AsArithException t where
   -- @
   _ArithException :: Prism' t ArithException
 
-#if __GLASGOW_HASKELL__ >= 710
-# if __GLASGOW_HASKELL__ >= 800
 pattern ArithException_ :: AsArithException s => ArithException -> s
-# endif
 pattern ArithException_ a <- (preview _ArithException -> Just a) where
   ArithException_ a = review _ArithException a
-#endif
 
 instance AsArithException ArithException where
   _ArithException = id
@@ -548,13 +495,9 @@ _Overflow = _ArithException . dimap seta (either id id) . right' . rmap (Overflo
   seta t        = Left  (pure t)
 {-# INLINE _Overflow #-}
 
-#if __GLASGOW_HASKELL__ >= 710
-# if __GLASGOW_HASKELL__ >= 800
 pattern Overflow_ :: AsArithException s => s
-# endif
 pattern Overflow_ <- (has _Overflow -> True) where
   Overflow_ = review _Overflow ()
-#endif
 
 -- | Handle arithmetic '_Underflow'.
 --
@@ -572,13 +515,9 @@ _Underflow = _ArithException . dimap seta (either id id) . right' . rmap (Underf
   seta t        = Left  (pure t)
 {-# INLINE _Underflow #-}
 
-#if __GLASGOW_HASKELL__ >= 710
-# if __GLASGOW_HASKELL__ >= 800
 pattern Underflow_ :: AsArithException s => s
-# endif
 pattern Underflow_ <- (has _Underflow -> True) where
   Underflow_ = review _Underflow ()
-#endif
 
 -- | Handle arithmetic loss of precision.
 --
@@ -596,13 +535,9 @@ _LossOfPrecision = _ArithException . dimap seta (either id id) . right' . rmap (
   seta t        = Left  (pure t)
 {-# INLINE _LossOfPrecision #-}
 
-#if __GLASGOW_HASKELL__ >= 710
-# if __GLASGOW_HASKELL__ >= 800
 pattern LossOfPrecision_ :: AsArithException s => s
-# endif
 pattern LossOfPrecision_ <- (has _LossOfPrecision -> True) where
   LossOfPrecision_ = review _LossOfPrecision ()
-#endif
 
 -- | Handle division by zero.
 --
@@ -620,13 +555,9 @@ _DivideByZero = _ArithException . dimap seta (either id id) . right' . rmap (Div
   seta t        = Left  (pure t)
 {-# INLINE _DivideByZero #-}
 
-#if __GLASGOW_HASKELL__ >= 710
-# if __GLASGOW_HASKELL__ >= 800
 pattern DivideByZero_ :: AsArithException s => s
-# endif
 pattern DivideByZero_ <- (has _DivideByZero -> True) where
   DivideByZero_ = review _DivideByZero ()
-#endif
 
 -- | Handle exceptional _Denormalized floating pure.
 --
@@ -644,13 +575,9 @@ _Denormal = _ArithException . dimap seta (either id id) . right' . rmap (Denorma
   seta t        = Left  (pure t)
 {-# INLINE _Denormal #-}
 
-#if __GLASGOW_HASKELL__ >= 710
-# if __GLASGOW_HASKELL__ >= 800
 pattern Denormal_ :: AsArithException s => s
-# endif
 pattern Denormal_ <- (has _Denormal -> True) where
   Denormal_ = review _Denormal ()
-#endif
 
 -- |
 --
@@ -668,13 +595,9 @@ _RatioZeroDenominator = _ArithException . dimap seta (either id id) . right' . r
   seta t        = Left  (pure t)
 {-# INLINE _RatioZeroDenominator #-}
 
-#if __GLASGOW_HASKELL__ >= 710
-# if __GLASGOW_HASKELL__ >= 800
 pattern RatioZeroDenominator_ :: AsArithException s => s
-# endif
 pattern RatioZeroDenominator_ <- (has _RatioZeroDenominator -> True) where
   RatioZeroDenominator_ = review _RatioZeroDenominator ()
-#endif
 
 ----------------------------------------------------------------------------
 -- ArrayException
@@ -698,13 +621,9 @@ instance AsArrayException SomeException where
   _ArrayException = exception
   {-# INLINE _ArrayException #-}
 
-#if __GLASGOW_HASKELL__ >= 710
-# if __GLASGOW_HASKELL__ >= 800
 pattern ArrayException_ :: AsArrayException s => ArrayException -> s
-# endif
 pattern ArrayException_ e <- (preview _ArrayException -> Just e) where
   ArrayException_ e = review _ArrayException e
-#endif
 
 -- | An attempt was made to index an array outside its declared bounds.
 --
@@ -722,13 +641,9 @@ _IndexOutOfBounds = _ArrayException . dimap seta (either id id) . right' . rmap 
   seta t                    = Left  (pure t)
 {-# INLINE _IndexOutOfBounds #-}
 
-#if __GLASGOW_HASKELL__ >= 710
-# if __GLASGOW_HASKELL__ >= 800
 pattern IndexOutOfBounds_ :: AsArrayException s => String -> s
-# endif
 pattern IndexOutOfBounds_ e <- (preview _IndexOutOfBounds -> Just e) where
   IndexOutOfBounds_ e = review _IndexOutOfBounds e
-#endif
 
 -- | An attempt was made to evaluate an element of an array that had not been initialized.
 --
@@ -746,13 +661,9 @@ _UndefinedElement = _ArrayException . dimap seta (either id id) . right' . rmap 
   seta t                    = Left  (pure t)
 {-# INLINE _UndefinedElement #-}
 
-#if __GLASGOW_HASKELL__ >= 710
-# if __GLASGOW_HASKELL__ >= 800
 pattern UndefinedElement_ :: AsArrayException s => String -> s
-# endif
 pattern UndefinedElement_ e <- (preview _UndefinedElement -> Just e) where
   UndefinedElement_ e = review _UndefinedElement e
-#endif
 
 ----------------------------------------------------------------------------
 -- AssertionFailed
@@ -791,19 +702,13 @@ instance AsAssertionFailed SomeException where
   __AssertionFailed = exception
   {-# INLINE __AssertionFailed #-}
 
-#if __GLASGOW_HASKELL__ >= 710
-# if __GLASGOW_HASKELL__ >= 800
 pattern AssertionFailed__ :: AsAssertionFailed s => AssertionFailed -> s
-# endif
 pattern AssertionFailed__ e <- (preview __AssertionFailed -> Just e) where
   AssertionFailed__ e = review __AssertionFailed e
 
-# if __GLASGOW_HASKELL__ >= 800
 pattern AssertionFailed_ :: AsAssertionFailed s => String -> s
-# endif
 pattern AssertionFailed_ e <- (preview _AssertionFailed -> Just e) where
   AssertionFailed_ e = review _AssertionFailed e
-#endif
 
 ----------------------------------------------------------------------------
 -- AsyncException
@@ -827,13 +732,9 @@ instance AsAsyncException SomeException where
   _AsyncException = exception
   {-# INLINE _AsyncException #-}
 
-#if __GLASGOW_HASKELL__ >= 710
-# if __GLASGOW_HASKELL__ >= 800
 pattern AsyncException_ :: AsAsyncException s => AsyncException -> s
-# endif
 pattern AsyncException_ e <- (preview _AsyncException -> Just e) where
   AsyncException_ e = review _AsyncException e
-#endif
 
 -- | The current thread's stack exceeded its limit. Since an 'Exception' has
 -- been raised, the thread's stack will certainly be below its limit again,
@@ -849,13 +750,9 @@ _StackOverflow = _AsyncException . dimap seta (either id id) . right' . rmap (St
   seta t             = Left  (pure t)
 {-# INLINE _StackOverflow #-}
 
-#if __GLASGOW_HASKELL__ >= 710
-# if __GLASGOW_HASKELL__ >= 800
 pattern StackOverflow_ :: AsAsyncException s => s
-# endif
 pattern StackOverflow_ <- (has _StackOverflow -> True) where
   StackOverflow_ = review _StackOverflow ()
-#endif
 
 -- | The program's heap is reaching its limit, and the program should take action
 -- to reduce the amount of live data it has.
@@ -876,13 +773,9 @@ _HeapOverflow = _AsyncException . dimap seta (either id id) . right' . rmap (Hea
   seta t            = Left  (pure t)
 {-# INLINE _HeapOverflow #-}
 
-#if __GLASGOW_HASKELL__ >= 710
-# if __GLASGOW_HASKELL__ >= 800
 pattern HeapOverflow_ :: AsAsyncException s => s
-# endif
 pattern HeapOverflow_ <- (has _HeapOverflow -> True) where
   HeapOverflow_ = review _HeapOverflow ()
-#endif
 
 -- | This 'Exception' is raised by another thread calling
 -- 'Control.Concurrent.killThread', or by the system if it needs to terminate
@@ -898,13 +791,9 @@ _ThreadKilled = _AsyncException . dimap seta (either id id) . right' . rmap (Thr
   seta t            = Left  (pure t)
 {-# INLINE _ThreadKilled #-}
 
-#if __GLASGOW_HASKELL__ >= 710
-# if __GLASGOW_HASKELL__ >= 800
 pattern ThreadKilled_ :: AsAsyncException s => s
-# endif
 pattern ThreadKilled_ <- (has _ThreadKilled -> True) where
   ThreadKilled_ = review _ThreadKilled ()
-#endif
 
 -- | This 'Exception' is raised by default in the main thread of the program when
 -- the user requests to terminate the program via the usual mechanism(s)
@@ -920,13 +809,9 @@ _UserInterrupt = _AsyncException . dimap seta (either id id) . right' . rmap (Us
   seta t             = Left  (pure t)
 {-# INLINE _UserInterrupt #-}
 
-#if __GLASGOW_HASKELL__ >= 710
-# if __GLASGOW_HASKELL__ >= 800
 pattern UserInterrupt_ :: AsAsyncException s => s
-# endif
 pattern UserInterrupt_ <- (has _UserInterrupt -> True) where
   UserInterrupt_ = review _UserInterrupt ()
-#endif
 
 ----------------------------------------------------------------------------
 -- AsyncException
@@ -964,19 +849,13 @@ instance AsNonTermination SomeException where
   __NonTermination = exception
   {-# INLINE __NonTermination #-}
 
-#if __GLASGOW_HASKELL__ >= 710
-# if __GLASGOW_HASKELL__ >= 800
 pattern NonTermination__ :: AsNonTermination s => NonTermination -> s
-# endif
 pattern NonTermination__ e <- (preview __NonTermination -> Just e) where
   NonTermination__ e = review __NonTermination e
 
-# if __GLASGOW_HASKELL__ >= 800
 pattern NonTermination_ :: AsNonTermination s => s
-# endif
 pattern NonTermination_ <- (has _NonTermination -> True) where
   NonTermination_ = review _NonTermination ()
-#endif
 
 ----------------------------------------------------------------------------
 -- NestedAtomically
@@ -1013,19 +892,13 @@ instance AsNestedAtomically SomeException where
   __NestedAtomically = exception
   {-# INLINE __NestedAtomically #-}
 
-#if __GLASGOW_HASKELL__ >= 710
-# if __GLASGOW_HASKELL__ >= 800
 pattern NestedAtomically__ :: AsNestedAtomically s => NestedAtomically -> s
-# endif
 pattern NestedAtomically__ e <- (preview __NestedAtomically -> Just e) where
   NestedAtomically__ e = review __NestedAtomically e
 
-# if __GLASGOW_HASKELL__ >= 800
 pattern NestedAtomically_ :: AsNestedAtomically s => s
-# endif
 pattern NestedAtomically_ <- (has _NestedAtomically -> True) where
   NestedAtomically_ = review _NestedAtomically ()
-#endif
 
 ----------------------------------------------------------------------------
 -- BlockedIndefinitelyOnMVar
@@ -1063,19 +936,13 @@ instance AsBlockedIndefinitelyOnMVar SomeException where
   __BlockedIndefinitelyOnMVar = exception
   {-# INLINE __BlockedIndefinitelyOnMVar #-}
 
-#if __GLASGOW_HASKELL__ >= 710
-# if __GLASGOW_HASKELL__ >= 800
 pattern BlockedIndefinitelyOnMVar__ :: AsBlockedIndefinitelyOnMVar s => BlockedIndefinitelyOnMVar -> s
-# endif
 pattern BlockedIndefinitelyOnMVar__ e <- (preview __BlockedIndefinitelyOnMVar -> Just e) where
   BlockedIndefinitelyOnMVar__ e = review __BlockedIndefinitelyOnMVar e
 
-# if __GLASGOW_HASKELL__ >= 800
 pattern BlockedIndefinitelyOnMVar_ :: AsBlockedIndefinitelyOnMVar s => s
-# endif
 pattern BlockedIndefinitelyOnMVar_ <- (has _BlockedIndefinitelyOnMVar -> True) where
   BlockedIndefinitelyOnMVar_ = review _BlockedIndefinitelyOnMVar ()
-#endif
 
 ----------------------------------------------------------------------------
 -- BlockedIndefinitelyOnSTM
@@ -1113,19 +980,13 @@ instance AsBlockedIndefinitelyOnSTM SomeException where
   __BlockedIndefinitelyOnSTM = exception
   {-# INLINE __BlockedIndefinitelyOnSTM #-}
 
-#if __GLASGOW_HASKELL__ >= 710
-# if __GLASGOW_HASKELL__ >= 800
 pattern BlockedIndefinitelyOnSTM__ :: AsBlockedIndefinitelyOnSTM s => BlockedIndefinitelyOnSTM -> s
-# endif
 pattern BlockedIndefinitelyOnSTM__ e <- (preview __BlockedIndefinitelyOnSTM -> Just e) where
   BlockedIndefinitelyOnSTM__ e = review __BlockedIndefinitelyOnSTM e
 
-# if __GLASGOW_HASKELL__ >= 800
 pattern BlockedIndefinitelyOnSTM_ :: AsBlockedIndefinitelyOnSTM s => s
-# endif
 pattern BlockedIndefinitelyOnSTM_ <- (has _BlockedIndefinitelyOnSTM -> True) where
   BlockedIndefinitelyOnSTM_ = review _BlockedIndefinitelyOnSTM ()
-#endif
 
 ----------------------------------------------------------------------------
 -- Deadlock
@@ -1162,19 +1023,13 @@ instance AsDeadlock SomeException where
   __Deadlock = exception
   {-# INLINE __Deadlock #-}
 
-#if __GLASGOW_HASKELL__ >= 710
-# if __GLASGOW_HASKELL__ >= 800
 pattern Deadlock__ :: AsDeadlock s => Deadlock -> s
-# endif
 pattern Deadlock__ e <- (preview __Deadlock -> Just e) where
   Deadlock__ e = review __Deadlock e
 
-# if __GLASGOW_HASKELL__ >= 800
 pattern Deadlock_ :: AsDeadlock s => s
-# endif
 pattern Deadlock_ <- (has _Deadlock -> True) where
   Deadlock_ = review _Deadlock ()
-#endif
 
 ----------------------------------------------------------------------------
 -- NoMethodError
@@ -1211,19 +1066,13 @@ instance AsNoMethodError SomeException where
   __NoMethodError = exception
   {-# INLINE __NoMethodError #-}
 
-#if __GLASGOW_HASKELL__ >= 710
-# if __GLASGOW_HASKELL__ >= 800
 pattern NoMethodError__ :: AsNoMethodError s => NoMethodError -> s
-# endif
 pattern NoMethodError__ e <- (preview __NoMethodError -> Just e) where
   NoMethodError__ e = review __NoMethodError e
 
-# if __GLASGOW_HASKELL__ >= 800
 pattern NoMethodError_ :: AsNoMethodError s => String -> s
-# endif
 pattern NoMethodError_ e <- (preview _NoMethodError -> Just e) where
   NoMethodError_ e = review _NoMethodError e
-#endif
 
 ----------------------------------------------------------------------------
 -- PatternMatchFail
@@ -1259,19 +1108,13 @@ instance AsPatternMatchFail SomeException where
   __PatternMatchFail = exception
   {-# INLINE __PatternMatchFail #-}
 
-#if __GLASGOW_HASKELL__ >= 710
-# if __GLASGOW_HASKELL__ >= 800
 pattern PatternMatchFail__ :: AsPatternMatchFail s => PatternMatchFail -> s
-# endif
 pattern PatternMatchFail__ e <- (preview __PatternMatchFail -> Just e) where
   PatternMatchFail__ e = review __PatternMatchFail e
 
-# if __GLASGOW_HASKELL__ >= 800
 pattern PatternMatchFail_ :: AsPatternMatchFail s => String -> s
-# endif
 pattern PatternMatchFail_ e <- (preview _PatternMatchFail -> Just e) where
   PatternMatchFail_ e = review _PatternMatchFail e
-#endif
 
 ----------------------------------------------------------------------------
 -- RecConError
@@ -1308,19 +1151,13 @@ instance AsRecConError SomeException where
   __RecConError = exception
   {-# INLINE __RecConError #-}
 
-#if __GLASGOW_HASKELL__ >= 710
-# if __GLASGOW_HASKELL__ >= 800
 pattern RecConError__ :: AsRecConError s => RecConError -> s
-# endif
 pattern RecConError__ e <- (preview __RecConError -> Just e) where
   RecConError__ e = review __RecConError e
 
-# if __GLASGOW_HASKELL__ >= 800
 pattern RecConError_ :: AsRecConError s => String -> s
-# endif
 pattern RecConError_ e <- (preview _RecConError -> Just e) where
   RecConError_ e = review _RecConError e
-#endif
 
 ----------------------------------------------------------------------------
 -- RecSelError
@@ -1358,19 +1195,13 @@ instance AsRecSelError SomeException where
   __RecSelError = exception
   {-# INLINE __RecSelError #-}
 
-#if __GLASGOW_HASKELL__ >= 710
-# if __GLASGOW_HASKELL__ >= 800
 pattern RecSelError__ :: AsRecSelError s => RecSelError -> s
-# endif
 pattern RecSelError__ e <- (preview __RecSelError -> Just e) where
   RecSelError__ e = review __RecSelError e
 
-# if __GLASGOW_HASKELL__ >= 800
 pattern RecSelError_ :: AsRecSelError s => String -> s
-# endif
 pattern RecSelError_ e <- (preview _RecSelError -> Just e) where
   RecSelError_ e = review _RecSelError e
-#endif
 
 ----------------------------------------------------------------------------
 -- RecUpdError
@@ -1408,19 +1239,13 @@ instance AsRecUpdError SomeException where
   __RecUpdError = exception
   {-# INLINE __RecUpdError #-}
 
-#if __GLASGOW_HASKELL__ >= 710
-# if __GLASGOW_HASKELL__ >= 800
 pattern RecUpdError__ :: AsRecUpdError s => RecUpdError -> s
-# endif
 pattern RecUpdError__ e <- (preview __RecUpdError -> Just e) where
   RecUpdError__ e = review __RecUpdError e
 
-# if __GLASGOW_HASKELL__ >= 800
 pattern RecUpdError_ :: AsRecUpdError s => String -> s
-# endif
 pattern RecUpdError_ e <- (preview _RecUpdError -> Just e) where
   RecUpdError_ e = review _RecUpdError e
-#endif
 
 ----------------------------------------------------------------------------
 -- ErrorCall
@@ -1461,21 +1286,14 @@ instance AsErrorCall SomeException where
   __ErrorCall = exception
   {-# INLINE __ErrorCall #-}
 
-#if __GLASGOW_HASKELL__ >= 710
-# if __GLASGOW_HASKELL__ >= 800
 pattern ErrorCall__ :: AsErrorCall s => ErrorCall -> s
-# endif
 pattern ErrorCall__ e <- (preview __ErrorCall -> Just e) where
   ErrorCall__ e = review __ErrorCall e
 
-# if __GLASGOW_HASKELL__ >= 800
 pattern ErrorCall_ :: AsErrorCall s => String -> s
-# endif
 pattern ErrorCall_ e <- (preview _ErrorCall -> Just e) where
   ErrorCall_ e = review _ErrorCall e
-#endif
 
-#if MIN_VERSION_base(4,8,0)
 ----------------------------------------------------------------------------
 -- AllocationLimitExceeded
 ----------------------------------------------------------------------------
@@ -1511,20 +1329,14 @@ instance AsAllocationLimitExceeded SomeException where
   __AllocationLimitExceeded = exception
   {-# INLINE __AllocationLimitExceeded #-}
 
-# if __GLASGOW_HASKELL__ >= 800
 pattern AllocationLimitExceeded__ :: AsAllocationLimitExceeded s => AllocationLimitExceeded -> s
-# endif
 pattern AllocationLimitExceeded__ e <- (preview __AllocationLimitExceeded -> Just e) where
   AllocationLimitExceeded__ e = review __AllocationLimitExceeded e
 
-# if __GLASGOW_HASKELL__ >= 800
 pattern AllocationLimitExceeded_ :: AsAllocationLimitExceeded s => s
-# endif
 pattern AllocationLimitExceeded_ <- (has _AllocationLimitExceeded -> True) where
   AllocationLimitExceeded_ = review _AllocationLimitExceeded ()
-#endif
 
-#if MIN_VERSION_base(4,9,0)
 ----------------------------------------------------------------------------
 -- TypeError
 ----------------------------------------------------------------------------
@@ -1567,7 +1379,6 @@ pattern TypeError__ e <- (preview __TypeError -> Just e) where
 pattern TypeError_ :: AsTypeError s => String -> s
 pattern TypeError_ e <- (preview _TypeError -> Just e) where
   TypeError_ e = review _TypeError e
-#endif
 
 #if MIN_VERSION_base(4,10,0)
 ----------------------------------------------------------------------------
@@ -1649,19 +1460,13 @@ instance AsHandlingException SomeException where
   __HandlingException = exception
   {-# INLINE __HandlingException #-}
 
-#if __GLASGOW_HASKELL__ >= 710
-# if __GLASGOW_HASKELL__ >= 800
 pattern HandlingException__ :: AsHandlingException s => HandlingException -> s
-# endif
 pattern HandlingException__ e <- (preview __HandlingException -> Just e) where
   HandlingException__ e = review __HandlingException e
 
-# if __GLASGOW_HASKELL__ >= 800
 pattern HandlingException_ :: AsHandlingException s => s
-# endif
 pattern HandlingException_ <- (has _HandlingException -> True) where
   HandlingException_ = review _HandlingException ()
-#endif
 
 ------------------------------------------------------------------------------
 -- Helper Functions
