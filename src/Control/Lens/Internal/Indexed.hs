@@ -44,12 +44,12 @@ import Control.Comonad
 import Control.Lens.Internal.Prelude
 import Control.Lens.Internal.Instances ()
 import Control.Monad.Fix
+import Data.Coerce
 import Data.Distributive
 import Data.Functor.Bind
 import Data.Int
 import Data.Profunctor.Closed
 import Data.Profunctor.Rep
-import Control.Lens.Internal.Coerce
 
 -- $setup
 -- >>> :set -XNoOverloadedStrings
@@ -152,7 +152,7 @@ instance Profunctor (Indexed i) where
   {-# INLINE rmap #-}
   (.#) ibc _ = coerce ibc
   {-# INLINE (.#) #-}
-  (#.) _ = coerce'
+  (#.) _ = coerce
   {-# INLINE (#.) #-}
 
 instance Closed (Indexed i) where

@@ -20,10 +20,10 @@ module Control.Lens.Internal.Iso
 
 import Data.Profunctor
 import Data.Profunctor.Unsafe
-import Control.Lens.Internal.Coerce
 
 import qualified Data.ByteString       as StrictB
 import qualified Data.ByteString.Lazy  as LazyB
+import Data.Coerce
 import qualified Data.List.NonEmpty    as NonEmpty
 import qualified Data.Text             as StrictT
 import qualified Data.Text.Lazy        as LazyT
@@ -56,7 +56,7 @@ instance Profunctor (Exchange a b) where
   {-# INLINE lmap #-}
   rmap f (Exchange sa bt) = Exchange sa (f . bt)
   {-# INLINE rmap #-}
-  (#.) _ = coerce'
+  (#.) _ = coerce
   {-# INLINE (#.) #-}
   (.#) p _ = coerce p
 

@@ -30,7 +30,6 @@ module Control.Lens.Zoom
 import Prelude ()
 
 import Control.Lens.Getter
-import Control.Lens.Internal.Coerce
 import Control.Lens.Internal.Prelude
 import Control.Lens.Internal.Zoom
 import Control.Lens.Type
@@ -168,11 +167,11 @@ instance (Monoid w, Monad z) => Zoom (Lazy.RWST r w s z) (Lazy.RWST r w t z) s t
   {-# INLINE zoom #-}
 
 instance (Monoid w, Zoom m n s t) => Zoom (Strict.WriterT w m) (Strict.WriterT w n) s t where
-  zoom l = Strict.WriterT . zoom (\afb -> unfocusingPlus #.. l (FocusingPlus #.. afb)) . Strict.runWriterT
+  zoom l = Strict.WriterT . zoom (\afb -> unfocusingPlus #. l (FocusingPlus #. afb)) . Strict.runWriterT
   {-# INLINE zoom #-}
 
 instance (Monoid w, Zoom m n s t) => Zoom (Lazy.WriterT w m) (Lazy.WriterT w n) s t where
-  zoom l = Lazy.WriterT . zoom (\afb -> unfocusingPlus #.. l (FocusingPlus #.. afb)) . Lazy.runWriterT
+  zoom l = Lazy.WriterT . zoom (\afb -> unfocusingPlus #. l (FocusingPlus #. afb)) . Lazy.runWriterT
   {-# INLINE zoom #-}
 
 instance Zoom m n s t => Zoom (ListT m) (ListT n) s t where
@@ -180,19 +179,19 @@ instance Zoom m n s t => Zoom (ListT m) (ListT n) s t where
   {-# INLINE zoom #-}
 
 instance Zoom m n s t => Zoom (MaybeT m) (MaybeT n) s t where
-  zoom l = MaybeT . liftM getMay . zoom (\afb -> unfocusingMay #.. l (FocusingMay #.. afb)) . liftM May . runMaybeT
+  zoom l = MaybeT . liftM getMay . zoom (\afb -> unfocusingMay #. l (FocusingMay #. afb)) . liftM May . runMaybeT
   {-# INLINE zoom #-}
 
 instance (Error e, Zoom m n s t) => Zoom (ErrorT e m) (ErrorT e n) s t where
-  zoom l = ErrorT . liftM getErr . zoom (\afb -> unfocusingErr #.. l (FocusingErr #.. afb)) . liftM Err . runErrorT
+  zoom l = ErrorT . liftM getErr . zoom (\afb -> unfocusingErr #. l (FocusingErr #. afb)) . liftM Err . runErrorT
   {-# INLINE zoom #-}
 
 instance Zoom m n s t => Zoom (ExceptT e m) (ExceptT e n) s t where
-  zoom l = ExceptT . liftM getErr . zoom (\afb -> unfocusingErr #.. l (FocusingErr #.. afb)) . liftM Err . runExceptT
+  zoom l = ExceptT . liftM getErr . zoom (\afb -> unfocusingErr #. l (FocusingErr #. afb)) . liftM Err . runExceptT
   {-# INLINE zoom #-}
 
 instance (Functor f, Zoom m n s t) => Zoom (FreeT f m) (FreeT f n) s t where
-  zoom l = FreeT . liftM (fmap (zoom l) . getFreed) . zoom (\afb -> unfocusingFree #.. l (FocusingFree #.. afb)) . liftM Freed . runFreeT
+  zoom l = FreeT . liftM (fmap (zoom l) . getFreed) . zoom (\afb -> unfocusingFree #. l (FocusingFree #. afb)) . liftM Freed . runFreeT
 
 ------------------------------------------------------------------------------
 -- Magnify
