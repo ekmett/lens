@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE TemplateHaskellQuotes #-}
 #ifdef TRUSTWORTHY
 # if MIN_VERSION_template_haskell(2,12,0)
 {-# LANGUAGE Safe #-}
@@ -21,17 +22,17 @@
 ----------------------------------------------------------------------------
 module Control.Lens.Internal.TH where
 
+import Control.Lens.Iso
+import Control.Lens.Prism
+import Control.Lens.Review
+import Control.Lens.Type
+import Control.Lens.Wrapped
 import Data.Functor.Contravariant
 import qualified Data.Set as Set
 import Data.Set (Set)
 import Language.Haskell.TH
 import qualified Language.Haskell.TH.Datatype as D
 import qualified Language.Haskell.TH.Datatype.TyVarBndr as D
-import Language.Haskell.TH.Syntax
-#ifndef CURRENT_PACKAGE_KEY
-import Data.Version (showVersion)
-import Paths_lens (version)
-#endif
 
 -- | Apply arguments to a type constructor
 appsT :: TypeQ -> [TypeQ] -> TypeQ
@@ -157,106 +158,92 @@ isDataFamily D.DataInstance    = True
 isDataFamily D.NewtypeInstance = True
 
 ------------------------------------------------------------------------
--- Manually quoted names
+-- TH-quoted names
 ------------------------------------------------------------------------
--- By manually generating these names we avoid needing to use the
--- TemplateHaskell language extension when compiling the lens library.
--- This allows the library to be used in stage1 cross-compilers.
-
-lensPackageKey         :: String
-#ifdef CURRENT_PACKAGE_KEY
-lensPackageKey          = CURRENT_PACKAGE_KEY
-#else
-lensPackageKey          = "lens-" ++ showVersion version
-#endif
-
-mkLensName_tc          :: String -> String -> Name
-mkLensName_tc           = mkNameG_tc lensPackageKey
-
-mkLensName_v           :: String -> String -> Name
-mkLensName_v            = mkNameG_v lensPackageKey
+-- Note that this module only TemplateHaskellQuotes, not TemplateHaskell,
+-- which makes lens able to be used in stage1 cross-compilers.
 
 traversalTypeName      :: Name
-traversalTypeName       = mkLensName_tc "Control.Lens.Type" "Traversal"
+traversalTypeName       = ''Traversal
 
 traversal'TypeName     :: Name
-traversal'TypeName      = mkLensName_tc "Control.Lens.Type" "Traversal'"
+traversal'TypeName      = ''Traversal'
 
 lensTypeName           :: Name
-lensTypeName            = mkLensName_tc "Control.Lens.Type" "Lens"
+lensTypeName            = ''Lens
 
 lens'TypeName          :: Name
-lens'TypeName           = mkLensName_tc "Control.Lens.Type" "Lens'"
+lens'TypeName           = ''Lens'
 
 isoTypeName            :: Name
-isoTypeName             = mkLensName_tc "Control.Lens.Type" "Iso"
+isoTypeName             = ''Iso
 
 iso'TypeName           :: Name
-iso'TypeName            = mkLensName_tc "Control.Lens.Type" "Iso'"
+iso'TypeName            = ''Iso'
 
 getterTypeName         :: Name
-getterTypeName          = mkLensName_tc "Control.Lens.Type" "Getter"
+getterTypeName          = ''Getter
 
 foldTypeName           :: Name
-foldTypeName            = mkLensName_tc "Control.Lens.Type" "Fold"
+foldTypeName            = ''Fold
 
 prismTypeName          :: Name
-prismTypeName           = mkLensName_tc "Control.Lens.Type" "Prism"
+prismTypeName           = ''Prism
 
 prism'TypeName         :: Name
-prism'TypeName          = mkLensName_tc "Control.Lens.Type" "Prism'"
+prism'TypeName          = ''Prism'
 
 reviewTypeName          :: Name
-reviewTypeName           = mkLensName_tc "Control.Lens.Type" "Review"
+reviewTypeName           = ''Review
 
 wrappedTypeName         :: Name
-wrappedTypeName          = mkLensName_tc "Control.Lens.Wrapped" "Wrapped"
+wrappedTypeName          = ''Wrapped
 
 unwrappedTypeName       :: Name
-unwrappedTypeName        = mkLensName_tc "Control.Lens.Wrapped" "Unwrapped"
+unwrappedTypeName        = ''Unwrapped
 
 rewrappedTypeName       :: Name
-rewrappedTypeName        = mkLensName_tc "Control.Lens.Wrapped" "Rewrapped"
+rewrappedTypeName        = ''Rewrapped
 
 _wrapped'ValName        :: Name
-_wrapped'ValName         = mkLensName_v "Control.Lens.Wrapped" "_Wrapped'"
+_wrapped'ValName         = '_Wrapped'
 
 isoValName              :: Name
-isoValName               = mkLensName_v "Control.Lens.Iso" "iso"
+isoValName               = 'iso
 
 prismValName            :: Name
-prismValName             = mkLensName_v "Control.Lens.Prism" "prism"
+prismValName             = 'prism
 
 untoValName             :: Name
-untoValName              = mkLensName_v "Control.Lens.Review" "unto"
+untoValName              = 'unto
 
 phantomValName          :: Name
-phantomValName           = mkLensName_v "Control.Lens.Internal.TH" "phantom2"
+phantomValName           = 'phantom2
 
 phantom2 :: (Functor f, Contravariant f) => f a -> f b
 phantom2 = phantom
 {-# INLINE phantom2 #-}
 
 composeValName          :: Name
-composeValName           = mkNameG_v "base" "GHC.Base" "."
+composeValName           = '(.)
 
 idValName               :: Name
-idValName                = mkNameG_v "base" "GHC.Base" "id"
+idValName                = 'id
 
 fmapValName             :: Name
-fmapValName              = mkNameG_v "base" "GHC.Base" "fmap"
+fmapValName              = 'fmap
 
 pureValName             :: Name
-pureValName              = mkNameG_v "base" "GHC.Base" "pure"
+pureValName              = 'pure
 
 apValName               :: Name
-apValName                = mkNameG_v "base" "GHC.Base" "<*>"
+apValName                = '(<*>)
 
 rightDataName           :: Name
-rightDataName            = mkNameG_d "base" "Data.Either" "Right"
+rightDataName            = 'Right
 
 leftDataName            :: Name
-leftDataName             = mkNameG_d "base" "Data.Either" "Left"
+leftDataName             = 'Left
 
 
 ------------------------------------------------------------------------

@@ -294,7 +294,6 @@ library
 
   other-modules:
     Control.Lens.Internal.Prelude
-    Paths_lens
 
   if flag(trustworthy) && impl(ghc)
     other-extensions: Trustworthy
