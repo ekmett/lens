@@ -307,8 +307,8 @@ library
   if flag(j)
     ghc-options: -j4
 
-  ghc-options: -Wall -fwarn-tabs -O2 -fdicts-cheap -funbox-strict-fields -fmax-simplifier-iterations=10
-               -fno-warn-trustworthy-safe -Wno-missing-pattern-synonym-signatures -Wno-redundant-constraints
+  ghc-options: -Wall -Wtabs -O2 -fdicts-cheap -funbox-strict-fields -fmax-simplifier-iterations=10
+               -Wno-trustworthy-safe -Wno-missing-pattern-synonym-signatures -Wno-redundant-constraints
 
   if impl(ghc >= 8.6)
     ghc-options: -Wno-star-is-type

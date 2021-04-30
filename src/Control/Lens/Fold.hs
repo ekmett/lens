@@ -7,7 +7,7 @@
 {-# LANGUAGE Trustworthy #-}
 
 #include "lens-common.h"
-{-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# OPTIONS_GHC -Wno-orphans #-}
 ----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Fold
@@ -1236,7 +1236,7 @@ lengthOf l = foldlOf' l (\a _ -> a + 1) 0
 -- way to extract the optional value.
 --
 -- Note: if you get stack overflows due to this, you may want to use 'firstOf' instead, which can deal
--- more gracefully with heavily left-biased trees. This is because '^?' works by using the 
+-- more gracefully with heavily left-biased trees. This is because '^?' works by using the
 -- 'Data.Monoid.First' monoid, which can occasionally cause space leaks.
 --
 -- >>> Left 4 ^?_Left
@@ -1251,7 +1251,7 @@ lengthOf l = foldlOf' l (\a _ -> a + 1) 0
 -- >>> "world" ^? ix 20
 -- Nothing
 --
--- This operator works as an infix version of 'preview'. 
+-- This operator works as an infix version of 'preview'.
 --
 -- @
 -- ('^?') ≡ 'flip' 'preview'
@@ -1259,7 +1259,7 @@ lengthOf l = foldlOf' l (\a _ -> a + 1) 0
 --
 -- It may be helpful to think of '^?' as having one of the following
 -- more specialized types:
--- 
+--
 -- @
 -- ('^?') :: s -> 'Getter' s a     -> 'Maybe' a
 -- ('^?') :: s -> 'Fold' s a       -> 'Maybe' a
@@ -1968,11 +1968,11 @@ ipre l = dimap (getFirst . getConst #. l (Indexed $ \i a -> Const (First (Just (
 -- @
 -- 'preview' = 'view' '.' 'pre'
 -- @
--- 
 --
--- Unlike '^?', this function uses a 
+--
+-- Unlike '^?', this function uses a
 -- 'Control.Monad.Reader.MonadReader' to read the value to be focused in on.
--- This allows one to pass the value as the last argument by using the 
+-- This allows one to pass the value as the last argument by using the
 -- 'Control.Monad.Reader.MonadReader' instance for @(->) s@
 -- However, it may also be used as part of some deeply nested transformer stack.
 --
@@ -1984,7 +1984,7 @@ ipre l = dimap (getFirst . getConst #. l (Indexed $ \i a -> Const (First (Just (
 --
 -- It may be helpful to think of 'preview' as having one of the following
 -- more specialized types:
--- 
+--
 -- @
 -- 'preview' :: 'Getter' s a     -> s -> 'Maybe' a
 -- 'preview' :: 'Fold' s a       -> s -> 'Maybe' a
@@ -2000,7 +2000,7 @@ ipre l = dimap (getFirst . getConst #. l (Indexed $ \i a -> Const (First (Just (
 -- 'preview' :: 'MonadReader' s m => 'Lens'' s a      -> m ('Maybe' a)
 -- 'preview' :: 'MonadReader' s m => 'Iso'' s a       -> m ('Maybe' a)
 -- 'preview' :: 'MonadReader' s m => 'Traversal'' s a -> m ('Maybe' a)
--- 
+--
 -- @
 preview :: MonadReader s m => Getting (First a) s a -> m (Maybe a)
 preview l = asks (getFirst #. foldMapOf l (First #. Just))

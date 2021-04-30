@@ -15,7 +15,7 @@
 {-# LANGUAGE Trustworthy #-}
 #endif
 
-{-# OPTIONS_GHC -fno-warn-warnings-deprecations #-}
+{-# OPTIONS_GHC -Wno-warnings-deprecations #-}
 
 #include "lens-common.h"
 
