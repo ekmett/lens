@@ -2,7 +2,6 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ConstraintKinds #-}
@@ -145,7 +144,7 @@ handlerCatchIO l f = reifyTypeable (preview l) $ \ (_ :: Proxy s) -> Catch.Handl
 ------------------------------------------------------------------------------
 
 -- | There was an 'Exception' caused by abusing the internals of a 'Handler'.
-data HandlingException = HandlingException deriving (Show,Typeable)
+data HandlingException = HandlingException deriving Show
 
 instance Exception HandlingException
 
@@ -160,7 +159,6 @@ supply = unsafePerformIO $ newIORef 0
 
 -- | This permits the construction of an \"impossible\" 'Control.Exception.Handler' that matches only if some function does.
 newtype Handling a s (m :: Type -> Type) = Handling a
-  deriving Typeable
 
 type role Handling representational nominal nominal
 

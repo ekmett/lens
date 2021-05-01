@@ -114,7 +114,7 @@ import GHC.Generics
 -- $setup
 -- >>> :set -XDeriveGeneric -XDeriveDataTypeable
 -- >>> import Control.Applicative
--- >>> import Data.Data (Data, Typeable)
+-- >>> import Data.Data (Data)
 -- >>> import GHC.Generics (Generic)
 -- >>> import Control.Lens
 
@@ -135,7 +135,7 @@ import GHC.Generics
 --   = Val 'Int'
 --   | Neg Expr
 --   | Add Expr Expr
---   deriving ('Eq','Ord','Show','Read','Data','Typeable')
+--   deriving ('Eq','Ord','Show','Read','Data')
 -- @
 --
 -- @
@@ -166,7 +166,7 @@ import GHC.Generics
 -- data Tree a
 --   = Bin (Tree a) (Tree a)
 --   | Tip a
---   deriving ('Eq','Ord','Show','Read','Data','Typeable')
+--   deriving ('Eq','Ord','Show','Read','Data')
 -- @
 --
 -- @
@@ -728,7 +728,7 @@ parts = partsOf plate
 --
 -- For example consider mutually recursive even and odd natural numbers:
 --
--- >>> data Even = Z | E Odd deriving (Show, Generic, Typeable, Data); data Odd = O Even deriving (Show, Generic, Typeable, Data)
+-- >>> data Even = Z | E Odd deriving (Show, Generic, Data); data Odd = O Even deriving (Show, Generic, Data)
 --
 -- Then 'uniplate', which is based on `Data`, finds
 -- all even numbers less or equal than four:
