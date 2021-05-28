@@ -56,11 +56,7 @@ evalOf l = l
 -- 'parOf' :: ((a -> 'Eval' a) -> s -> 'Eval' s) -> 'Strategy' a -> 'Strategy' s
 -- @
 parOf :: LensLike' Eval s a -> Strategy a -> Strategy s
-#if MIN_VERSION_parallel(3,2,0)
 parOf l s = l (rparWith s)
-#else
-parOf l s = l (rpar `dot` s)
-#endif
 {-# INLINE parOf #-}
 
 -- | Transform a 'Lens', 'Fold', 'Getter', 'Setter' or 'Traversal' to

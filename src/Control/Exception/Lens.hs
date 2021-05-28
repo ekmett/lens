@@ -13,10 +13,6 @@
 
 #include "lens-common.h"
 
-#if !(MIN_VERSION_exceptions(0,4,0))
-#define MonadThrow MonadCatch
-#endif
-
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Exception.Lens

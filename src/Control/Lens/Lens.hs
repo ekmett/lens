@@ -311,14 +311,7 @@ s &~ l = execState l s
 -- ('%%=') :: ('MonadState' s m, 'Monoid' r) => 'Control.Lens.Traversal.Traversal' s s a b -> (a -> (r, b)) -> m r
 -- @
 (%%=) :: MonadState s m => Over p ((,) r) s s a b -> p a (r, b) -> m r
-#if MIN_VERSION_mtl(2,1,1)
 l %%= f = State.state (l f)
-#else
-l %%= f = do
-  (r, s) <- State.gets (l f)
-  State.put s
-  return r
-#endif
 {-# INLINE (%%=) #-}
 
 -------------------------------------------------------------------------------
@@ -1289,14 +1282,7 @@ l <<%@~ f = l $ Indexed $ \i a -> second' (f i) (a,a)
 -- ('%%@=') :: ('MonadState' s m, 'Monoid' r) => 'Control.Lens.Traversal.IndexedTraversal' i s s a b -> (i -> a -> (r, b)) -> s -> m r
 -- @
 (%%@=) :: MonadState s m => Over (Indexed i) ((,) r) s s a b -> (i -> a -> (r, b)) -> m r
-#if MIN_VERSION_mtl(2,1,0)
 l %%@= f = State.state (l %%@~ f)
-#else
-l %%@= f = do
-  (r, s) <- State.gets (l %%@~ f)
-  State.put s
-  return r
-#endif
 {-# INLINE (%%@=) #-}
 
 -- | Adjust the target of an 'IndexedLens' returning the intermediate result, or
@@ -1320,14 +1306,7 @@ l <%@= f = l %%@= \ i a -> let b = f i a in (b, b)
 -- ('<<%@=') :: ('MonadState' s m, 'Monoid' b) => 'Control.Lens.Traversal.IndexedTraversal' i s s a b -> (i -> a -> b) -> m a
 -- @
 (<<%@=) :: MonadState s m => Over (Indexed i) ((,) a) s s a b -> (i -> a -> b) -> m a
-#if MIN_VERSION_mtl(2,1,0)
 l <<%@= f = State.state (l (Indexed $ \ i a -> (a, f i a)))
-#else
-l <<%@= f = do
-  (r, s) <- State.gets (l (Indexed $ \ i a -> (a, f i a)))
-  State.put s
-  return r
-#endif
 {-# INLINE (<<%@=) #-}
 
 ------------------------------------------------------------------------------
@@ -1399,15 +1378,7 @@ l <#%= f = l #%%= \a -> let b = f a in (b, b)
 
 -- | A version of ('%%=') that works on 'ALens'.
 (#%%=) :: MonadState s m => ALens s s a b -> (a -> (r, b)) -> m r
-#if MIN_VERSION_mtl(2,1,1)
 l #%%= f = State.state $ \s -> runPretext (l sell s) f
-#else
-l #%%= f = do
-  p <- State.gets (l sell)
-  let (r, t) = runPretext p f
-  State.put t
-  return r
-#endif
 {-# INLINE (#%%=) #-}
 
 -- | A version of ('Control.Lens.Setter.<.~') that works on 'ALens'.

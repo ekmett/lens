@@ -163,9 +163,7 @@ import Data.Int (Int64)
 import Data.List (intercalate)
 import Data.Maybe (fromMaybe)
 import Data.Monoid (First (..), All (..), Any (..))
-#if MIN_VERSION_reflection(2,1,0)
 import Data.Reflection
-#endif
 
 import qualified Data.Semigroup as Semi
 
