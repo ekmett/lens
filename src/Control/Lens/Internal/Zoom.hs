@@ -4,7 +4,7 @@
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE Trustworthy #-}
 
-{-# OPTIONS_GHC -fno-warn-orphans -fno-warn-warnings-deprecations #-}
+{-# OPTIONS_GHC -Wno-orphans -Wno-warnings-deprecations #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Internal.Zoom

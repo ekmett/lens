@@ -5,7 +5,6 @@
 {-# LANGUAGE PatternGuards #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE GADTs #-}
@@ -141,7 +140,7 @@ biplate = biplateData (fromOracle answer) where
 -- Automatic Traversal construction from field accessors
 ------------------------------------------------------------------------------
 
-data FieldException a = FieldException !Int a deriving Typeable
+data FieldException a = FieldException !Int a
 
 instance Show (FieldException a) where
   showsPrec d (FieldException i _) = showParen (d > 10) $

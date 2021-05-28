@@ -4,12 +4,10 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-#ifdef TRUSTWORTHY
-{-# LANGUAGE Trustworthy #-}
-#endif
-#if __GLASGOW_HASKELL__ >= 710
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE ViewPatterns #-}
+#ifdef TRUSTWORTHY
+{-# LANGUAGE Trustworthy #-}
 #endif
 -----------------------------------------------------------------------------
 -- |
@@ -29,18 +27,14 @@ module Control.Lens.Cons
   , cons
   , uncons
   , _head, _tail
-#if __GLASGOW_HASKELL__ >= 710
   , pattern (:<)
-#endif
   -- * Snoc
   , Snoc(..)
   , (|>)
   , snoc
   , unsnoc
   , _init, _last
-#if __GLASGOW_HASKELL__ >= 710
   , pattern (:>)
-#endif
 
   ) where
 
@@ -84,24 +78,16 @@ import           Prelude
 infixr 5 <|, `cons`
 infixl 5 |>, `snoc`
 
-#if __GLASGOW_HASKELL__ >= 710
-
-# if __GLASGOW_HASKELL__ >= 800
 pattern (:<) :: Cons b b a a => a -> b -> b
-# endif
 pattern (:<) a s <- (preview _Cons -> Just (a,s)) where
   (:<) a s = _Cons # (a,s)
 
 infixr 5 :<
 infixl 5 :>
 
-# if __GLASGOW_HASKELL__ >= 800
 pattern (:>) :: Snoc a a b b => a -> b -> a
-# endif
 pattern (:>) s a <- (preview _Snoc -> Just (s,a)) where
   (:>) a s = _Snoc # (a,s)
-
-#endif
 
 ------------------------------------------------------------------------------
 -- Cons

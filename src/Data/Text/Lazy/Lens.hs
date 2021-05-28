@@ -1,10 +1,7 @@
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
-#if __GLASGOW_HASKELL__ >= 710
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE ViewPatterns #-}
-#endif
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Text.Lazy.Lens
@@ -21,9 +18,7 @@ module Data.Text.Lazy.Lens
   , text
   , builder
   , utf8
-#if __GLASGOW_HASKELL__ >= 710
   , pattern Text
-#endif
   ) where
 
 import Control.Lens.Type
@@ -31,9 +26,7 @@ import Control.Lens.Getter
 import Control.Lens.Fold
 import Control.Lens.Iso
 import Control.Lens.Prism
-#if __GLASGOW_HASKELL__ >= 710
 import Control.Lens.Review
-#endif
 import Control.Lens.Setter
 import Control.Lens.Traversal
 import Data.ByteString.Lazy (ByteString)
@@ -151,10 +144,6 @@ utf8 :: Prism' ByteString Text
 utf8 = prism' encodeUtf8 (preview _Right . decodeUtf8')
 {-# INLINE utf8 #-}
 
-#if __GLASGOW_HASKELL__ >= 710
-# if __GLASGOW_HASKELL__ >= 800
 pattern Text :: String -> Text
-# endif
 pattern Text a <- (view _Text -> a) where
   Text a = review _Text a
-#endif

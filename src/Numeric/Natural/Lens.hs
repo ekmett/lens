@@ -1,10 +1,7 @@
-{-# language CPP #-}
 {-# language RankNTypes #-}
 {-# language PatternGuards #-}
-#if __GLASGOW_HASKELL__ >= 710
 {-# language ViewPatterns #-}
 {-# language PatternSynonyms #-}
-#endif
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Numeric.Natural.Lens
@@ -20,11 +17,9 @@ module Numeric.Natural.Lens
   ( _Pair
   , _Sum
   , _Naturals
-#if __GLASGOW_HASKELL__ >= 710
   , pattern Pair
   , pattern Sum
   , pattern Naturals
-#endif
   ) where
 
 import Control.Lens
@@ -65,8 +60,6 @@ _Naturals = iso hither yon where
   yon [] = 0
   yon (x:xs) = 1 + review _Pair (x, yon xs)
 
-#if __GLASGOW_HASKELL__ >= 710
-
 -- |
 -- interleaves the bits of two natural numbers
 pattern Pair :: Natural -> Natural -> Natural
@@ -90,4 +83,3 @@ pattern Sum s <- (view _Sum -> s) where
 pattern Naturals :: [Natural] -> Natural
 pattern Naturals xs <- (view _Naturals -> xs) where
   Naturals xs = review _Naturals xs
-#endif

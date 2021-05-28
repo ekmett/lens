@@ -33,6 +33,7 @@ import Control.Comonad
 import Control.Comonad.Store.Class
 import Control.Lens.Internal.Indexed
 import Control.Lens.Internal.Prelude
+import Data.Kind
 import Data.Profunctor.Rep
 import Prelude hiding ((.),id)
 
@@ -279,7 +280,7 @@ instance Corepresentable p => Sellable p (Pretext p) where
 -- This is used internally to permit a number of combinators to gracefully
 -- degrade when applied to a 'Control.Lens.Fold.Fold' or
 -- 'Control.Lens.Getter.Getter'.
-newtype PretextT p (g :: * -> *) a b t = PretextT { runPretextT :: forall f. Functor f => p a (f b) -> f t }
+newtype PretextT p (g :: Type -> Type) a b t = PretextT { runPretextT :: forall f. Functor f => p a (f b) -> f t }
 
 -- really we want PretextT p g a b t to permit the last 3 arguments to be representational iff p and f accept representational arguments
 -- but that isn't currently an option in GHC

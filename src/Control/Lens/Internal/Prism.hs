@@ -17,7 +17,7 @@ module Control.Lens.Internal.Prism
 import Prelude ()
 
 import Control.Lens.Internal.Prelude
-import Control.Lens.Internal.Coerce
+import Data.Coerce
 
 ------------------------------------------------------------------------------
 -- Prism: Market
@@ -42,7 +42,7 @@ instance Profunctor (Market a b) where
   rmap f (Market bt seta) = Market (f . bt) (either (Left . f) Right . seta)
   {-# INLINE rmap #-}
 
-  (#.) _ = coerce'
+  (#.) _ = coerce
   {-# INLINE (#.) #-}
   (.#) p _ = coerce p
   {-# INLINE (.#) #-}

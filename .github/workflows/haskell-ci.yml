@@ -8,9 +8,9 @@
 #
 # For more information, see https://github.com/haskell-CI/haskell-ci
 #
-# version: 0.11.20210222
+# version: 0.12.1
 #
-# REGENDATA ("0.11.20210222",["--config=cabal.haskell-ci","cabal.project"])
+# REGENDATA ("0.12.1",["--config=cabal.haskell-ci","cabal.project"])
 #
 name: Haskell-CI
 on:
@@ -43,7 +43,7 @@ jobs:
           nickname: github-actions
           server: irc.freenode.org
   linux:
-    name: Haskell-CI - Linux - GHC ${{ matrix.ghc }}
+    name: Haskell-CI - Linux - ${{ matrix.compiler }}
     runs-on: ubuntu-18.04
     container:
       image: buildpack-deps:bionic
@@ -51,23 +51,19 @@ jobs:
     strategy:
       matrix:
         include:
-          - ghc: 9.0.1
+          - compiler: ghc-9.0.1
             allow-failure: false
-          - ghc: 8.10.4
+          - compiler: ghc-8.10.4
             allow-failure: false
-          - ghc: 8.8.4
+          - compiler: ghc-8.8.4
             allow-failure: false
-          - ghc: 8.6.5
+          - compiler: ghc-8.6.5
             allow-failure: false
-          - ghc: 8.4.4
+          - compiler: ghc-8.4.4
             allow-failure: false
-          - ghc: 8.2.2
+          - compiler: ghc-8.2.2
             allow-failure: false
-          - ghc: 8.0.2
-            allow-failure: false
-          - ghc: 7.10.3
-            allow-failure: false
-          - ghc: 7.8.4
+          - compiler: ghc-8.0.2
             allow-failure: false
       fail-fast: false
     steps:
@@ -77,29 +73,31 @@ jobs:
           apt-get install -y --no-install-recommends gnupg ca-certificates dirmngr curl git software-properties-common
           apt-add-repository -y 'ppa:hvr/ghc'
           apt-get update
-          apt-get install -y ghc-$GHC_VERSION cabal-install-3.4 freeglut3-dev
+          apt-get install -y $CC cabal-install-3.4 freeglut3-dev
         env:
-          GHC_VERSION: ${{ matrix.ghc }}
+          CC: ${{ matrix.compiler }}
       - name: Set PATH and environment variables
         run: |
           echo "$HOME/.cabal/bin" >> $GITHUB_PATH
           echo "LANG=C.UTF-8" >> $GITHUB_ENV
           echo "CABAL_DIR=$HOME/.cabal" >> $GITHUB_ENV
           echo "CABAL_CONFIG=$HOME/.cabal/config" >> $GITHUB_ENV
-          HC=/opt/ghc/$GHC_VERSION/bin/ghc
+          HCDIR=$(echo "/opt/$CC" | sed 's/-/\//')
+          HCNAME=ghc
+          HC=$HCDIR/bin/$HCNAME
           echo "HC=$HC" >> $GITHUB_ENV
-          echo "HCPKG=/opt/ghc/$GHC_VERSION/bin/ghc-pkg" >> $GITHUB_ENV
-          echo "HADDOCK=/opt/ghc/$GHC_VERSION/bin/haddock" >> $GITHUB_ENV
+          echo "HCPKG=$HCDIR/bin/$HCNAME-pkg" >> $GITHUB_ENV
+          echo "HADDOCK=$HCDIR/bin/haddock" >> $GITHUB_ENV
           echo "CABAL=/opt/cabal/3.4/bin/cabal -vnormal+nowrap" >> $GITHUB_ENV
           HCNUMVER=$(${HC} --numeric-version|perl -ne '/^(\d+)\.(\d+)\.(\d+)(\.(\d+))?$/; print(10000 * $1 + 100 * $2 + ($3 == 0 ? $5 != 1 : $3))')
           echo "HCNUMVER=$HCNUMVER" >> $GITHUB_ENV
           echo "ARG_TESTS=--enable-tests" >> $GITHUB_ENV
           echo "ARG_BENCH=--enable-benchmarks" >> $GITHUB_ENV
           echo "HEADHACKAGE=false" >> $GITHUB_ENV
-          echo "ARG_COMPILER=--ghc --with-compiler=$HC" >> $GITHUB_ENV
+          echo "ARG_COMPILER=--$HCNAME --with-compiler=$HC" >> $GITHUB_ENV
           echo "GHCJSARITH=0" >> $GITHUB_ENV
         env:
-          GHC_VERSION: ${{ matrix.ghc }}
+          CC: ${{ matrix.compiler }}
       - name: env
         run: |
           env
@@ -134,7 +132,7 @@ jobs:
       - name: cache (tools)
         uses: actions/cache@v2
         with:
-          key: ${{ runner.os }}-${{ matrix.ghc }}-tools-44f6870a
+          key: ${{ runner.os }}-${{ matrix.compiler }}-tools-2b1b586f
           path: ~/.haskell-ci-tools
       - name: install cabal-plan
         run: |
@@ -156,10 +154,10 @@ jobs:
           cabal-docspec --version
       - name: install hlint
         run: |
-          if [ $((HCNUMVER >= 81000 && HCNUMVER < 90000)) -ne 0 ] ; then HLINTVER=$(cd /tmp && (${CABAL} v2-install -v $ARG_COMPILER --dry-run hlint  --constraint='hlint >=3.2 && <3.3' |  perl -ne 'if (/\bhlint-(\d+(\.\d+)*)\b/) { print "$1"; last; }')); echo "HLint version $HLINTVER" ; fi
-          if [ $((HCNUMVER >= 81000 && HCNUMVER < 90000)) -ne 0 ] ; then if [ ! -e $HOME/.haskell-ci-tools/hlint-$HLINTVER/hlint ]; then echo "Downloading HLint version $HLINTVER"; mkdir -p $HOME/.haskell-ci-tools; curl --write-out 'Status Code: %{http_code} Redirects: %{num_redirects} Total time: %{time_total} Total Dsize: %{size_download}\n' --silent --location --output $HOME/.haskell-ci-tools/hlint-$HLINTVER.tar.gz "https://github.com/ndmitchell/hlint/releases/download/v$HLINTVER/hlint-$HLINTVER-x86_64-linux.tar.gz"; tar -xzv -f $HOME/.haskell-ci-tools/hlint-$HLINTVER.tar.gz -C $HOME/.haskell-ci-tools; fi ; fi
-          if [ $((HCNUMVER >= 81000 && HCNUMVER < 90000)) -ne 0 ] ; then mkdir -p $CABAL_DIR/bin && ln -sf "$HOME/.haskell-ci-tools/hlint-$HLINTVER/hlint" $CABAL_DIR/bin/hlint ; fi
-          if [ $((HCNUMVER >= 81000 && HCNUMVER < 90000)) -ne 0 ] ; then hlint --version ; fi
+          if [ $((HCNUMVER >= 90000)) -ne 0 ] ; then HLINTVER=$(cd /tmp && (${CABAL} v2-install -v $ARG_COMPILER --dry-run hlint  --constraint='hlint >=3.3 && <3.4' |  perl -ne 'if (/\bhlint-(\d+(\.\d+)*)\b/) { print "$1"; last; }')); echo "HLint version $HLINTVER" ; fi
+          if [ $((HCNUMVER >= 90000)) -ne 0 ] ; then if [ ! -e $HOME/.haskell-ci-tools/hlint-$HLINTVER/hlint ]; then echo "Downloading HLint version $HLINTVER"; mkdir -p $HOME/.haskell-ci-tools; curl --write-out 'Status Code: %{http_code} Redirects: %{num_redirects} Total time: %{time_total} Total Dsize: %{size_download}\n' --silent --location --output $HOME/.haskell-ci-tools/hlint-$HLINTVER.tar.gz "https://github.com/ndmitchell/hlint/releases/download/v$HLINTVER/hlint-$HLINTVER-x86_64-linux.tar.gz"; tar -xzv -f $HOME/.haskell-ci-tools/hlint-$HLINTVER.tar.gz -C $HOME/.haskell-ci-tools; fi ; fi
+          if [ $((HCNUMVER >= 90000)) -ne 0 ] ; then mkdir -p $CABAL_DIR/bin && ln -sf "$HOME/.haskell-ci-tools/hlint-$HLINTVER/hlint" $CABAL_DIR/bin/hlint ; fi
+          if [ $((HCNUMVER >= 90000)) -ne 0 ] ; then hlint --version ; fi
       - name: checkout
         uses: actions/checkout@v2
         with:
@@ -199,8 +197,6 @@ jobs:
           if [ $((HCNUMVER >= 80200)) -ne 0 ] ; then echo "package lens-properties" >> cabal.project ; fi
           if [ $((HCNUMVER >= 80200)) -ne 0 ] ; then echo "    ghc-options: -Werror=missing-methods" >> cabal.project ; fi
           cat >> cabal.project <<EOF
-          allow-newer: cassava:base
-          allow-newer: vector-binary-instances:base
           EOF
           $HCPKG list --simple-output --names-only | perl -ne 'for (split /\s+/) { print "constraints: $_ installed\n" unless /^(lens|lens-examples|lens-properties)$/; }' >> cabal.project.local
           cat cabal.project
@@ -212,9 +208,9 @@ jobs:
       - name: cache
         uses: actions/cache@v2
         with:
-          key: ${{ runner.os }}-${{ matrix.ghc }}-${{ github.sha }}
+          key: ${{ runner.os }}-${{ matrix.compiler }}-${{ github.sha }}
           path: ~/.cabal/store
-          restore-keys: ${{ runner.os }}-${{ matrix.ghc }}-
+          restore-keys: ${{ runner.os }}-${{ matrix.compiler }}-
       - name: install dependencies
         run: |
           $CABAL v2-build $ARG_COMPILER --disable-tests --disable-benchmarks --dependencies-only -j2 all
@@ -231,9 +227,9 @@ jobs:
           cabal-docspec $ARG_COMPILER
       - name: hlint
         run: |
-          if [ $((HCNUMVER >= 81000 && HCNUMVER < 90000)) -ne 0 ] ; then (cd ${PKGDIR_lens} && hlint src) ; fi
-          if [ $((HCNUMVER >= 81000 && HCNUMVER < 90000)) -ne 0 ] ; then (cd ${PKGDIR_lens_examples} && hlint .) ; fi
-          if [ $((HCNUMVER >= 81000 && HCNUMVER < 90000)) -ne 0 ] ; then (cd ${PKGDIR_lens_properties} && hlint src) ; fi
+          if [ $((HCNUMVER >= 90000)) -ne 0 ] ; then (cd ${PKGDIR_lens} && hlint src) ; fi
+          if [ $((HCNUMVER >= 90000)) -ne 0 ] ; then (cd ${PKGDIR_lens_examples} && hlint .) ; fi
+          if [ $((HCNUMVER >= 90000)) -ne 0 ] ; then (cd ${PKGDIR_lens_properties} && hlint src) ; fi
       - name: cabal check
         run: |
           cd ${PKGDIR_lens} || false

@@ -1,3 +1,4 @@
+distribution:           bionic
 no-tests-no-benchmarks: False
 unconstrained:          False
 hlint:                  True
@@ -5,7 +6,3 @@ apt:                    freeglut3-dev
 irc-channels:           irc.freenode.org#haskell-lens
 irc-if-in-origin-repo:  True
 docspec:                True
-
--- Temporary hacks needed to make the GHC 9.0.* job work
-hlint-job:              8.10.4
-copy-fields:            some

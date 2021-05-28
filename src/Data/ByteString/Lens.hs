@@ -1,9 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleContexts #-}
-#if __GLASGOW_HASKELL__ >= 710
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE PatternSynonyms #-}
-#endif
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.ByteString.Lens
@@ -18,10 +16,8 @@ module Data.ByteString.Lens
   ( IsByteString(..)
   , unpackedBytes
   , unpackedChars
-#if __GLASGOW_HASKELL__ >= 710
   , pattern Bytes
   , pattern Chars
-#endif
   ) where
 
 import           Control.Lens
@@ -110,19 +106,13 @@ unpackedBytes :: IsByteString t => Iso' t [Word8]
 unpackedBytes = from packedBytes
 {-# INLINE unpackedBytes #-}
 
-#if __GLASGOW_HASKELL__ >= 710
-# if __GLASGOW_HASKELL__ >= 800
 pattern Bytes :: IsByteString s => [Word8] -> s
-# endif
 pattern Bytes b <- (view unpackedBytes -> b) where
   Bytes b = review unpackedBytes b
 
-# if __GLASGOW_HASKELL__ >= 800
 pattern Chars :: IsByteString s => String -> s
-# endif
 pattern Chars b <- (view unpackedChars -> b) where
   Chars b = review unpackedChars b
-#endif
 
 -- | 'Data.ByteString.Char8.unpack' (or 'Data.ByteString.Char8.pack') a list of characters into a strict (or lazy) 'ByteString'
 --

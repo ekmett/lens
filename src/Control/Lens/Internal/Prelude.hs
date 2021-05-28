@@ -55,22 +55,15 @@ module Control.Lens.Internal.Prelude
 
 import Prelude hiding
     ( userError -- hiding something always helps with CPP
-#if MIN_VERSION_base(4,8,0)
     , Applicative (..)
     , Foldable (..)
     , Traversable (..)
     , Monoid (..)
     , (<$>), (<$)
-#else
-    , foldr, foldl, length, elem, null
-    , mapM, sequence
-#endif
 #if MIN_VERSION_base(4,13,0)
     , Semigroup (..)
 #endif
-#if MIN_VERSION_base(4,8,0)
     , Word
-#endif
     )
 
 -- Prelude
@@ -82,10 +75,8 @@ import Data.Traversable (Traversable (..))
 import Data.Word (Word)
 
 -- Extras
-#if MIN_VERSION_base(4,8,0)
 import Data.Function ((&))
 import Data.Foldable (length, null)
-#endif
 
 #if !MIN_VERSION_base(4,10,0)
 import Control.Applicative (liftA2)
@@ -112,49 +103,6 @@ import Data.Void (Void, absurd)
 -- TraversableWithIndex instances for tagged, vector and unordered-containers
 -- We import this here, so the instances propagate through all (most) of @lens@.
 import Data.Functor.WithIndex.Instances ()
-
--- $setup
--- >>> import Control.Lens
--- >>> import Control.Monad.State
--- >>> import Debug.SimpleReflect.Expr
--- >>> import Debug.SimpleReflect.Vars as Vars hiding (f,g,h)
--- >>> let f :: Expr -> Expr; f = Debug.SimpleReflect.Vars.f
--- >>> let g :: Expr -> Expr; g = Debug.SimpleReflect.Vars.g
--- >>> let h :: Expr -> Expr -> Expr; h = Debug.SimpleReflect.Vars.h
-
-#if !(MIN_VERSION_base(4,8,0))
--- | Passes the result of the left side to the function on the right side (forward pipe operator).
---
--- This is the flipped version of ('$'), which is more common in languages like F# as (@|>@) where it is needed
--- for inference. Here it is supplied for notational convenience and given a precedence that allows it
--- to be nested inside uses of ('$').
---
--- >>> a & f
--- f a
---
--- >>> "hello" & length & succ
--- 6
---
--- This combinator is commonly used when applying multiple 'Lens' operations in sequence.
---
--- >>> ("hello","world") & _1.element 0 .~ 'j' & _1.element 4 .~ 'y'
--- ("jelly","world")
---
--- This reads somewhat similar to:
---
--- >>> flip execState ("hello","world") $ do _1.element 0 .= 'j'; _1.element 4 .= 'y'
--- ("jelly","world")
-(&) :: a -> (a -> b) -> b
-a & f = f a
-{-# INLINE (&) #-}
-infixl 1 &
-
-null :: Foldable t => t a -> Bool
-null = foldr (\_ _ -> False) True
-
-length :: Foldable t => t a -> Int
-length = foldl' (\c _ -> c+1) 0
-#endif
 
 #if !(MIN_VERSION_base(4,11,0))
 -- | Infix flipped 'fmap'.

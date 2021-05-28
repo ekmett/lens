@@ -19,32 +19,8 @@
 #define MIN_VERSION_containers(x,y,z) 1
 #endif
 
-#ifndef MIN_VERSION_exceptions
-#define MIN_VERSION_exceptions 1
-#endif
-
-#ifndef MIN_VERSION_free
-#define MIN_VERSION_free(x,y,z) 1
-#endif
-
-#ifndef MIN_VERSION_mtl
-#define MIN_VERSION_mtl(x,y,z) 1
-#endif
-
-#ifndef MIN_VERSION_parallel
-#define MIN_VERSION_parallel(x,y,z) defined(__GLASGOW_HASKELL__)
-#endif
-
-#ifndef MIN_VERSION_reflection
-#define MIN_VERSION_reflection(x,y,z) 1
-#endif
-
 #ifndef MIN_VERSION_template_haskell
 #define MIN_VERSION_template_haskell(x,y,z) 1
-#endif
-
-#ifndef MIN_VERSION_vector
-#define MIN_VERSION_vector(x,y,z) 1
 #endif
 
 #endif

@@ -13,9 +13,7 @@ copyright:     Copyright (C) 2012-2015 Edward A. Kmett, Copyright (C) 2014 Olive
 synopsis:      QuickCheck properties for lens
 description:   QuickCheck properties for lens.
 build-type:    Simple
-tested-with:   GHC == 7.8.4
-             , GHC == 7.10.3
-             , GHC == 8.0.2
+tested-with:   GHC == 8.0.2
              , GHC == 8.2.2
              , GHC == 8.4.4
              , GHC == 8.6.5
@@ -33,7 +31,7 @@ source-repository head
 
 library
   build-depends:
-    base         >= 4.5 && < 5,
+    base         >= 4.9 && < 5,
     lens         >= 4   && < 6,
     QuickCheck   >= 2.4 && < 2.15,
     transformers >= 0.2 && < 0.6

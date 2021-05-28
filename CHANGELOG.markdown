@@ -3,6 +3,7 @@
 * Removed `Wrapped` and `Rewrapped` instances for `Data.Semigroup.Option`,
   which was removed in `base-4.16`.
 * Allow building with GHC 9.2.
+* Drop support for GHC 7.10 and older.
 * Define `_CharTyLit` in `Language.Haskell.TH.Lens` when building with
   `template-haskell-2.18` or later.
 

@@ -68,6 +68,7 @@ import qualified Data.IntMap as IntMap
 import Data.IntMap (IntMap)
 import qualified Data.IntSet as IntSet
 import Data.IntSet (IntSet)
+import Data.Kind
 import qualified Data.Map as Map
 import Data.Map (Map)
 import Data.Maybe (isJust)
@@ -87,7 +88,7 @@ import Data.Vector.Unboxed (Unbox)
 import Data.Word
 import Foreign.Storable (Storable)
 
-type family Index (s :: *) :: *
+type family Index (s :: Type) :: Type
 type instance Index (e -> a) = e
 type instance Index IntSet = Int
 type instance Index (Set a) = a
@@ -202,7 +203,7 @@ instance (Eq a, Hashable a) => Contains (HashSet a) where
   {-# INLINE contains #-}
 
 -- | This provides a common notion of a value at an index that is shared by both 'Ixed' and 'At'.
-type family IxValue (m :: *) :: *
+type family IxValue (m :: Type) :: Type
 
 -- | Provides a simple 'Traversal' lets you 'traverse' the value at a given
 -- key in a 'Map' or element at an ordinal position in a list or 'Seq'.

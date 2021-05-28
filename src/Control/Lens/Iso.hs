@@ -2,16 +2,10 @@
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies #-}
-
-#if __GLASGOW_HASKELL__ >= 710
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE Trustworthy #-}
-#endif
-
-#if __GLASGOW_HASKELL__ >= 800
 {-# LANGUAGE TypeInType #-}
-#endif
 
 #include "lens-common.h"
 
@@ -51,23 +45,15 @@ module Control.Lens.Iso
   , curried, uncurried
   , flipped
   , swapped
-#if __GLASGOW_HASKELL__ >= 710
   , pattern Swapped
-#endif
   , strict, lazy
-#if __GLASGOW_HASKELL__ >= 710
   , pattern Strict
   , pattern Lazy
-#endif
   , Reversing(..)
   , reversed
-#if __GLASGOW_HASKELL__ >= 710
   , pattern Reversed
-#endif
   , involuted
-#if __GLASGOW_HASKELL__ >= 710
   , pattern List
-#endif
   -- ** Uncommon Isomorphisms
   , magma
   , imagma
@@ -106,22 +92,10 @@ import Data.Maybe
 import Data.Profunctor
 import Data.Profunctor.Unsafe
 
-#if !(MIN_VERSION_base(4,8,0))
-import Data.Functor
-#endif
-
 import Data.Coerce
-#if __GLASGOW_HASKELL__ < 710
-import Data.Type.Coercion
-#endif
 
-#if __GLASGOW_HASKELL__ >= 710
 import qualified GHC.Exts as Exts
-#endif
-
-#if __GLASGOW_HASKELL__ >= 800
 import GHC.Exts (TYPE)
-#endif
 
 -- $setup
 -- >>> :set -XNoOverloadedStrings
@@ -168,12 +142,8 @@ from l = withIso l $ \sa bt -> iso bt sa
 
 -- | Extract the two functions, one from @s -> a@ and
 -- one from @b -> t@ that characterize an 'Iso'.
-#if __GLASGOW_HASKELL__ >= 800
 withIso :: forall s t a b rep (r :: TYPE rep).
              AnIso s t a b -> ((s -> a) -> (b -> t) -> r) -> r
-#else
-withIso :: AnIso s t a b -> ((s -> a) -> (b -> t) -> r) -> r
-#endif
 withIso ai k = case ai (Exchange id Identity) of
   Exchange sa bt -> k sa (runIdentity #. bt)
 {-# INLINE withIso #-}
@@ -433,31 +403,21 @@ strict :: Strict lazy strict => Iso' lazy strict
 strict = iso toStrict toLazy
 {-# INLINE strict #-}
 
-#if __GLASGOW_HASKELL__ >= 710
-# if __GLASGOW_HASKELL__ >= 800
 pattern Strict :: Strict s t => t -> s
-# endif
 pattern Strict a <- (view strict -> a) where
   Strict a = review strict a
 
-# if __GLASGOW_HASKELL__ >= 800
 pattern Lazy :: Strict t s => t -> s
-# endif
 pattern Lazy a <- (view lazy -> a) where
   Lazy a = review lazy a
 
-# if __GLASGOW_HASKELL__ >= 800
 pattern Swapped :: Swap p => p b a -> p a b
-# endif
 pattern Swapped a <- (view swapped -> a) where
   Swapped a = review swapped a
 
-# if __GLASGOW_HASKELL__ >= 800
 pattern Reversed :: Reversing t => t -> t
-# endif
 pattern Reversed a <- (view reversed -> a) where
   Reversed a = review reversed a
-#endif
 
 -- | An 'Iso' between the strict variant of a structure and its lazy
 -- counterpart.
@@ -495,13 +455,9 @@ involuted :: (a -> a) -> Iso' a a
 involuted a = iso a a
 {-# INLINE involuted #-}
 
-#if __GLASGOW_HASKELL__ >= 710
-# if __GLASGOW_HASKELL__ >= 800
 pattern List :: Exts.IsList l => [Exts.Item l] -> l
-# endif
 pattern List a <- (Exts.toList -> a) where
   List a = Exts.fromList a
-#endif
 
 ------------------------------------------------------------------------------
 -- Magma
@@ -613,14 +569,5 @@ seconding p = withIso p $ \ sa bt -> iso (second sa) (second bt)
 --
 -- @since 4.13
 coerced :: forall s t a b. (Coercible s a, Coercible t b) => Iso s t a b
-# if __GLASGOW_HASKELL__ >= 710
 coerced l = rmap (fmap coerce) l .# coerce
-# else
-coerced l = case sym Coercion :: Coercion a s of
-              Coercion -> rmap (fmap coerce') l .# coerce
-
-coerce' :: forall a b. Coercible a b => b -> a
-coerce' = coerce (id :: a -> a)
-{-# INLINE coerce' #-}
-# endif
 {-# INLINE coerced #-}

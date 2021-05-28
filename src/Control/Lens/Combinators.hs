@@ -141,8 +141,6 @@ import Control.Lens hiding
   , (<>=)
   , (%@~)
   , (%@=)
-#if __GLASGOW_HASKELL__ >= 710
   , (:>)
   , (:<)
-#endif
   )

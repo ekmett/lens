@@ -1,15 +1,12 @@
-{-# LANGUAGE CPP, MultiParamTypeClasses, DeriveGeneric, DeriveDataTypeable #-}
+{-# LANGUAGE MultiParamTypeClasses, DeriveGeneric, DeriveDataTypeable #-}
 module Plates where
 
-#if !(MIN_VERSION_base(4,8,0))
-import Control.Applicative
-#endif
 import Control.Lens
 import GHC.Generics
 import Data.Data
 
-data Expr = Var Int | Pos Expr String | Neg Expr | Add Expr Expr deriving (Eq,Ord,Show,Read,Generic,Data,Typeable)
-data Stmt = Seq [Stmt] | Sel [Expr] | Let String Expr deriving (Eq,Ord,Show,Read,Generic,Data,Typeable)
+data Expr = Var Int | Pos Expr String | Neg Expr | Add Expr Expr deriving (Eq,Ord,Show,Read,Generic,Data)
+data Stmt = Seq [Stmt] | Sel [Expr] | Let String Expr deriving (Eq,Ord,Show,Read,Generic,Data)
 
 instance Plated Expr where
   plate _ (Var x  ) = pure (Var x)

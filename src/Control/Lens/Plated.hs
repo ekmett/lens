@@ -11,13 +11,6 @@
 {-# LANGUAGE Trustworthy #-} -- template-haskell
 #endif
 
-#if __GLASGOW_HASKELL__ < 710
-{-# LANGUAGE OverlappingInstances #-}
-#define OVERLAPPING_PRAGMA
-#else
-#define OVERLAPPING_PRAGMA {-# OVERLAPPING #-}
-#endif
-
 #include "lens-common.h"
 
 -------------------------------------------------------------------------------
@@ -109,9 +102,6 @@ import Control.Lens.Traversal
 import Control.Monad.Free as Monad
 import Control.Monad.Free.Church as Church
 import Control.Monad.Trans.Free as Trans
-#if !(MIN_VERSION_free(4,6,0))
-import Control.MonadPlus.Free as MonadPlus
-#endif
 import qualified Language.Haskell.TH as TH
 import Data.Data
 import Data.Data.Lens
@@ -121,7 +111,7 @@ import GHC.Generics
 -- $setup
 -- >>> :set -XDeriveGeneric -XDeriveDataTypeable
 -- >>> import Control.Applicative
--- >>> import Data.Data (Data, Typeable)
+-- >>> import Data.Data (Data)
 -- >>> import GHC.Generics (Generic)
 -- >>> import Control.Lens
 
@@ -142,7 +132,7 @@ import GHC.Generics
 --   = Val 'Int'
 --   | Neg Expr
 --   | Add Expr Expr
---   deriving ('Eq','Ord','Show','Read','Data','Typeable')
+--   deriving ('Eq','Ord','Show','Read','Data')
 -- @
 --
 -- @
@@ -173,7 +163,7 @@ import GHC.Generics
 -- data Tree a
 --   = Bin (Tree a) (Tree a)
 --   | Tip a
---   deriving ('Eq','Ord','Show','Read','Data','Typeable')
+--   deriving ('Eq','Ord','Show','Read','Data')
 -- @
 --
 -- @
@@ -233,13 +223,6 @@ instance Traversable f => Plated (Monad.Free f a) where
 
 instance (Traversable f, Traversable m) => Plated (Trans.FreeT f m a) where
   plate f (Trans.FreeT xs) = Trans.FreeT <$> traverse (traverse f) xs
-
-#if !(MIN_VERSION_free(4,6,0))
-instance Traversable f => Plated (MonadPlus.Free f a) where
-  plate f (MonadPlus.Free as) = MonadPlus.Free <$> traverse f as
-  plate f (MonadPlus.Plus as) = MonadPlus.Plus <$> traverse f as
-  plate _ x         = pure x
-#endif
 
 instance Traversable f => Plated (Church.F f a) where
   plate f = fmap Church.toF . plate (fmap Church.fromF . f . Church.toF) . Church.fromF
@@ -735,7 +718,7 @@ parts = partsOf plate
 --
 -- For example consider mutually recursive even and odd natural numbers:
 --
--- >>> data Even = Z | E Odd deriving (Show, Generic, Typeable, Data); data Odd = O Even deriving (Show, Generic, Typeable, Data)
+-- >>> data Even = Z | E Odd deriving (Show, Generic, Data); data Odd = O Even deriving (Show, Generic, Data)
 --
 -- Then 'uniplate', which is based on `Data`, finds
 -- all even numbers less or equal than four:
@@ -783,7 +766,7 @@ instance (GPlated a f, GPlated a g) => GPlated a (f :*: g) where
   gplate' f (x :*: y) = (:*:) <$> gplate' f x <*> gplate' f y
   {-# INLINE gplate' #-}
 
-instance OVERLAPPING_PRAGMA GPlated a (K1 i a) where
+instance {-# OVERLAPPING #-} GPlated a (K1 i a) where
   gplate' f (K1 x) = K1 <$> f x
   {-# INLINE gplate' #-}
 
@@ -799,11 +782,9 @@ instance GPlated a V1 where
   gplate' _ v = v `seq` error "GPlated/V1"
   {-# INLINE gplate' #-}
 
-#if MIN_VERSION_base(4,9,0)
 instance GPlated a (URec b) where
   gplate' _ = pure
   {-# INLINE gplate' #-}
-#endif
 
 -- | Implement 'plate' operation for a type using its 'Generic1' instance.
 gplate1 :: (Generic1 f, GPlated1 f (Rep1 f)) => Traversal' (f a) (f a)
@@ -850,7 +831,7 @@ instance GPlated1 f V1 where
   {-# INLINE gplate1' #-}
 
 -- | match
-instance OVERLAPPING_PRAGMA GPlated1 f (Rec1 f) where
+instance {-# OVERLAPPING #-} GPlated1 f (Rec1 f) where
   gplate1' f (Rec1 x) = Rec1 <$> f x
   {-# INLINE gplate1' #-}
 
@@ -864,9 +845,7 @@ instance (Traversable t, GPlated1 f g) => GPlated1 f (t :.: g) where
   gplate1' f (Comp1 x) = Comp1 <$> traverse (gplate1' f) x
   {-# INLINE gplate1' #-}
 
-#if MIN_VERSION_base(4,9,0)
 -- | ignored
 instance GPlated1 f (URec a) where
   gplate1' _ = pure
   {-# INLINE gplate1' #-}
-#endif
