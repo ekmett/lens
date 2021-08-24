@@ -1,3 +1,4 @@
+distribution:           bionic
 no-tests-no-benchmarks: False
 unconstrained:          False
 hlint:                  True
