@@ -2,7 +2,7 @@ no-tests-no-benchmarks: False
 unconstrained:          False
 hlint:                  True
 apt:                    freeglut3-dev
-irc-channels:           irc.freenode.org#haskell-lens
+-- irc-channels:           irc.freenode.org#haskell-lens
 irc-if-in-origin-repo:  True
 docspec:                True
 
