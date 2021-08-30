@@ -393,7 +393,7 @@ hitTest a b = Oracle $ \(c :: c) ->
 biplateData :: forall f s a. (Applicative f, Data s) => (forall c. Typeable c => c -> Answer c a) -> (a -> f a) -> s -> f s
 biplateData o f = go2 where
   go :: Data d => d -> f d
-  go s = gfoldl (\x y -> x <*> go2 y) pure s
+  go = gfoldl (\x y -> x <*> go2 y) pure
   go2 :: Data d => d -> f d
   go2 s = case o s of
     Hit a  -> f a
@@ -404,7 +404,7 @@ biplateData o f = go2 where
 uniplateData :: forall f s a. (Applicative f, Data s) => (forall c. Typeable c => c -> Answer c a) -> (a -> f a) -> s -> f s
 uniplateData o f = go where
   go :: Data d => d -> f d
-  go s = gfoldl (\x y -> x <*> go2 y) pure s
+  go = gfoldl (\x y -> x <*> go2 y) pure
   go2 :: Data d => d -> f d
   go2 s = case o s of
     Hit a  -> f a

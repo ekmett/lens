@@ -10,7 +10,7 @@
 - ignore: {name: Use fewer imports}
 - ignore: {name: "Use :"}
 - ignore: {name: Use typeRep, within: [Control.Lens.Internal.Typeable, Control.Lens.Internal.Exception]}
-- ignore: {name: Eta reduce, within: [Control.Lens.Zoom, Control.Lens.Equality, Control.Lens.Traversal]} # Breaks code
+- ignore: {name: Eta reduce, within: [Control.Lens.At, Control.Lens.Zoom, Control.Lens.Equality, Control.Lens.Traversal]} # Breaks code
 - ignore: {name: Use id, within: [Control.Lens.Equality]}
 - ignore: {name: Use camelCase, within: [Control.Lens.Internal.TH]}
 - ignore: {name: Use list comprehension, within: [Control.Lens.Internal.FieldTH]}
