@@ -5,6 +5,8 @@
 * Allow building with GHC 9.2.
 * Define `_CharTyLit` in `Language.Haskell.TH.Lens` when building with
   `template-haskell-2.18` or later.
+* Add prisms for working with text with prefixes or suffices in
+  `Data.Text.Strict.Lens` and `Data.Text.Lazy.Lens`
 
 5.0.1 [2021.02.24]
 ------------------

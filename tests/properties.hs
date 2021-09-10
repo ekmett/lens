@@ -32,7 +32,7 @@ import Test.QuickCheck
 import Test.Framework
 import Test.Framework.Providers.QuickCheck2
 import Data.Char (isAlphaNum, isAscii, toUpper)
-import Data.Text.Strict.Lens
+import qualified Data.Text.Strict.Lens as Text
 import Data.List.Lens
 import GHC.Exts (Constraint)
 import Numeric (showHex, showOct, showSigned)
@@ -86,7 +86,7 @@ prop__Just                           = isPrism (_Just :: Prism' (Maybe Int) Int)
 prop_prefixed s                      = isPrism (prefixed s :: Prism' String String)
 
 -- Data.Text.Lens
-prop_text s                          = s^.packed.from packed == s
+prop_text s                          = s^.Text.packed.from Text.packed == s
 --prop_text                           = isIso packed
 
 -- Numeric.Lens

@@ -1,6 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE RankNTypes #-}
 #if __GLASGOW_HASKELL__ >= 710
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE ViewPatterns #-}
@@ -17,6 +18,7 @@
 ----------------------------------------------------------------------------
 module Data.Text.Lazy.Lens
   ( packed, unpacked
+  , prefixed, suffixed
   , _Text
   , text
   , builder
@@ -81,6 +83,34 @@ packed = iso Text.pack Text.unpack
 unpacked :: Iso' Text String
 unpacked = iso Text.unpack Text.pack
 {-# INLINE unpacked #-}
+
+-- | A 'Prism' stripping a prefix from a text when used as a 'Traversal', or
+-- prepending that prefix when run backwards:
+--
+-- >>> "preview" ^? prefixed "pre"
+-- Just "view"
+--
+-- >>> "review" ^? prefixed "pre"
+-- Nothing
+--
+-- >>> prefixed "pre" # "amble"
+-- "preamble"
+prefixed :: Text -> Prism' Text Text
+prefixed p = prism' (p <>) (Text.stripPrefix p)
+
+-- | A 'Prism' stripping a suffix from a text when used as a 'Traversal', or
+-- appending that suffix when run backwards:
+--
+-- >>> "review" ^? suffixed "view"
+-- Just "re"
+--
+-- >>> "review" ^? suffixed "tire"
+-- Nothing
+--
+-- >>> suffixed ".o" # "hello"
+-- "hello.o"
+suffixed :: Text -> Prism' Text Text
+suffixed q = prism' (<> q) (Text.stripSuffix q)
 
 -- | This is an alias for 'unpacked' that makes it clearer how to use it with @('#')@.
 --
