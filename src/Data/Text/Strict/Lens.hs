@@ -17,7 +17,6 @@
 ----------------------------------------------------------------------------
 module Data.Text.Strict.Lens
   ( packed, unpacked
-  , prefixed, suffixed
   , builder
   , text
   , utf8
@@ -85,34 +84,6 @@ packed = iso Strict.pack Strict.unpack
 unpacked :: Iso' Text String
 unpacked = iso Strict.unpack Strict.pack
 {-# INLINE unpacked #-}
-
--- | A 'Prism' stripping a prefix from a text when used as a 'Traversal', or
--- prepending that prefix when run backwards:
---
--- >>> "preview" ^? prefixed "pre"
--- Just "view"
---
--- >>> "review" ^? prefixed "pre"
--- Nothing
---
--- >>> prefixed "pre" # "amble"
--- "preamble"
-prefixed :: Text -> Prism' Text Text
-prefixed p = prism' (p <>) (Strict.stripPrefix p)
-
--- | A 'Prism' stripping a suffix from a text when used as a 'Traversal', or
--- appending that suffix when run backwards:
---
--- >>> "review" ^? suffixed "view"
--- Just "re"
---
--- >>> "review" ^? suffixed "tire"
--- Nothing
---
--- >>> suffixed ".o" # "hello"
--- "hello.o"
-suffixed :: Text -> Prism' Text Text
-suffixed q = prism' (<> q) (Strict.stripSuffix q)
 
 -- | This is an alias for 'unpacked' that makes it more obvious how to use it with '#'
 --

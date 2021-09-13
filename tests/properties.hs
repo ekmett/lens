@@ -33,7 +33,6 @@ import Test.Framework
 import Test.Framework.Providers.QuickCheck2
 import Data.Char (isAlphaNum, isAscii, toUpper)
 import qualified Data.Text.Strict.Lens as Text
-import Data.List.Lens
 import GHC.Exts (Constraint)
 import Numeric (showHex, showOct, showSigned)
 import Numeric.Lens

@@ -1,6 +1,3 @@
-{-# LANGUAGE Rank2Types #-}
-{-# LANGUAGE FlexibleContexts #-}
-
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.List.Lens
@@ -68,6 +65,15 @@
 -- >>> "live" & reversed %~ ('d':)
 -- "lived"
 --
+-- It's possible to work under a prefix or suffix of a list using
+-- 'Control.Lens.Prism.Prefixed' and 'Control.Lens.Prism.Suffixed'.
+--
+-- >>> "preview" ^? prefixed "pre"
+-- Just "view"
+--
+-- >>> suffixed ".o" # "hello"
+-- "hello.o"
+--
 -- Finally, it's possible to traverse, fold over, and map over
 -- index-value pairs thanks to instances of
 -- 'Control.Lens.Indexed.TraversableWithIndex',
@@ -89,55 +95,13 @@
 --
 ----------------------------------------------------------------------------
 module Data.List.Lens
-  ( prefixed
-  , suffixed
-  , stripSuffix
+  ( stripSuffix
   ) where
 
 import Prelude ()
 
 import Control.Monad (guard)
 import Control.Lens.Internal.Prelude
-import Control.Lens
-import qualified Data.List as List
-
--- $setup
--- >>> :set -XNoOverloadedStrings
--- >>> import Control.Lens
--- >>> import Debug.SimpleReflect.Expr
--- >>> import Debug.SimpleReflect.Vars as Vars hiding (f,g)
--- >>> let f :: Expr -> Expr; f = Debug.SimpleReflect.Vars.f
--- >>> let g :: Expr -> Expr; g = Debug.SimpleReflect.Vars.g
-
--- | A 'Prism' stripping a prefix from a list when used as a 'Traversal', or
--- prepending that prefix when run backwards:
---
--- >>> "preview" ^? prefixed "pre"
--- Just "view"
---
--- >>> "review" ^? prefixed "pre"
--- Nothing
---
--- >>> prefixed "pre" # "amble"
--- "preamble"
-prefixed :: Eq a => [a] -> Prism' [a] [a]
-prefixed ps = prism' (ps ++) (List.stripPrefix ps)
-{-# INLINE prefixed #-}
-
--- | A 'Prism' stripping a suffix from a list when used as a 'Traversal', or
--- appending that suffix when run backwards:
---
--- >>> "review" ^? suffixed "view"
--- Just "re"
---
--- >>> "review" ^? suffixed "tire"
--- Nothing
---
--- >>> suffixed ".o" # "hello"
--- "hello.o"
-suffixed :: Eq a => [a] -> Prism' [a] [a]
-suffixed qs = prism' (++ qs) (stripSuffix qs)
-{-# INLINE suffixed #-}
 
 ------------------------------------------------------------------------------
 -- Util
