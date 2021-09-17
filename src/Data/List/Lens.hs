@@ -103,6 +103,10 @@ import Prelude ()
 import Control.Monad (guard)
 import Control.Lens.Internal.Prelude
 
+-- $setup
+-- >>> :set -XNoOverloadedStrings
+-- >>> import Control.Lens
+
 ------------------------------------------------------------------------------
 -- Util
 ------------------------------------------------------------------------------
