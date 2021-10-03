@@ -759,11 +759,13 @@ instance Wrapped (S.WrappedMonoid a) where
   _Wrapped' = iso S.unwrapMonoid S.WrapMonoid
   {-# INLINE _Wrapped' #-}
 
+#if !(MIN_VERSION_base(4,16,0))
 instance (t ~ S.Option b) => Rewrapped (S.Option a) t
 instance Wrapped (S.Option a) where
   type Unwrapped (S.Option a) = Maybe a
   _Wrapped' = iso S.getOption S.Option
   {-# INLINE _Wrapped' #-}
+#endif
 
 -- * contravariant
 
