@@ -2477,8 +2477,8 @@ _UnboxedSumP
 
 -- |
 -- @
--- _ConP :: 'Prism'' 'Pat' ('Name', ['Type'], 'Pat') -- template-haskell-2.18+
--- _ConP :: 'Prism'' 'Pat' ('Name',         'Pat') -- Earlier versions
+-- _ConP :: 'Prism'' 'Pat' ('Name', ['Type'], ['Pat']) -- template-haskell-2.18+
+-- _ConP :: 'Prism'' 'Pat' ('Name',         ['Pat']) -- Earlier versions
 -- @
 #if MIN_VERSION_template_haskell(2,18,0)
 _ConP :: Prism' Pat (Name, [Type], [Pat])

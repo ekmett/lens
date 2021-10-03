@@ -1,6 +1,9 @@
 5.1 [????.??.??]
 ----------------
 * Allow building with GHC 9.2.
+* The type of `_ConP` in `Language.Haskell.TH.Lens` is now
+  `Prism' Pat (Name, [Type], [Pat])` instead of `Prism' Pat (Name, [Pat])`
+  when building with `template-haskell-2.18` or later.
 * Define `_CharTyLit` in `Language.Haskell.TH.Lens` when building with
   `template-haskell-2.18` or later.
 
