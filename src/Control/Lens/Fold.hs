@@ -534,7 +534,7 @@ lined f = fmap (intercalate "\n") . conjoined traverse (indexing traverse) f . l
 -- 'foldMapOf' :: 'Getting' r s a -> (a -> r) -> s -> r
 -- @
 foldMapOf :: Getting r s a -> (a -> r) -> s -> r
-foldMapOf l f = getConst #. l (Const #. f)
+foldMapOf = coerce
 {-# INLINE foldMapOf #-}
 
 -- | Combine the elements of a structure viewed through a 'Lens', 'Getter',
@@ -1171,7 +1171,7 @@ notElemOf l = allOf l . (/=)
 -- 'concatMapOf' :: 'Traversal'' s a -> (a -> [r]) -> s -> [r]
 -- @
 concatMapOf :: Getting [r] s a -> (a -> [r]) -> s -> [r]
-concatMapOf l ces = getConst #. l (Const #. ces)
+concatMapOf = coerce
 {-# INLINE concatMapOf #-}
 
 -- | Concatenate all of the lists targeted by a 'Fold' into a longer list.
@@ -2212,7 +2212,7 @@ backwards l f = forwards #. l (Backwards #. f)
 -- @
 --
 ifoldMapOf :: IndexedGetting i m s a -> (i -> a -> m) -> s -> m
-ifoldMapOf l f = getConst #. l (Const #. Indexed f)
+ifoldMapOf = coerce
 {-# INLINE ifoldMapOf #-}
 
 -- | Right-associative fold of parts of a structure that are viewed through an 'IndexedFold' or 'IndexedTraversal' with
@@ -2269,7 +2269,7 @@ ifoldlOf l f z = (flip appEndo z .# getDual) `rmap` ifoldMapOf l (\i -> Dual #. 
 -- 'ianyOf' :: 'IndexedTraversal'' i s a -> (i -> a -> 'Bool') -> s -> 'Bool'
 -- @
 ianyOf :: IndexedGetting i Any s a -> (i -> a -> Bool) -> s -> Bool
-ianyOf l f = getAny #. getConst #. l (Const #. Any #. Indexed f)
+ianyOf = coerce
 {-# INLINE ianyOf #-}
 
 -- | Return whether or not all elements viewed through an 'IndexedFold' or 'IndexedTraversal'
@@ -2288,7 +2288,7 @@ ianyOf l f = getAny #. getConst #. l (Const #. Any #. Indexed f)
 -- 'iallOf' :: 'IndexedTraversal'' i s a -> (i -> a -> 'Bool') -> s -> 'Bool'
 -- @
 iallOf :: IndexedGetting i All s a -> (i -> a -> Bool) -> s -> Bool
-iallOf l f = getAll #. getConst #. l (Const #. All #. Indexed f)
+iallOf = coerce
 {-# INLINE iallOf #-}
 
 -- | Return whether or not none of the elements viewed through an 'IndexedFold' or 'IndexedTraversal'
