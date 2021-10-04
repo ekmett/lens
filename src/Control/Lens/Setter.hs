@@ -288,7 +288,7 @@ sets f g = taintedDot (f (untaintedDot g))
 
 -- | Restore 'ASetter' to a full 'Setter'.
 cloneSetter :: ASetter s t a b -> Setter s t a b
-cloneSetter l afb = taintedDot $ runIdentity #. l (Identity #. untaintedDot afb)
+cloneSetter l afb = taintedDot $ coerce l (untaintedDot afb)
 {-# INLINE cloneSetter #-}
 
 -- | Build an 'IndexPreservingSetter' from any 'Setter'.
@@ -347,7 +347,7 @@ cloneIndexedSetter l pafb = taintedDot (runIdentity #. l (Indexed $ \i -> Identi
 -- 'over' :: 'ASetter' s t a b -> (a -> b) -> s -> t
 -- @
 over :: ASetter s t a b -> (a -> b) -> s -> t
-over l f = runIdentity #. l (Identity #. f)
+over = coerce
 {-# INLINE over #-}
 
 -- | Replace the target of a 'Lens' or all of the targets of a 'Setter'
@@ -1175,7 +1175,7 @@ ilocally l f = Reader.local (iover l f)
 -- 'iover' :: 'IndexedTraversal' i s t a b -> (i -> a -> b) -> s -> t
 -- @
 iover :: AnIndexedSetter i s t a b -> (i -> a -> b) -> s -> t
-iover l f = runIdentity #. l (Identity #. Indexed f)
+iover = coerce
 {-# INLINE iover #-}
 
 -- | Set with index. Equivalent to 'iover' with the current value ignored.

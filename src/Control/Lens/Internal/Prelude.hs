@@ -33,6 +33,8 @@ module Control.Lens.Internal.Prelude
 #if !MIN_VERSION_base(4,10,0)
   , liftA2
 #endif
+  -- * Data.Coerce
+  , Coercible, coerce
   -- * Data.Contravariant
   , Contravariant (..), phantom
   -- * Data.Monoid
@@ -96,6 +98,7 @@ import Data.Functor ((<&>))
 #endif
 
 import Control.Applicative (Alternative (..), Const (..), WrappedMonad (..), ZipList (..))
+import Data.Coerce (Coercible, coerce)
 import Data.Functor.Compose (Compose (..))
 import Data.Functor.Contravariant (Contravariant (..), phantom)
 import Data.Functor.Identity (Identity (..))
