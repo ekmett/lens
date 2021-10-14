@@ -61,5 +61,5 @@ data Bigger = Bigger
   , _b296 :: Int , _b297 :: Int , _b298 :: Int , _b299 :: Int
   }
 
-makeLenses ''Big
-makeLenses ''Bigger
+makeLensesWith (lensRules & generateRecordSyntax .~ True) ''Big
+makeLensesWith (lensRules & generateRecordSyntax .~ True) ''Bigger

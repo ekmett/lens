@@ -69,6 +69,7 @@ module Control.Lens.TH
   , generateSignatures
   , generateUpdateableOptics
   , generateLazyPatterns
+  , generateRecordSyntax
   -- ** FieldNamers
   , underscoreNoPrefixNamer
   , lookingupNamer
@@ -166,6 +167,10 @@ generateLazyPatterns :: Lens' LensRules Bool
 generateLazyPatterns f r =
   fmap (\x -> r { _lazyPatterns = x}) (f (_lazyPatterns r))
 
+generateRecordSyntax :: Lens' LensRules Bool
+generateRecordSyntax f r =
+  fmap (\x -> r {_recordSyntax = x}) (f (_recordSyntax r))
+
 -- | Create the class if the constructor is 'Control.Lens.Type.Simple' and the
 -- 'lensClass' rule matches.
 createClass :: Lens' LensRules Bool
@@ -191,6 +196,7 @@ lensRules = LensRules
   , _allowIsos       = True
   , _allowUpdates    = True
   , _lazyPatterns    = False
+  , _recordSyntax    = False
   , _classyLenses    = const Nothing
   , _fieldToDef      = underscoreNoPrefixNamer
   }
@@ -232,6 +238,7 @@ classyRules = LensRules
   , _allowIsos       = False -- generating Isos would hinder "subtyping"
   , _allowUpdates    = True
   , _lazyPatterns    = False
+  , _recordSyntax    = False
   , _classyLenses    = \n ->
         case nameBase n of
           x:xs -> Just (mkName ("Has" ++ x:xs), mkName (toLower x:xs))
@@ -814,6 +821,7 @@ defaultFieldRules = LensRules
   , _allowIsos       = False -- generating Isos would hinder field class reuse
   , _allowUpdates    = True
   , _lazyPatterns    = False
+  , _recordSyntax    = False
   , _classyLenses    = const Nothing
   , _fieldToDef      = camelCaseNamer
   }
