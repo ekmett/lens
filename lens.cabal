@@ -345,6 +345,7 @@ test-suite templates
   type: exitcode-stdio-1.0
   main-is: templates.hs
   other-modules:
+    BigRecord
     T799
     T917
     T972

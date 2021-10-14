@@ -26,6 +26,7 @@ module Main where
 
 import Control.Lens
 -- import Test.QuickCheck (quickCheck)
+import BigRecord ()
 import T799 ()
 import T917 ()
 import T972 ()
