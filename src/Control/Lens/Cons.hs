@@ -4,6 +4,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE UndecidableInstances #-}
 #ifdef TRUSTWORTHY
 {-# LANGUAGE Trustworthy #-}
 #endif
@@ -46,10 +47,12 @@ module Control.Lens.Cons
 
 import Control.Lens.Equality (simply)
 import Control.Lens.Fold
+import Control.Lens.Iso
 import Control.Lens.Prism
 import Control.Lens.Review
 import Control.Lens.Tuple
 import Control.Lens.Type
+import Control.Lens.Wrapped
 import qualified Data.ByteString      as StrictB
 import qualified Data.ByteString.Lazy as LazyB
 import           Data.Coerce
@@ -185,6 +188,10 @@ instance (Unbox a, Unbox b) => Cons (Unbox.Vector a) (Unbox.Vector b) a b where
     if Unbox.null v
     then Left Unbox.empty
     else Right (Unbox.unsafeHead v, Unbox.unsafeTail v)
+  {-# INLINE _Cons #-}
+
+instance Snoc s t a b => Cons (Dual s) (Dual t) a b where
+  _Cons = _Wrapped . _Snoc . swapped . seconding _Unwrapped
   {-# INLINE _Cons #-}
 
 -- | 'cons' an element onto a container.
@@ -423,6 +430,10 @@ instance Snoc LazyT.Text LazyT.Text Char Char where
   _Snoc = prism (uncurry LazyT.snoc) $ \v -> if LazyT.null v
     then Left LazyT.empty
     else Right (LazyT.init v, LazyT.last v)
+  {-# INLINE _Snoc #-}
+
+instance Cons s t a b => Snoc (Dual s) (Dual t) a b where
+  _Snoc = _Wrapped . _Cons . swapped . firsting _Unwrapped
   {-# INLINE _Snoc #-}
 
 -- | A 'Traversal' reading and replacing all but the a last element of a /non-empty/ container.
