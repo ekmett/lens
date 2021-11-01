@@ -44,7 +44,6 @@ import Control.Comonad
 import Control.Lens.Internal.Prelude
 import Control.Lens.Internal.Instances ()
 import Control.Monad.Fix
-import Data.Coerce
 import Data.Distributive
 import Data.Functor.Bind
 import Data.Int

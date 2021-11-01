@@ -17,7 +17,6 @@ module Control.Lens.Internal.Prism
 import Prelude ()
 
 import Control.Lens.Internal.Prelude
-import Data.Coerce
 
 ------------------------------------------------------------------------------
 -- Prism: Market
