@@ -49,26 +49,23 @@ module Control.Lens.Prism
   , Choice(..)
   ) where
 
+import Prelude ()
+
 import Control.Applicative
 import Control.Lens.Internal.Prism
+import Control.Lens.Internal.Prelude
 import Control.Lens.Lens
 import Control.Lens.Review
 import Control.Lens.Type
 import Control.Monad
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as BL
-import Data.Functor.Identity
+import Data.Coerce
 import qualified Data.List as List
 import qualified Data.List.Lens as List
-import Data.Profunctor
 import Data.Profunctor.Rep
-import Data.Profunctor.Sieve
 import qualified Data.Text as TS
 import qualified Data.Text.Lazy as TL
-import Data.Traversable
-import Data.Void
-import Data.Coerce
-import Prelude
 
 -- $setup
 -- >>> :set -XNoOverloadedStrings
