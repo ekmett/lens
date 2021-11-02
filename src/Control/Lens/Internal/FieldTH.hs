@@ -439,10 +439,6 @@ makeFieldInstance defType className decs =
     -- We want to catch type families, but not *data* families. See #799.
     _TypeFamilyD :: Getting Any Dec ()
     _TypeFamilyD = _OpenTypeFamilyD.united <> _ClosedTypeFamilyD.united
-      where
-#if !(MIN_VERSION_template_haskell(2,11,0))
-      _OpenTypeFamilyD = _FamilyD . _1 . _TypeFam
-#endif
 
   pickInstanceDec hasFamilies
     | hasFamilies = do

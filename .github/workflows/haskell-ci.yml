@@ -40,10 +40,6 @@ jobs:
             allow-failure: false
           - compiler: ghc-8.0.2
             allow-failure: false
-          - compiler: ghc-7.10.3
-            allow-failure: false
-          - compiler: ghc-7.8.4
-            allow-failure: false
       fail-fast: false
     steps:
       - name: apt

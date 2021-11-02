@@ -1,13 +1,10 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE DefaultSignatures #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE ViewPatterns #-}
 
 #ifdef TRUSTWORTHY
 {-# LANGUAGE Trustworthy #-}
-#endif
-
-#if __GLASGOW_HASKELL__ >= 710
-{-# LANGUAGE PatternSynonyms #-}
-{-# LANGUAGE ViewPatterns #-}
 #endif
 
 -------------------------------------------------------------------------------
@@ -23,17 +20,13 @@
 module Control.Lens.Empty
   (
     AsEmpty(..)
-#if __GLASGOW_HASKELL__ >= 710
   , pattern Empty
-#endif
   ) where
 
 import Prelude ()
 
 import Control.Lens.Iso
-#if __GLASGOW_HASKELL__ >= 710
 import Control.Lens.Fold
-#endif
 import Control.Lens.Prism
 import Control.Lens.Internal.Prelude as Prelude
 import Control.Lens.Review
@@ -79,13 +72,9 @@ class AsEmpty a where
   _Empty = only mempty
   {-# INLINE _Empty #-}
 
-#if __GLASGOW_HASKELL__ >= 710
-# if __GLASGOW_HASKELL__ >= 800
 pattern Empty :: AsEmpty s => s
-# endif
 pattern Empty <- (has _Empty -> True) where
   Empty = review _Empty ()
-#endif
 
 {- Default Monoid instances -}
 instance AsEmpty Ordering

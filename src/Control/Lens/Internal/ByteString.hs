@@ -47,11 +47,7 @@ import Data.Int (Int64)
 import Data.Word (Word8)
 import Foreign.Ptr
 import Foreign.Storable
-#if MIN_VERSION_base(4,8,0)
 import Foreign.ForeignPtr
-#else
-import Foreign.ForeignPtr.Safe
-#endif
 import GHC.Base (unsafeChr)
 import GHC.ForeignPtr (mallocPlainForeignPtrBytes)
 import GHC.IO (unsafeDupablePerformIO)

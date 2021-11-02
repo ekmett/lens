@@ -1,10 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleContexts #-}
-
-#if __GLASGOW_HASKELL__ >= 710
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE PatternSynonyms #-}
-#endif
 
 -----------------------------------------------------------------------------
 -- |
@@ -20,10 +17,8 @@
 module Data.ByteString.Lazy.Lens
   ( packedBytes, unpackedBytes, bytes
   , packedChars, unpackedChars, chars
-#if __GLASGOW_HASKELL__ >= 710
   , pattern Bytes
   , pattern Chars
-#endif
   ) where
 
 import Control.Lens
@@ -142,16 +137,10 @@ chars :: IndexedTraversal' Int64 ByteString Char
 chars = traversedLazy8
 {-# INLINE chars #-}
 
-#if __GLASGOW_HASKELL__ >= 710
-# if __GLASGOW_HASKELL__ >= 800
 pattern Bytes :: [Word8] -> ByteString
-# endif
 pattern Bytes b <- (view unpackedBytes -> b) where
   Bytes b = review unpackedBytes b
 
-# if __GLASGOW_HASKELL__ >= 800
 pattern Chars :: String -> ByteString
-# endif
 pattern Chars b <- (view unpackedChars -> b) where
   Chars b = review unpackedChars b
-#endif

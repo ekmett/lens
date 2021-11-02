@@ -2,9 +2,7 @@
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE Trustworthy #-}
 
-#if __GLASGOW_HASKELL__ >= 800
 {-# OPTIONS_GHC -Wno-redundant-constraints -Wno-trustworthy-safe #-}
-#endif
 -------------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Review

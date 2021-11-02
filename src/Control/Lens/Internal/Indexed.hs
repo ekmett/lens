@@ -49,7 +49,6 @@ import Data.Functor.Bind
 import Data.Int
 import Data.Profunctor.Closed
 import Data.Profunctor.Rep
-import Control.Lens.Internal.Coerce
 
 -- $setup
 -- >>> :set -XNoOverloadedStrings
@@ -152,7 +151,7 @@ instance Profunctor (Indexed i) where
   {-# INLINE rmap #-}
   (.#) ibc _ = coerce ibc
   {-# INLINE (.#) #-}
-  (#.) _ = coerce'
+  (#.) _ = coerce
   {-# INLINE (#.) #-}
 
 instance Closed (Indexed i) where

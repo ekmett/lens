@@ -2,10 +2,8 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE Rank2Types #-}
-#if __GLASGOW_HASKELL__ >= 710
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE ViewPatterns #-}
-#endif
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Numeric.Lens
@@ -30,9 +28,7 @@ module Numeric.Lens
   , dividing
   , exponentiating
   , negated
-#if __GLASGOW_HASKELL__ >= 710
   , pattern Integral
-#endif
   ) where
 
 import Control.Lens
@@ -57,13 +53,9 @@ integral = prism toInteger $ \ i -> let a = fromInteger i in
   then Right a
   else Left i
 
-#if __GLASGOW_HASKELL__ >= 710
-# if __GLASGOW_HASKELL__ >= 800
 pattern Integral :: Integral a => a -> Integer
-# endif
 pattern Integral a <- (preview integral -> Just a) where
   Integral a = review integral a
-#endif
 
 -- | A prism that shows and reads integers in base-2 through base-36
 --

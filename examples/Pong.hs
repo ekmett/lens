@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP, TemplateHaskell, Rank2Types, NoMonomorphismRestriction #-}
+{-# LANGUAGE TemplateHaskell, Rank2Types, NoMonomorphismRestriction #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Main
@@ -12,9 +12,6 @@
 -----------------------------------------------------------------------------
 module Main where
 
-#if !(MIN_VERSION_base(4,8,0))
-import Control.Applicative ((<$>))
-#endif
 import Control.Lens hiding ((:>), at)
 import Control.Monad.State (State, execState, get)
 import Control.Monad (when)
