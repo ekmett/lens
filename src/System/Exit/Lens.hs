@@ -1,11 +1,8 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-
-#if __GLASGOW_HASKELL__ >= 710
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE ViewPatterns #-}
-#endif
 
 -----------------------------------------------------------------------------
 -- |
@@ -22,10 +19,8 @@ module System.Exit.Lens
   ( AsExitCode(..)
   , _ExitFailure
   , _ExitSuccess
-#if __GLASGOW_HASKELL__ >= 710
   , pattern ExitFailure_
   , pattern ExitSuccess_
-#endif
   ) where
 
 import Prelude ()
@@ -73,16 +68,10 @@ _ExitFailure = _ExitCode . dimap seta (either id id) . right' . rmap (fmap ExitF
   seta t               = Left  (pure t)
 {-# INLINE _ExitFailure #-}
 
-#if __GLASGOW_HASKELL__ >= 710
-# if __GLASGOW_HASKELL__ >= 800
 pattern ExitSuccess_ :: AsExitCode s => s
-# endif
 pattern ExitSuccess_ <- (has _ExitSuccess -> True) where
   ExitSuccess_ = review _ExitSuccess ()
 
-# if __GLASGOW_HASKELL__ >= 800
 pattern ExitFailure_ :: AsExitCode s => Int -> s
-# endif
 pattern ExitFailure_ a <- (preview _ExitFailure -> Just a) where
   ExitFailure_ a = review _ExitFailure a
-#endif

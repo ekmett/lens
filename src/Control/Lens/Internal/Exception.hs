@@ -2,7 +2,6 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ConstraintKinds #-}
@@ -32,6 +31,7 @@ import Control.Exception as Exception
 import Control.Lens.Fold
 import Control.Lens.Getter
 import Control.Monad.Catch as Catch
+import Data.Kind
 import Data.Monoid
 import Data.Proxy
 import Data.Reflection
@@ -45,7 +45,7 @@ import Data.Typeable
 --
 -- This lets us write combinators to build handlers that are agnostic about the choice of
 -- which of these they use.
-class Handleable e (m :: * -> *) (h :: * -> *) | h -> e m where
+class Handleable e (m :: Type -> Type) (h :: Type -> Type) | h -> e m where
   -- | This builds a 'Handler' for just the targets of a given 'Control.Lens.Type.Prism' (or any 'Getter', really).
   --
   -- @
@@ -144,7 +144,7 @@ handlerCatchIO l f = reifyTypeable (preview l) $ \ (_ :: Proxy s) -> Catch.Handl
 ------------------------------------------------------------------------------
 
 -- | There was an 'Exception' caused by abusing the internals of a 'Handler'.
-data HandlingException = HandlingException deriving (Show,Typeable)
+data HandlingException = HandlingException deriving Show
 
 instance Exception HandlingException
 
@@ -158,8 +158,7 @@ supply = unsafePerformIO $ newIORef 0
 -}
 
 -- | This permits the construction of an \"impossible\" 'Control.Exception.Handler' that matches only if some function does.
-newtype Handling a s (m :: * -> *) = Handling a
-  deriving Typeable
+newtype Handling a s (m :: Type -> Type) = Handling a
 
 type role Handling representational nominal nominal
 
@@ -172,7 +171,7 @@ instance ( Reifies s (SomeException -> Maybe a)
          , Typeable a, Typeable s
          , Typeable m
          )
-    => Exception (Handling a (s :: *) m) where
+    => Exception (Handling a (s :: Type) m) where
   toException _ = SomeException HandlingException
   {-# INLINE toException #-}
   fromException = fmap Handling . reflect (Proxy :: Proxy s)

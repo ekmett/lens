@@ -30,7 +30,7 @@ data Expr  =  Val !Int
            |  Sub !Expr !Expr
            |  Mul !Expr !Expr
            |  Div !Expr !Expr
-           deriving (Eq,Show,Data,Typeable,Generic)
+           deriving (Eq,Show,Data,Generic)
 
 instance NFData Expr where
   rnf (Neg a)   = rnf a

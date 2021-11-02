@@ -6,7 +6,7 @@
 {-# LANGUAGE Trustworthy #-}
 {-# LANGUAGE RankNTypes #-}
 
-{-# OPTIONS_GHC -fno-warn-warnings-deprecations #-}
+{-# OPTIONS_GHC -Wno-warnings-deprecations #-}
 
 -------------------------------------------------------------------------------
 -- |

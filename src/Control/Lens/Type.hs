@@ -5,10 +5,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE PolyKinds #-}
-#if __GLASGOW_HASKELL__ >= 800
 {-# LANGUAGE TypeInType #-}
-#endif
 {-# LANGUAGE Trustworthy #-}
 -------------------------------------------------------------------------------
 -- |
@@ -67,9 +64,7 @@ import Control.Lens.Internal.Setter
 import Control.Lens.Internal.Indexed
 import Data.Bifunctor
 import Data.Functor.Apply
-#if __GLASGOW_HASKELL__ >= 800
 import Data.Kind
-#endif
 
 -- $setup
 -- >>> :set -XNoOverloadedStrings
@@ -459,11 +454,7 @@ type Prism' s a = Prism s s a a
 -- | A witness that @(a ~ s, b ~ t)@.
 --
 -- Note: Composition with an 'Equality' is index-preserving.
-#if __GLASGOW_HASKELL__ >= 800
 type Equality (s :: k1) (t :: k2) (a :: k1) (b :: k2) = forall k3 (p :: k1 -> k3 -> Type) (f :: k2 -> k3) .
-#else
-type Equality (s :: k1) (t :: k2) (a :: k1) (b :: k2) = forall (p :: k1 -> * -> *) (f :: k2 -> *) .
-#endif
     p a (f b) -> p s (f t)
 
 -- | A 'Simple' 'Equality'.

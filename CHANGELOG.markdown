@@ -1,8 +1,10 @@
 5.1 [????.??.??]
 ----------------
-* Removed `Wrapped` and `Rewrapped` instances for `Data.Semigroup.Option`,
-  which was removed in `base-4.16`.
 * Allow building with GHC 9.2.
+* Drop support for GHC 7.10 and older.
+* The type of `_ConP` in `Language.Haskell.TH.Lens` is now
+  `Prism' Pat (Name, [Type], [Pat])` instead of `Prism' Pat (Name, [Pat])`
+  when building with `template-haskell-2.18` or later.
 * Define `_CharTyLit` in `Language.Haskell.TH.Lens` when building with
   `template-haskell-2.18` or later.
 * Add prisms for working with text with prefixes or suffices in

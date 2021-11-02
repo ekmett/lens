@@ -1,9 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleContexts #-}
-#if __GLASGOW_HASKELL__ >= 710
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE PatternSynonyms #-}
-#endif
 
 -----------------------------------------------------------------------------
 -- |
@@ -24,13 +22,11 @@ module Data.Complex.Lens
   , _magnitude
   , _phase
   , _conjugate
-#if __GLASGOW_HASKELL__ >= 710
   -- * Pattern Synonyms
   , pattern Polar
   , pattern Real
   , pattern Imaginary
   , pattern Conjugate
-#endif
   ) where
 
 import Prelude ()
@@ -85,23 +81,15 @@ _polar :: RealFloat a => Iso' (Complex a) (a,a)
 _polar = iso polar (uncurry mkPolar)
 {-# INLINE _polar #-}
 
-#if __GLASGOW_HASKELL__ >= 710
-# if __GLASGOW_HASKELL__ >= 800
 pattern Polar :: RealFloat a => a -> a -> Complex a
-# endif
 pattern Polar m theta <- (view _polar -> (m, theta)) where
   Polar m theta = review _polar (m, theta)
 
-# if __GLASGOW_HASKELL__ >= 800
 pattern Real :: (Eq a, Num a) => a -> Complex a
-# endif
 pattern Real r      = r :+ 0
 
-# if __GLASGOW_HASKELL__ >= 800
 pattern Imaginary :: (Eq a, Num a) => a -> Complex a
-# endif
 pattern Imaginary i = 0 :+ i
-#endif
 
 -- | Access the 'magnitude' of a 'Complex' number.
 --
@@ -155,10 +143,6 @@ _conjugate :: RealFloat a => Iso' (Complex a) (Complex a)
 _conjugate = involuted conjugate
 {-# INLINE _conjugate #-}
 
-#if __GLASGOW_HASKELL__ >= 710
-# if __GLASGOW_HASKELL__ >= 800
 pattern Conjugate :: Num a => Complex a -> Complex a
-# endif
 pattern Conjugate a <- (conjugate -> a) where
   Conjugate a = conjugate a
-#endif

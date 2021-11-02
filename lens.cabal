@@ -12,9 +12,7 @@ bug-reports:   http://github.com/ekmett/lens/issues
 copyright:     Copyright (C) 2012-2016 Edward A. Kmett
 build-type:    Simple
 -- build-tools:   cpphs
-tested-with:   GHC == 7.8.4
-             , GHC == 7.10.3
-             , GHC == 8.0.2
+tested-with:   GHC == 8.0.2
              , GHC == 8.2.2
              , GHC == 8.4.4
              , GHC == 8.6.5
@@ -173,48 +171,38 @@ library
   build-depends:
     array                         >= 0.5.0.0  && < 0.6,
     assoc                         >= 1.0.2    && < 1.1,
-    base                          >= 4.7      && < 5,
+    base                          >= 4.9      && < 5,
     base-orphans                  >= 0.5.2    && < 1,
-    bifunctors                    >= 5.1      && < 6,
+    bifunctors                    >= 5.5.7    && < 6,
     bytestring                    >= 0.10.4.0 && < 0.12,
     call-stack                    >= 0.1      && < 0.5,
     comonad                       >= 5.0.7    && < 6,
     containers                    >= 0.5.5.1  && < 0.7,
-    contravariant                 >= 1.3      && < 2,
-    distributive                  >= 0.3      && < 1,
-    exceptions                    >= 0.1.1    && < 1,
+    contravariant                 >= 1.4      && < 2,
+    distributive                  >= 0.5.1    && < 1,
+    exceptions                    >= 0.8.2.1  && < 1,
     filepath                      >= 1.2.0.0  && < 1.5,
     free                          >= 5.1.5    && < 6,
     ghc-prim,
-    hashable                      >= 1.1.2.3  && < 1.4,
+    hashable                      >= 1.2.7.0  && < 1.4,
     indexed-traversable           >= 0.1      && < 0.2,
     indexed-traversable-instances >= 0.1      && < 0.2,
     kan-extensions                >= 5        && < 6,
-    mtl                           >= 2.0.1    && < 2.3,
-    parallel                      >= 3.1.0.1  && < 3.3,
+    mtl                           >= 2.2.1    && < 2.3,
+    parallel                      >= 3.2.1.0  && < 3.3,
     profunctors                   >= 5.5.2    && < 6,
     reflection                    >= 2.1      && < 3,
-    semigroupoids                 >= 5        && < 6,
+    semigroupoids                 >= 5.0.1    && < 6,
     strict                        >= 0.4      && < 0.5,
-    tagged                        >= 0.4.4    && < 1,
-    template-haskell              >= 2.9.0.0  && < 2.18,
+    tagged                        >= 0.8.6    && < 1,
+    template-haskell              >= 2.11.1.0 && < 2.18,
     text                          >= 1.2.3.0  && < 1.3,
     th-abstraction                >= 0.4.1    && < 0.5,
     these                         >= 1.1.1.1  && < 1.2,
-    transformers                  >= 0.3.0.0  && < 0.6,
-    transformers-compat           >= 0.4      && < 1,
+    transformers                  >= 0.5.0.0  && < 0.6,
+    transformers-compat           >= 0.5.0.4  && < 1,
     unordered-containers          >= 0.2.10   && < 0.3,
-    vector                        >= 0.9      && < 0.13
-
-  if !impl(ghc >= 8.0)
-    build-depends:
-      generic-deriving >= 1.10  && < 2,
-      semigroups       >= 0.8.4 && < 1
-
-  if !impl(ghc >= 7.10)
-    build-depends:
-      nats >= 0.1 && < 1.2,
-      void >= 0.5 && < 1
+    vector                        >= 0.12.1.2 && < 0.13
 
   -- Control.Lens as the first module, so cabal repl loads it.
   exposed-modules:
@@ -235,7 +223,6 @@ library
     Control.Lens.Internal
     Control.Lens.Internal.Bazaar
     Control.Lens.Internal.ByteString
-    Control.Lens.Internal.Coerce
     Control.Lens.Internal.Context
     Control.Lens.Internal.CTypes
     Control.Lens.Internal.Deque
@@ -307,7 +294,6 @@ library
 
   other-modules:
     Control.Lens.Internal.Prelude
-    Paths_lens
 
   if flag(trustworthy) && impl(ghc)
     other-extensions: Trustworthy
@@ -316,19 +302,11 @@ library
   if flag(inlining)
     cpp-options: -DINLINING
 
-  if impl(ghc >= 7.10)
-    ghc-options: -fno-warn-trustworthy-safe
-
-  if impl(ghc >= 8)
-    ghc-options: -Wno-missing-pattern-synonym-signatures
-    ghc-options: -Wno-redundant-constraints
-
   if flag(j)
     ghc-options: -j4
 
-  ghc-options: -Wall -fwarn-tabs -O2 -fdicts-cheap -funbox-strict-fields -fmax-simplifier-iterations=10
-  if impl(ghc >= 8.6)
-    ghc-options: -Wno-star-is-type
+  ghc-options: -Wall -Wtabs -O2 -fdicts-cheap -funbox-strict-fields -fmax-simplifier-iterations=10
+               -Wno-trustworthy-safe -Wno-missing-pattern-synonym-signatures -Wno-redundant-constraints
 
   hs-source-dirs: src
 
@@ -351,9 +329,6 @@ test-suite templates
   ghc-options: -Wall -threaded
   hs-source-dirs: tests
   default-language: Haskell2010
-
-  if impl(ghc >= 8.6)
-    ghc-options: -Wno-star-is-type
 
   if flag(dump-splices)
     ghc-options: -ddump-splices

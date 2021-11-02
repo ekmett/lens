@@ -60,7 +60,6 @@ import Control.Lens.Type
 import Control.Monad
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as BL
-import Data.Coerce
 import qualified Data.List as List
 import qualified Data.List.Lens as List
 import Data.Profunctor.Rep

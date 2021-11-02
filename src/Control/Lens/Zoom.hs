@@ -5,7 +5,7 @@
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE RankNTypes #-}
-{-# OPTIONS_GHC -fno-warn-warnings-deprecations #-}
+{-# OPTIONS_GHC -Wno-warnings-deprecations #-}
 {-# LANGUAGE Trustworthy #-}
 
 #include "lens-common.h"
@@ -30,7 +30,6 @@ module Control.Lens.Zoom
 import Prelude ()
 
 import Control.Lens.Getter
-import Control.Lens.Internal.Coerce
 import Control.Lens.Internal.Prelude
 import Control.Lens.Internal.Zoom
 import Control.Lens.Type
@@ -49,6 +48,7 @@ import Control.Monad.Trans.List
 import Control.Monad.Trans.Identity
 import Control.Monad.Trans.Maybe
 import Control.Monad.Trans.Free
+import Data.Kind
 
 -- $setup
 -- >>> import Control.Lens
@@ -69,7 +69,7 @@ infixr 2 `zoom`, `magnify`
 ------------------------------------------------------------------------------
 
 -- | This type family is used by 'Control.Lens.Zoom.Zoom' to describe the common effect type.
-type family Zoomed (m :: * -> *) :: * -> * -> *
+type family Zoomed (m :: Type -> Type) :: Type -> Type -> Type
 type instance Zoomed (Strict.StateT s z) = Focusing z
 type instance Zoomed (Lazy.StateT s z) = Focusing z
 type instance Zoomed (ReaderT e m) = Zoomed m
@@ -89,7 +89,7 @@ type instance Zoomed (FreeT f m) = FocusingFree f m (Zoomed m)
 ------------------------------------------------------------------------------
 
 -- | This type family is used by 'Control.Lens.Zoom.Magnify' to describe the common effect type.
-type family Magnified (m :: * -> *) :: * -> * -> *
+type family Magnified (m :: Type -> Type) :: Type -> Type -> Type
 type instance Magnified (ReaderT b m) = Effect m
 type instance Magnified ((->)b) = Const
 type instance Magnified (Strict.RWST a w s m) = EffectRWS w s m
@@ -167,11 +167,11 @@ instance (Monoid w, Monad z) => Zoom (Lazy.RWST r w s z) (Lazy.RWST r w t z) s t
   {-# INLINE zoom #-}
 
 instance (Monoid w, Zoom m n s t) => Zoom (Strict.WriterT w m) (Strict.WriterT w n) s t where
-  zoom l = Strict.WriterT . zoom (\afb -> unfocusingPlus #.. l (FocusingPlus #.. afb)) . Strict.runWriterT
+  zoom l = Strict.WriterT . zoom (\afb -> unfocusingPlus #. l (FocusingPlus #. afb)) . Strict.runWriterT
   {-# INLINE zoom #-}
 
 instance (Monoid w, Zoom m n s t) => Zoom (Lazy.WriterT w m) (Lazy.WriterT w n) s t where
-  zoom l = Lazy.WriterT . zoom (\afb -> unfocusingPlus #.. l (FocusingPlus #.. afb)) . Lazy.runWriterT
+  zoom l = Lazy.WriterT . zoom (\afb -> unfocusingPlus #. l (FocusingPlus #. afb)) . Lazy.runWriterT
   {-# INLINE zoom #-}
 
 instance Zoom m n s t => Zoom (ListT m) (ListT n) s t where
@@ -179,19 +179,19 @@ instance Zoom m n s t => Zoom (ListT m) (ListT n) s t where
   {-# INLINE zoom #-}
 
 instance Zoom m n s t => Zoom (MaybeT m) (MaybeT n) s t where
-  zoom l = MaybeT . liftM getMay . zoom (\afb -> unfocusingMay #.. l (FocusingMay #.. afb)) . liftM May . runMaybeT
+  zoom l = MaybeT . liftM getMay . zoom (\afb -> unfocusingMay #. l (FocusingMay #. afb)) . liftM May . runMaybeT
   {-# INLINE zoom #-}
 
 instance (Error e, Zoom m n s t) => Zoom (ErrorT e m) (ErrorT e n) s t where
-  zoom l = ErrorT . liftM getErr . zoom (\afb -> unfocusingErr #.. l (FocusingErr #.. afb)) . liftM Err . runErrorT
+  zoom l = ErrorT . liftM getErr . zoom (\afb -> unfocusingErr #. l (FocusingErr #. afb)) . liftM Err . runErrorT
   {-# INLINE zoom #-}
 
 instance Zoom m n s t => Zoom (ExceptT e m) (ExceptT e n) s t where
-  zoom l = ExceptT . liftM getErr . zoom (\afb -> unfocusingErr #.. l (FocusingErr #.. afb)) . liftM Err . runExceptT
+  zoom l = ExceptT . liftM getErr . zoom (\afb -> unfocusingErr #. l (FocusingErr #. afb)) . liftM Err . runExceptT
   {-# INLINE zoom #-}
 
 instance (Functor f, Zoom m n s t) => Zoom (FreeT f m) (FreeT f n) s t where
-  zoom l = FreeT . liftM (fmap (zoom l) . getFreed) . zoom (\afb -> unfocusingFree #.. l (FocusingFree #.. afb)) . liftM Freed . runFreeT
+  zoom l = FreeT . liftM (fmap (zoom l) . getFreed) . zoom (\afb -> unfocusingFree #. l (FocusingFree #. afb)) . liftM Freed . runFreeT
 
 ------------------------------------------------------------------------------
 -- Magnify

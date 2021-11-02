@@ -1,5 +1,5 @@
-{-# LANGUAGE BangPatterns #-}
-{-# LANGUAGE CPP #-}
+{-# LANGUAGE EmptyCase #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MagicHash #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE TypeOperators #-}
@@ -56,10 +56,6 @@ import           GHC.Exts (Char(..), Double(..), Float(..),
 import qualified GHC.Generics as Generic
 import           GHC.Generics hiding (from, to)
 
-#if !(MIN_VERSION_base(4,9,0))
-import           Generics.Deriving.Base hiding (from, to)
-#endif
-
 -- $setup
 -- >>> :set -XNoOverloadedStrings
 -- >>> import Control.Lens
@@ -78,8 +74,7 @@ generic1 = iso from1 to1
 {-# INLINE generic1 #-}
 
 _V1 :: Over p f (V1 s) (V1 t) a b
-_V1 _ = absurd where
-  absurd !_a = undefined
+_V1 _ = \case
 {-# INLINE _V1 #-}
 
 _U1 :: Iso (U1 p) (U1 q) () ()
@@ -87,19 +82,19 @@ _U1 = iso (const ()) (const U1)
 {-# INLINE _U1 #-}
 
 _Par1 :: Iso (Par1 p) (Par1 q) p q
-_Par1 = iso unPar1 Par1
+_Par1 = coerced
 {-# INLINE _Par1 #-}
 
 _Rec1 :: Iso (Rec1 f p) (Rec1 g q) (f p) (g q)
-_Rec1 = iso unRec1 Rec1
+_Rec1 = coerced
 {-# INLINE _Rec1 #-}
 
 _K1 :: Iso (K1 i c p) (K1 j d q) c d
-_K1 = iso unK1 K1
+_K1 = coerced
 {-# INLINE _K1 #-}
 
 _M1 :: Iso (M1 i c f p) (M1 j d g q) (f p) (g q)
-_M1 = iso unM1 M1
+_M1 = coerced
 {-# INLINE _M1 #-}
 
 _L1 :: Prism' ((f :+: g) a) (f a)
@@ -110,7 +105,8 @@ _L1 = prism remitter reviewer
   reviewer x = Left x
 {-# INLINE _L1 #-}
 
--- | You can access fields of `data (f :*: g) p` by using it's `Field1` and `Field2` instances
+-- | You can access fields of `data (f :*: g) p` by using its `Field1` and
+-- `Field2` instances.
 
 _R1 :: Prism' ((f :+: g) a) (g a)
 _R1 = prism remitter reviewer

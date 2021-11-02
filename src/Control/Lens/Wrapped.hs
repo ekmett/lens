@@ -8,17 +8,14 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE PolyKinds #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE ViewPatterns #-}
 
 #ifdef TRUSTWORTHY
 {-# LANGUAGE Trustworthy #-}
 #endif
 
-#if __GLASGOW_HASKELL__ >= 710
-{-# LANGUAGE PatternSynonyms #-}
-{-# LANGUAGE ViewPatterns #-}
-#endif
-
-{-# OPTIONS_GHC -fno-warn-warnings-deprecations #-}
+{-# OPTIONS_GHC -Wno-warnings-deprecations #-}
 
 #include "lens-common.h"
 
@@ -66,11 +63,9 @@ module Control.Lens.Wrapped
   -- * Operations
   , op
   , ala, alaf
-#if __GLASGOW_HASKELL__ >= 710
   -- * Pattern Synonyms
   , pattern Wrapped
   , pattern Unwrapped
-#endif
   -- * Generics
   , _GWrapped'
   ) where
@@ -90,9 +85,7 @@ import           Control.Exception
 import           Control.Lens.Getter
 import           Control.Lens.Internal.CTypes
 import           Control.Lens.Iso
-#if __GLASGOW_HASKELL__ >= 710
 import           Control.Lens.Review
-#endif
 import           Control.Monad.Catch.Pure
 import           Control.Monad.Trans.Cont
 import           Control.Monad.Trans.Error
@@ -134,9 +127,11 @@ import qualified Data.HashSet as HashSet
 import           Data.HashSet (HashSet)
 import qualified Data.HashMap.Lazy as HashMap
 import           Data.HashMap.Lazy (HashMap)
+import           Data.Kind
 import           Data.List.NonEmpty (NonEmpty(..))
 import qualified Data.Map as Map
 import           Data.Map (Map)
+import qualified Data.Monoid as Monoid
 import           Data.Monoid
 import qualified Data.Profunctor as Profunctor
 import           Data.Profunctor hiding (WrappedArrow(..))
@@ -164,10 +159,6 @@ import           GHC.Generics hiding (from, to)
 import           System.Posix.Types
 import           Data.Ord (Down(Down))
 
-#if MIN_VERSION_base(4,8,0)
-import qualified Data.Monoid as Monoid
-#endif
-
 -- $setup
 -- >>> :set -XNoOverloadedStrings
 -- >>> import Control.Lens
@@ -177,7 +168,7 @@ import qualified Data.Monoid as Monoid
 -- | 'Wrapped' provides isomorphisms to wrap and unwrap newtypes or
 -- data types with one constructor.
 class Wrapped s where
-  type Unwrapped s :: *
+  type Unwrapped s :: Type
   type Unwrapped s = GUnwrapped (Rep s)
 
   -- | An isomorphism between @s@ and @a@.
@@ -199,27 +190,19 @@ _GWrapped' = iso Generic.from Generic.to . iso remitter reviewer
     reviewer x = M1 (M1 (M1 (K1 x)))
 {-# INLINE _GWrapped' #-}
 
-type family GUnwrapped (rep :: * -> *) :: *
+type family GUnwrapped (rep :: Type -> Type) :: Type
 type instance GUnwrapped (D1 d (C1 c (S1 s (Rec0 a)))) = a
 
-#if __GLASGOW_HASKELL__ >= 710
-
-# if __GLASGOW_HASKELL__ >= 800
 pattern Wrapped :: Rewrapped s s => Unwrapped s -> s
-# endif
 pattern Wrapped a <- (view _Wrapped -> a) where
   Wrapped a = review _Wrapped a
 
-# if __GLASGOW_HASKELL__ >= 800
 pattern Unwrapped :: Rewrapped t t => t -> Unwrapped t
-# endif
 pattern Unwrapped a <- (view _Unwrapped -> a) where
   Unwrapped a = review _Unwrapped a
 
-#endif
-
 -- This can be used to help inference between the wrappers
-class Wrapped s => Rewrapped (s :: *) (t :: *)
+class Wrapped s => Rewrapped (s :: Type) (t :: Type)
 
 class    (Rewrapped s t, Rewrapped t s) => Rewrapping s t
 instance (Rewrapped s t, Rewrapped t s) => Rewrapping s t
@@ -331,13 +314,11 @@ instance Wrapped (Last a) where
   _Wrapped' = iso getLast Last
   {-# INLINE _Wrapped' #-}
 
-#if MIN_VERSION_base(4,8,0)
 instance (t ~ Monoid.Alt g b) => Rewrapped (Monoid.Alt f a) t
 instance Wrapped (Monoid.Alt f a) where
   type Unwrapped (Monoid.Alt f a) = f a
   _Wrapped' = iso Monoid.getAlt Monoid.Alt
   {-# INLINE _Wrapped' #-}
-#endif
 
 #if MIN_VERSION_base(4,12,0)
 instance (t ~ Monoid.Ap g b) => Rewrapped (Monoid.Ap f a) t
@@ -759,6 +740,14 @@ instance Wrapped (S.WrappedMonoid a) where
   _Wrapped' = iso S.unwrapMonoid S.WrapMonoid
   {-# INLINE _Wrapped' #-}
 
+#if !(MIN_VERSION_base(4,16,0))
+instance (t ~ S.Option b) => Rewrapped (S.Option a) t
+instance Wrapped (S.Option a) where
+  type Unwrapped (S.Option a) = Maybe a
+  _Wrapped' = iso S.getOption S.Option
+  {-# INLINE _Wrapped' #-}
+#endif
+
 -- * contravariant
 
 instance (t ~ Predicate b) => Rewrapped (Predicate a) t
@@ -855,7 +844,6 @@ instance Wrapped ErrorCall where
   _Wrapped' = iso getErrorCall ErrorCall
   {-# INLINE _Wrapped' #-}
 
-#if MIN_VERSION_base(4,9,0)
 instance (t ~ TypeError) => Rewrapped TypeError t
 instance Wrapped TypeError where
   type Unwrapped TypeError = String
@@ -865,7 +853,6 @@ instance Wrapped TypeError where
 getTypeError :: TypeError -> String
 getTypeError (TypeError x) = x
 {-# INLINE getTypeError #-}
-#endif
 
 #if MIN_VERSION_base(4,10,0)
 instance (t ~ CompactionFailed) => Rewrapped CompactionFailed t
@@ -880,11 +867,7 @@ getCompactionFailed (CompactionFailed x) = x
 #endif
 
 getErrorCall :: ErrorCall -> String
-#if __GLASGOW_HASKELL__ < 800
-getErrorCall (ErrorCall x) = x
-#else
 getErrorCall (ErrorCallWithLocation x _) = x
-#endif
 {-# INLINE getErrorCall #-}
 
 getRecUpdError :: RecUpdError -> String

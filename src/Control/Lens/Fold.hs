@@ -7,7 +7,7 @@
 {-# LANGUAGE Trustworthy #-}
 
 #include "lens-common.h"
-{-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# OPTIONS_GHC -Wno-orphans #-}
 ----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Fold
@@ -163,9 +163,7 @@ import Data.Int (Int64)
 import Data.List (intercalate)
 import Data.Maybe (fromMaybe)
 import Data.Monoid (First (..), All (..), Any (..))
-#if MIN_VERSION_reflection(2,1,0)
 import Data.Reflection
-#endif
 
 import qualified Data.Semigroup as Semi
 
@@ -534,7 +532,7 @@ lined f = fmap (intercalate "\n") . conjoined traverse (indexing traverse) f . l
 -- 'foldMapOf' :: 'Getting' r s a -> (a -> r) -> s -> r
 -- @
 foldMapOf :: Getting r s a -> (a -> r) -> s -> r
-foldMapOf l f = getConst #. l (Const #. f)
+foldMapOf = coerce
 {-# INLINE foldMapOf #-}
 
 -- | Combine the elements of a structure viewed through a 'Lens', 'Getter',
@@ -1171,7 +1169,7 @@ notElemOf l = allOf l . (/=)
 -- 'concatMapOf' :: 'Traversal'' s a -> (a -> [r]) -> s -> [r]
 -- @
 concatMapOf :: Getting [r] s a -> (a -> [r]) -> s -> [r]
-concatMapOf l ces = getConst #. l (Const #. ces)
+concatMapOf = coerce
 {-# INLINE concatMapOf #-}
 
 -- | Concatenate all of the lists targeted by a 'Fold' into a longer list.
@@ -1236,7 +1234,7 @@ lengthOf l = foldlOf' l (\a _ -> a + 1) 0
 -- way to extract the optional value.
 --
 -- Note: if you get stack overflows due to this, you may want to use 'firstOf' instead, which can deal
--- more gracefully with heavily left-biased trees. This is because '^?' works by using the 
+-- more gracefully with heavily left-biased trees. This is because '^?' works by using the
 -- 'Data.Monoid.First' monoid, which can occasionally cause space leaks.
 --
 -- >>> Left 4 ^?_Left
@@ -1251,7 +1249,7 @@ lengthOf l = foldlOf' l (\a _ -> a + 1) 0
 -- >>> "world" ^? ix 20
 -- Nothing
 --
--- This operator works as an infix version of 'preview'. 
+-- This operator works as an infix version of 'preview'.
 --
 -- @
 -- ('^?') ≡ 'flip' 'preview'
@@ -1259,7 +1257,7 @@ lengthOf l = foldlOf' l (\a _ -> a + 1) 0
 --
 -- It may be helpful to think of '^?' as having one of the following
 -- more specialized types:
--- 
+--
 -- @
 -- ('^?') :: s -> 'Getter' s a     -> 'Maybe' a
 -- ('^?') :: s -> 'Fold' s a       -> 'Maybe' a
@@ -1968,11 +1966,11 @@ ipre l = dimap (getFirst . getConst #. l (Indexed $ \i a -> Const (First (Just (
 -- @
 -- 'preview' = 'view' '.' 'pre'
 -- @
--- 
 --
--- Unlike '^?', this function uses a 
+--
+-- Unlike '^?', this function uses a
 -- 'Control.Monad.Reader.MonadReader' to read the value to be focused in on.
--- This allows one to pass the value as the last argument by using the 
+-- This allows one to pass the value as the last argument by using the
 -- 'Control.Monad.Reader.MonadReader' instance for @(->) s@
 -- However, it may also be used as part of some deeply nested transformer stack.
 --
@@ -1984,7 +1982,7 @@ ipre l = dimap (getFirst . getConst #. l (Indexed $ \i a -> Const (First (Just (
 --
 -- It may be helpful to think of 'preview' as having one of the following
 -- more specialized types:
--- 
+--
 -- @
 -- 'preview' :: 'Getter' s a     -> s -> 'Maybe' a
 -- 'preview' :: 'Fold' s a       -> s -> 'Maybe' a
@@ -2000,7 +1998,7 @@ ipre l = dimap (getFirst . getConst #. l (Indexed $ \i a -> Const (First (Just (
 -- 'preview' :: 'MonadReader' s m => 'Lens'' s a      -> m ('Maybe' a)
 -- 'preview' :: 'MonadReader' s m => 'Iso'' s a       -> m ('Maybe' a)
 -- 'preview' :: 'MonadReader' s m => 'Traversal'' s a -> m ('Maybe' a)
--- 
+--
 -- @
 preview :: MonadReader s m => Getting (First a) s a -> m (Maybe a)
 preview l = asks (getFirst #. foldMapOf l (First #. Just))
@@ -2212,7 +2210,7 @@ backwards l f = forwards #. l (Backwards #. f)
 -- @
 --
 ifoldMapOf :: IndexedGetting i m s a -> (i -> a -> m) -> s -> m
-ifoldMapOf l f = getConst #. l (Const #. Indexed f)
+ifoldMapOf = coerce
 {-# INLINE ifoldMapOf #-}
 
 -- | Right-associative fold of parts of a structure that are viewed through an 'IndexedFold' or 'IndexedTraversal' with
@@ -2269,7 +2267,7 @@ ifoldlOf l f z = (flip appEndo z .# getDual) `rmap` ifoldMapOf l (\i -> Dual #. 
 -- 'ianyOf' :: 'IndexedTraversal'' i s a -> (i -> a -> 'Bool') -> s -> 'Bool'
 -- @
 ianyOf :: IndexedGetting i Any s a -> (i -> a -> Bool) -> s -> Bool
-ianyOf l f = getAny #. getConst #. l (Const #. Any #. Indexed f)
+ianyOf = coerce
 {-# INLINE ianyOf #-}
 
 -- | Return whether or not all elements viewed through an 'IndexedFold' or 'IndexedTraversal'
@@ -2288,7 +2286,7 @@ ianyOf l f = getAny #. getConst #. l (Const #. Any #. Indexed f)
 -- 'iallOf' :: 'IndexedTraversal'' i s a -> (i -> a -> 'Bool') -> s -> 'Bool'
 -- @
 iallOf :: IndexedGetting i All s a -> (i -> a -> Bool) -> s -> Bool
-iallOf l f = getAll #. getConst #. l (Const #. All #. Indexed f)
+iallOf = coerce
 {-# INLINE iallOf #-}
 
 -- | Return whether or not none of the elements viewed through an 'IndexedFold' or 'IndexedTraversal'

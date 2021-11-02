@@ -344,7 +344,7 @@ sequenceAOf l = l id
 -- 'mapMOf' :: 'Monad' m => 'Traversal' s t a b -> (a -> m b) -> s -> m t
 -- @
 mapMOf :: LensLike (WrappedMonad m) s t a b -> (a -> m b) -> s -> m t
-mapMOf l cmd = unwrapMonad #. l (WrapMonad #. cmd)
+mapMOf = coerce
 {-# INLINE mapMOf #-}
 
 -- | 'forMOf' is a flipped version of 'mapMOf', consistent with the definition of 'forM'.
@@ -1052,7 +1052,7 @@ iforOf = flip . itraverseOf
 -- 'imapMOf' :: 'Bind'  m => 'IndexedTraversal1' i s t a b -> (i -> a -> m b) -> s -> m t
 -- @
 imapMOf :: Over (Indexed i) (WrappedMonad m) s t a b  -> (i -> a -> m b) -> s -> m t
-imapMOf l cmd = unwrapMonad #. l (WrapMonad #. Indexed cmd)
+imapMOf = coerce
 {-# INLINE imapMOf #-}
 
 -- | Map each element of a structure targeted by a 'Lens' to a monadic action,
