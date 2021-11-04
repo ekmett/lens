@@ -167,6 +167,7 @@ import GHC.Magic (inline)
 -- $setup
 -- >>> :set -XNoOverloadedStrings -XFlexibleContexts
 -- >>> import Data.Char (toUpper)
+-- >>> import Control.Applicative
 -- >>> import Control.Lens
 -- >>> import Control.Lens.Internal.Context
 -- >>> import Control.DeepSeq (NFData (..), force)
@@ -179,6 +180,8 @@ import GHC.Magic (inline)
 -- >>> import System.Timeout (timeout)
 -- >>> import qualified Data.List.NonEmpty as NonEmpty
 -- >>> let timingOut :: NFData a => a -> IO a; timingOut = fmap (fromMaybe (error "timeout")) . timeout (5*10^6) . evaluate . force
+-- >>> let firstAndThird :: Traversal (a, x, a) (b, x, b) a b; firstAndThird = traversal go where { go :: Applicative f => (a -> f b) -> (a, x, a) -> f (b, x, b); go focus (a, x, a') = liftA3 (,,) (focus a) (pure x) (focus a') }
+-- >>> let selectNested :: Traversal (x, [a]) (x, [b]) a b; selectNested = traversal go where { go :: Applicative f => (a -> f b) -> (x, [a]) -> f (x, [b]); go focus (x, as) = liftA2 (,) (pure x) (traverse focus as) }
 
 ------------------------------------------------------------------------------
 -- Traversals
@@ -272,6 +275,12 @@ type Traversing1' p f s a = Traversing1 p f s s a a
 --     go focus (a, x, a') = liftA3 (,,) (focus a) (pure x) (focus a')
 -- @
 --
+-- >>> (1,"two",3) & firstAndThird *~ 10
+-- (10,"two",30)
+--
+-- >>> over firstAndThird length ("one",2,"three")
+-- (3,2,5)
+--
 -- We can re-use existing 'Traversal's when writing new ones by passing our focusing function
 -- along to them. This example re-uses 'traverse' to focus all elements in a list which is
 -- embedded in a tuple. This traversal could also be written simply as @_2 . traverse@.
@@ -284,6 +293,12 @@ type Traversing1' p f s a = Traversing1 p f s s a a
 --     go focus (x, as) = liftA2 (,) (pure x) (traverse focus as)
 -- @
 --
+-- >>> selectNested .~ "hello" $ (1,[2,3,4,5])
+-- (1,["hello","hello","hello","hello"])
+--
+-- >>> (1,[2,3,4,5]) & selectNested *~ 3
+-- (1,[6,9,12,15])
+--
 -- Note that the 'traversal' function actually just returns the same function you pass to
 -- it. The function it accepts is in fact a valid traversal all on its own! The use of
 -- 'traversal' does nothing except verify that the function it is passed matches the signature
@@ -293,8 +308,8 @@ type Traversing1' p f s a = Traversing1 p f s s a a
 -- This function exists for consistency with the 'lens', 'prism' and 'iso' constructors
 -- as well as to serve as a touchpoint for beginners who wish to construct their own
 -- traversals but are uncertain how to do so.
-traversal :: (forall f. Applicative f => (a -> f b) -> s -> f t) -> Traversal s t a b
-traversal t f s = t f s
+traversal :: ((a -> f b) -> s -> f t) -> LensLike f s t a b
+traversal = id
 {-# INLINE traversal #-}
 
 -- | Map each element of a structure targeted by a 'Lens' or 'Traversal',
