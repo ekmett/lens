@@ -306,7 +306,7 @@ library
     ghc-options: -j4
 
   ghc-options: -Wall -Wtabs -O2 -fdicts-cheap -funbox-strict-fields -fmax-simplifier-iterations=10
-               -Wno-trustworthy-safe -Wno-missing-pattern-synonym-signatures -Wno-redundant-constraints
+               -Wno-trustworthy-safe -Wmissing-pattern-synonym-signatures -Wno-redundant-constraints
 
   hs-source-dirs: src
 
