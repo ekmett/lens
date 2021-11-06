@@ -7,6 +7,9 @@
   when building with `template-haskell-2.18` or later.
 * Define `_CharTyLit` in `Language.Haskell.TH.Lens` when building with
   `template-haskell-2.18` or later.
+* Add a `traversal` function to `Control.Lens.Traversal`. This function, aside
+  from acting as a `Traversal` counterpart to the `lens` and `prism` functions,
+  provides documentation on how to define `Traversal`s.
 
 5.0.1 [2021.02.24]
 ------------------
