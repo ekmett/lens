@@ -8,9 +8,9 @@
 #
 # For more information, see https://github.com/haskell-CI/haskell-ci
 #
-# version: 0.12.1
+# version: 0.13.20211030
 #
-# REGENDATA ("0.12.1",["--config=cabal.haskell-ci","cabal.project"])
+# REGENDATA ("0.13.20211030",["--config=cabal.haskell-ci","cabal.project"])
 #
 name: Haskell-CI
 on:
@@ -26,53 +26,105 @@ jobs:
     strategy:
       matrix:
         include:
+          - compiler: ghc-9.2.1
+            compilerKind: ghc
+            compilerVersion: 9.2.1
+            setup-method: ghcup
+            allow-failure: true
           - compiler: ghc-9.0.1
+            compilerKind: ghc
+            compilerVersion: 9.0.1
+            setup-method: hvr-ppa
             allow-failure: false
-          - compiler: ghc-8.10.4
+          - compiler: ghc-8.10.7
+            compilerKind: ghc
+            compilerVersion: 8.10.7
+            setup-method: ghcup
             allow-failure: false
           - compiler: ghc-8.8.4
+            compilerKind: ghc
+            compilerVersion: 8.8.4
+            setup-method: hvr-ppa
             allow-failure: false
           - compiler: ghc-8.6.5
+            compilerKind: ghc
+            compilerVersion: 8.6.5
+            setup-method: hvr-ppa
             allow-failure: false
           - compiler: ghc-8.4.4
+            compilerKind: ghc
+            compilerVersion: 8.4.4
+            setup-method: hvr-ppa
             allow-failure: false
           - compiler: ghc-8.2.2
+            compilerKind: ghc
+            compilerVersion: 8.2.2
+            setup-method: hvr-ppa
             allow-failure: false
           - compiler: ghc-8.0.2
+            compilerKind: ghc
+            compilerVersion: 8.0.2
+            setup-method: hvr-ppa
             allow-failure: false
       fail-fast: false
     steps:
       - name: apt
         run: |
           apt-get update
-          apt-get install -y --no-install-recommends gnupg ca-certificates dirmngr curl git software-properties-common
-          apt-add-repository -y 'ppa:hvr/ghc'
-          apt-get update
-          apt-get install -y $CC cabal-install-3.4 freeglut3-dev
+          apt-get install -y --no-install-recommends gnupg ca-certificates dirmngr curl git software-properties-common libtinfo5
+          if [ "${{ matrix.setup-method }}" = ghcup ]; then
+            mkdir -p "$HOME/.ghcup/bin"
+            curl -sL https://downloads.haskell.org/ghcup/0.1.17.3/x86_64-linux-ghcup-0.1.17.3 > "$HOME/.ghcup/bin/ghcup"
+            chmod a+x "$HOME/.ghcup/bin/ghcup"
+            "$HOME/.ghcup/bin/ghcup" install ghc "$HCVER"
+            "$HOME/.ghcup/bin/ghcup" install cabal 3.6.2.0
+            apt-get update
+            apt-get install -y freeglut3-dev
+          else
+            apt-add-repository -y 'ppa:hvr/ghc'
+            apt-get update
+            apt-get install -y "$HCNAME" freeglut3-dev
+            mkdir -p "$HOME/.ghcup/bin"
+            curl -sL https://downloads.haskell.org/ghcup/0.1.17.3/x86_64-linux-ghcup-0.1.17.3 > "$HOME/.ghcup/bin/ghcup"
+            chmod a+x "$HOME/.ghcup/bin/ghcup"
+            "$HOME/.ghcup/bin/ghcup" install cabal 3.6.2.0
+          fi
         env:
-          CC: ${{ matrix.compiler }}
+          HCKIND: ${{ matrix.compilerKind }}
+          HCNAME: ${{ matrix.compiler }}
+          HCVER: ${{ matrix.compilerVersion }}
       - name: Set PATH and environment variables
         run: |
           echo "$HOME/.cabal/bin" >> $GITHUB_PATH
-          echo "LANG=C.UTF-8" >> $GITHUB_ENV
-          echo "CABAL_DIR=$HOME/.cabal" >> $GITHUB_ENV
-          echo "CABAL_CONFIG=$HOME/.cabal/config" >> $GITHUB_ENV
-          HCDIR=$(echo "/opt/$CC" | sed 's/-/\//')
-          HCNAME=ghc
-          HC=$HCDIR/bin/$HCNAME
-          echo "HC=$HC" >> $GITHUB_ENV
-          echo "HCPKG=$HCDIR/bin/$HCNAME-pkg" >> $GITHUB_ENV
-          echo "HADDOCK=$HCDIR/bin/haddock" >> $GITHUB_ENV
-          echo "CABAL=/opt/cabal/3.4/bin/cabal -vnormal+nowrap" >> $GITHUB_ENV
+          echo "LANG=C.UTF-8" >> "$GITHUB_ENV"
+          echo "CABAL_DIR=$HOME/.cabal" >> "$GITHUB_ENV"
+          echo "CABAL_CONFIG=$HOME/.cabal/config" >> "$GITHUB_ENV"
+          HCDIR=/opt/$HCKIND/$HCVER
+          if [ "${{ matrix.setup-method }}" = ghcup ]; then
+            HC=$HOME/.ghcup/bin/$HCKIND-$HCVER
+            echo "HC=$HC" >> "$GITHUB_ENV"
+            echo "HCPKG=$HOME/.ghcup/bin/$HCKIND-pkg-$HCVER" >> "$GITHUB_ENV"
+            echo "HADDOCK=$HOME/.ghcup/bin/haddock-$HCVER" >> "$GITHUB_ENV"
+            echo "CABAL=$HOME/.ghcup/bin/cabal-3.6.2.0 -vnormal+nowrap" >> "$GITHUB_ENV"
+          else
+            HC=$HCDIR/bin/$HCKIND
+            echo "HC=$HC" >> "$GITHUB_ENV"
+            echo "HCPKG=$HCDIR/bin/$HCKIND-pkg" >> "$GITHUB_ENV"
+            echo "HADDOCK=$HCDIR/bin/haddock" >> "$GITHUB_ENV"
+            echo "CABAL=$HOME/.ghcup/bin/cabal-3.6.2.0 -vnormal+nowrap" >> "$GITHUB_ENV"
+          fi
+
           HCNUMVER=$(${HC} --numeric-version|perl -ne '/^(\d+)\.(\d+)\.(\d+)(\.(\d+))?$/; print(10000 * $1 + 100 * $2 + ($3 == 0 ? $5 != 1 : $3))')
-          echo "HCNUMVER=$HCNUMVER" >> $GITHUB_ENV
-          echo "ARG_TESTS=--enable-tests" >> $GITHUB_ENV
-          echo "ARG_BENCH=--enable-benchmarks" >> $GITHUB_ENV
-          echo "HEADHACKAGE=false" >> $GITHUB_ENV
-          echo "ARG_COMPILER=--$HCNAME --with-compiler=$HC" >> $GITHUB_ENV
-          echo "GHCJSARITH=0" >> $GITHUB_ENV
+          echo "HCNUMVER=$HCNUMVER" >> "$GITHUB_ENV"
+          echo "ARG_TESTS=--enable-tests" >> "$GITHUB_ENV"
+          echo "ARG_BENCH=--enable-benchmarks" >> "$GITHUB_ENV"
+          if [ $((HCNUMVER >= 90200)) -ne 0 ] ; then echo "HEADHACKAGE=true" >> "$GITHUB_ENV" ; else echo "HEADHACKAGE=false" >> "$GITHUB_ENV" ; fi
+          echo "ARG_COMPILER=--$HCKIND --with-compiler=$HC" >> "$GITHUB_ENV"
+          echo "GHCJSARITH=0" >> "$GITHUB_ENV"
         env:
-          CC: ${{ matrix.compiler }}
+          HCKIND: ${{ matrix.compilerKind }}
+          HCNAME: ${{ matrix.compiler }}
+          HCVER: ${{ matrix.compilerVersion }}
       - name: env
         run: |
           env
@@ -95,6 +147,17 @@ jobs:
           repository hackage.haskell.org
             url: http://hackage.haskell.org/
           EOF
+          if $HEADHACKAGE; then
+          cat >> $CABAL_CONFIG <<EOF
+          repository head.hackage.ghc.haskell.org
+             url: https://ghc.gitlab.haskell.org/head.hackage/
+             secure: True
+             root-keys: 7541f32a4ccca4f97aea3b22f5e593ba2c0267546016b992dfadcd2fe944e55d
+                        26021a13b401500c8eb2761ca95c61f2d625bfef951b939a8124ed12ecf07329
+                        f76d08be13e9a61a377a85e2fb63f4c5435d40f8feb3e12eb05905edb8cdea89
+             key-threshold: 3
+          EOF
+          fi
           cat $CABAL_CONFIG
       - name: versions
         run: |
@@ -107,7 +170,7 @@ jobs:
       - name: cache (tools)
         uses: actions/cache@v2
         with:
-          key: ${{ runner.os }}-${{ matrix.compiler }}-tools-2b1b586f
+          key: ${{ runner.os }}-${{ matrix.compiler }}-tools-582bfe5c
           path: ~/.haskell-ci-tools
       - name: install cabal-plan
         run: |
@@ -129,10 +192,10 @@ jobs:
           cabal-docspec --version
       - name: install hlint
         run: |
-          if [ $((HCNUMVER >= 90000)) -ne 0 ] ; then HLINTVER=$(cd /tmp && (${CABAL} v2-install -v $ARG_COMPILER --dry-run hlint  --constraint='hlint >=3.3 && <3.4' |  perl -ne 'if (/\bhlint-(\d+(\.\d+)*)\b/) { print "$1"; last; }')); echo "HLint version $HLINTVER" ; fi
-          if [ $((HCNUMVER >= 90000)) -ne 0 ] ; then if [ ! -e $HOME/.haskell-ci-tools/hlint-$HLINTVER/hlint ]; then echo "Downloading HLint version $HLINTVER"; mkdir -p $HOME/.haskell-ci-tools; curl --write-out 'Status Code: %{http_code} Redirects: %{num_redirects} Total time: %{time_total} Total Dsize: %{size_download}\n' --silent --location --output $HOME/.haskell-ci-tools/hlint-$HLINTVER.tar.gz "https://github.com/ndmitchell/hlint/releases/download/v$HLINTVER/hlint-$HLINTVER-x86_64-linux.tar.gz"; tar -xzv -f $HOME/.haskell-ci-tools/hlint-$HLINTVER.tar.gz -C $HOME/.haskell-ci-tools; fi ; fi
-          if [ $((HCNUMVER >= 90000)) -ne 0 ] ; then mkdir -p $CABAL_DIR/bin && ln -sf "$HOME/.haskell-ci-tools/hlint-$HLINTVER/hlint" $CABAL_DIR/bin/hlint ; fi
-          if [ $((HCNUMVER >= 90000)) -ne 0 ] ; then hlint --version ; fi
+          if [ $((HCNUMVER >= 90000 && HCNUMVER < 90200)) -ne 0 ] ; then HLINTVER=$(cd /tmp && (${CABAL} v2-install -v $ARG_COMPILER --dry-run hlint  --constraint='hlint >=3.3 && <3.4' |  perl -ne 'if (/\bhlint-(\d+(\.\d+)*)\b/) { print "$1"; last; }')); echo "HLint version $HLINTVER" ; fi
+          if [ $((HCNUMVER >= 90000 && HCNUMVER < 90200)) -ne 0 ] ; then if [ ! -e $HOME/.haskell-ci-tools/hlint-$HLINTVER/hlint ]; then echo "Downloading HLint version $HLINTVER"; mkdir -p $HOME/.haskell-ci-tools; curl --write-out 'Status Code: %{http_code} Redirects: %{num_redirects} Total time: %{time_total} Total Dsize: %{size_download}\n' --silent --location --output $HOME/.haskell-ci-tools/hlint-$HLINTVER.tar.gz "https://github.com/ndmitchell/hlint/releases/download/v$HLINTVER/hlint-$HLINTVER-x86_64-linux.tar.gz"; tar -xzv -f $HOME/.haskell-ci-tools/hlint-$HLINTVER.tar.gz -C $HOME/.haskell-ci-tools; fi ; fi
+          if [ $((HCNUMVER >= 90000 && HCNUMVER < 90200)) -ne 0 ] ; then mkdir -p $CABAL_DIR/bin && ln -sf "$HOME/.haskell-ci-tools/hlint-$HLINTVER/hlint" $CABAL_DIR/bin/hlint ; fi
+          if [ $((HCNUMVER >= 90000 && HCNUMVER < 90200)) -ne 0 ] ; then hlint --version ; fi
       - name: checkout
         uses: actions/checkout@v2
         with:
@@ -155,11 +218,12 @@ jobs:
       - name: generate cabal.project
         run: |
           PKGDIR_lens="$(find "$GITHUB_WORKSPACE/unpacked" -maxdepth 1 -type d -regex '.*/lens-[0-9.]*')"
-          echo "PKGDIR_lens=${PKGDIR_lens}" >> $GITHUB_ENV
+          echo "PKGDIR_lens=${PKGDIR_lens}" >> "$GITHUB_ENV"
           PKGDIR_lens_examples="$(find "$GITHUB_WORKSPACE/unpacked" -maxdepth 1 -type d -regex '.*/lens-examples-[0-9.]*')"
-          echo "PKGDIR_lens_examples=${PKGDIR_lens_examples}" >> $GITHUB_ENV
+          echo "PKGDIR_lens_examples=${PKGDIR_lens_examples}" >> "$GITHUB_ENV"
           PKGDIR_lens_properties="$(find "$GITHUB_WORKSPACE/unpacked" -maxdepth 1 -type d -regex '.*/lens-properties-[0-9.]*')"
-          echo "PKGDIR_lens_properties=${PKGDIR_lens_properties}" >> $GITHUB_ENV
+          echo "PKGDIR_lens_properties=${PKGDIR_lens_properties}" >> "$GITHUB_ENV"
+          rm -f cabal.project cabal.project.local
           touch cabal.project
           touch cabal.project.local
           echo "packages: ${PKGDIR_lens}" >> cabal.project
@@ -173,6 +237,9 @@ jobs:
           if [ $((HCNUMVER >= 80200)) -ne 0 ] ; then echo "    ghc-options: -Werror=missing-methods" >> cabal.project ; fi
           cat >> cabal.project <<EOF
           EOF
+          if $HEADHACKAGE; then
+          echo "allow-newer: $($HCPKG list --simple-output | sed -E 's/([a-zA-Z-]+)-[0-9.]+/*:\1,/g')" >> cabal.project
+          fi
           $HCPKG list --simple-output --names-only | perl -ne 'for (split /\s+/) { print "constraints: $_ installed\n" unless /^(lens|lens-examples|lens-properties)$/; }' >> cabal.project.local
           cat cabal.project
           cat cabal.project.local
@@ -202,9 +269,9 @@ jobs:
           cabal-docspec $ARG_COMPILER
       - name: hlint
         run: |
-          if [ $((HCNUMVER >= 90000)) -ne 0 ] ; then (cd ${PKGDIR_lens} && hlint src) ; fi
-          if [ $((HCNUMVER >= 90000)) -ne 0 ] ; then (cd ${PKGDIR_lens_examples} && hlint .) ; fi
-          if [ $((HCNUMVER >= 90000)) -ne 0 ] ; then (cd ${PKGDIR_lens_properties} && hlint src) ; fi
+          if [ $((HCNUMVER >= 90000 && HCNUMVER < 90200)) -ne 0 ] ; then (cd ${PKGDIR_lens} && hlint src) ; fi
+          if [ $((HCNUMVER >= 90000 && HCNUMVER < 90200)) -ne 0 ] ; then (cd ${PKGDIR_lens_examples} && hlint .) ; fi
+          if [ $((HCNUMVER >= 90000 && HCNUMVER < 90200)) -ne 0 ] ; then (cd ${PKGDIR_lens_properties} && hlint src) ; fi
       - name: cabal check
         run: |
           cd ${PKGDIR_lens} || false
