@@ -17,6 +17,9 @@
   At present, `Prefixed` and `Suffixed` are re-exported from `Data.List.Lens`
   for backwards compatibility. This may change in a future version of `lens`,
   however.
+* Add a `traversal` function to `Control.Lens.Traversal`. This function, aside
+  from acting as a `Traversal` counterpart to the `lens` and `prism` functions,
+  provides documentation on how to define `Traversal`s.
 
 5.0.1 [2021.02.24]
 ------------------
