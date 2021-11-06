@@ -52,6 +52,7 @@ module Control.Lens.Prism
 import Prelude ()
 
 import Control.Applicative
+import qualified Control.Lens.Internal.List as List
 import Control.Lens.Internal.Prism
 import Control.Lens.Internal.Prelude
 import Control.Lens.Lens
@@ -61,7 +62,6 @@ import Control.Monad
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.List as List
-import qualified Data.List.Lens as List
 import Data.Profunctor.Rep
 import qualified Data.Text as TS
 import qualified Data.Text.Lazy as TL

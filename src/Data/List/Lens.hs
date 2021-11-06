@@ -74,6 +74,11 @@
 -- >>> suffixed ".o" # "hello"
 -- "hello.o"
 --
+-- At present, "Data.List.Lens" re-exports 'Prefixed' and 'Suffixed' for
+-- backwards compatibility, as 'prefixed' and 'suffixed' used to be top-level
+-- functions defined in this module. This may change in a future major release
+-- of @lens@.
+--
 -- Finally, it's possible to traverse, fold over, and map over
 -- index-value pairs thanks to instances of
 -- 'Control.Lens.Indexed.TraversableWithIndex',
@@ -95,30 +100,14 @@
 --
 ----------------------------------------------------------------------------
 module Data.List.Lens
-  ( stripSuffix
+  ( Prefixed(..)
+  , Suffixed(..)
+  , stripSuffix
   ) where
 
-import Prelude ()
+import Control.Lens.Prism (Prefixed(..), Suffixed(..))
+import Control.Lens.Internal.List (stripSuffix)
 
-import Control.Monad (guard)
-import Control.Lens.Internal.Prelude
-
--- $setup
--- >>> :set -XNoOverloadedStrings
--- >>> import Control.Lens
-
-------------------------------------------------------------------------------
--- Util
-------------------------------------------------------------------------------
-
-stripSuffix :: Eq a => [a] -> [a] -> Maybe [a]
-stripSuffix qs xs0 = go xs0 zs
-  where
-    zs = drp qs xs0
-    drp (_:ps) (_:xs) = drp ps xs
-    drp [] xs = xs
-    drp _  [] = []
-    go (_:xs) (_:ys) = go xs ys
-    go xs [] = zipWith const xs0 zs <$ guard (xs == qs)
-    go [] _  = Nothing -- impossible
-{-# INLINE stripSuffix #-}
+--- $setup
+--- >>> :set -XNoOverloadedStrings
+--- >>> import Control.Lens

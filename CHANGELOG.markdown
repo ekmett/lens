@@ -7,8 +7,16 @@
   when building with `template-haskell-2.18` or later.
 * Define `_CharTyLit` in `Language.Haskell.TH.Lens` when building with
   `template-haskell-2.18` or later.
-* Add prisms for working with text with prefixes or suffices in
-  `Data.Text.Strict.Lens` and `Data.Text.Lazy.Lens`
+* Add `Prefixed` and `Suffixed` classes to `Control.Lens.Prism`, which provide
+  `prefixed` and `suffixed` prisms for prefixes and suffixes of sequence types.
+  These classes generalize the `prefixed` and `suffixed` functions in
+  `Data.List.Lens`, which were previously top-level functions. In addition to
+  providing `Prefixed` and `Suffixed` instances for lists, instances for `Text`
+  and `ByteString` types are also provided.
+
+  At present, `Prefixed` and `Suffixed` are re-exported from `Data.List.Lens`
+  for backwards compatibility. This may change in a future version of `lens`,
+  however.
 
 5.0.1 [2021.02.24]
 ------------------
