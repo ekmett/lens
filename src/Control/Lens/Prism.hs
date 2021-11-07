@@ -43,24 +43,28 @@ module Control.Lens.Prism
   , _Show
   , only
   , nearly
+  , Prefixed(..)
+  , Suffixed(..)
   -- * Prismatic profunctors
   , Choice(..)
   ) where
 
+import Prelude ()
+
 import Control.Applicative
+import qualified Control.Lens.Internal.List as List
 import Control.Lens.Internal.Prism
+import Control.Lens.Internal.Prelude
 import Control.Lens.Lens
 import Control.Lens.Review
 import Control.Lens.Type
 import Control.Monad
-import Data.Functor.Identity
-import Data.Profunctor
+import qualified Data.ByteString as BS
+import qualified Data.ByteString.Lazy as BL
+import qualified Data.List as List
 import Data.Profunctor.Rep
-import Data.Profunctor.Sieve
-import Data.Traversable
-import Data.Void
-import Data.Coerce
-import Prelude
+import qualified Data.Text as TS
+import qualified Data.Text.Lazy as TL
 
 -- $setup
 -- >>> :set -XNoOverloadedStrings
@@ -361,3 +365,71 @@ _Show = prism show $ \s -> case reads s of
   [(a,"")] -> Right a
   _ -> Left s
 {-# INLINE _Show #-}
+
+class Prefixed t where
+  -- | A 'Prism' stripping a prefix from a sequence when used as a 'Traversal',
+  -- or prepending that prefix when run backwards:
+  --
+  -- >>> "preview" ^? prefixed "pre"
+  -- Just "view"
+  --
+  -- >>> "review" ^? prefixed "pre"
+  -- Nothing
+  --
+  -- >>> prefixed "pre" # "amble"
+  -- "preamble"
+  prefixed :: t -> Prism' t t
+
+instance Eq a => Prefixed [a] where
+  prefixed ps = prism' (ps ++) (List.stripPrefix ps)
+  {-# INLINE prefixed #-}
+
+instance Prefixed TS.Text where
+  prefixed p = prism' (p <>) (TS.stripPrefix p)
+  {-# INLINE prefixed #-}
+
+instance Prefixed TL.Text where
+  prefixed p = prism' (p <>) (TL.stripPrefix p)
+  {-# INLINE prefixed #-}
+
+instance Prefixed BS.ByteString where
+  prefixed p = prism' (p <>) (BS.stripPrefix p)
+  {-# INLINE prefixed #-}
+
+instance Prefixed BL.ByteString where
+  prefixed p = prism' (p <>) (BL.stripPrefix p)
+  {-# INLINE prefixed #-}
+
+class Suffixed t where
+  -- | A 'Prism' stripping a suffix from a sequence when used as a 'Traversal',
+  -- or appending that suffix when run backwards:
+  --
+  -- >>> "review" ^? suffixed "view"
+  -- Just "re"
+  --
+  -- >>> "review" ^? suffixed "tire"
+  -- Nothing
+  --
+  -- >>> suffixed ".o" # "hello"
+  -- "hello.o"
+  suffixed :: t -> Prism' t t
+
+instance Eq a => Suffixed [a] where
+  suffixed qs = prism' (++ qs) (List.stripSuffix qs)
+  {-# INLINE suffixed #-}
+
+instance Suffixed TS.Text where
+  suffixed qs = prism' (<> qs) (TS.stripSuffix qs)
+  {-# INLINE suffixed #-}
+
+instance Suffixed TL.Text where
+  suffixed qs = prism' (<> qs) (TL.stripSuffix qs)
+  {-# INLINE suffixed #-}
+
+instance Suffixed BS.ByteString where
+  suffixed qs = prism' (<> qs) (BS.stripSuffix qs)
+  {-# INLINE suffixed #-}
+
+instance Suffixed BL.ByteString where
+  suffixed qs = prism' (<> qs) (BL.stripSuffix qs)
+  {-# INLINE suffixed #-}

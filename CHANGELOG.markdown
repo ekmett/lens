@@ -7,6 +7,16 @@
   when building with `template-haskell-2.18` or later.
 * Define `_CharTyLit` in `Language.Haskell.TH.Lens` when building with
   `template-haskell-2.18` or later.
+* Add `Prefixed` and `Suffixed` classes to `Control.Lens.Prism`, which provide
+  `prefixed` and `suffixed` prisms for prefixes and suffixes of sequence types.
+  These classes generalize the `prefixed` and `suffixed` functions in
+  `Data.List.Lens`, which were previously top-level functions. In addition to
+  providing `Prefixed` and `Suffixed` instances for lists, instances for `Text`
+  and `ByteString` types are also provided.
+
+  At present, `Prefixed` and `Suffixed` are re-exported from `Data.List.Lens`
+  for backwards compatibility. This may change in a future version of `lens`,
+  however.
 * Add a `traversal` function to `Control.Lens.Traversal`. This function, aside
   from acting as a `Traversal` counterpart to the `lens` and `prism` functions,
   provides documentation on how to define `Traversal`s.
