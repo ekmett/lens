@@ -20,6 +20,9 @@
 * Add a `traversal` function to `Control.Lens.Traversal`. This function, aside
   from acting as a `Traversal` counterpart to the `lens` and `prism` functions,
   provides documentation on how to define `Traversal`s.
+* Add a `matching'` function to `Control.Lens.Prism`. `matching'` is like
+  `matching`, but with a slightly more general type signature that allows it to
+  work with combinations of `Lens`es, `Prism`s, and `Traversal`s.
 
 5.0.1 [2021.02.24]
 ------------------
