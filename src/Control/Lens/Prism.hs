@@ -34,6 +34,7 @@ module Control.Lens.Prism
   , below
   , isn't
   , matching
+  , matching'
   -- * Common Prisms
   , _Left
   , _Right
@@ -206,6 +207,24 @@ isn't k s =
 matching :: APrism s t a b -> s -> Either t a
 matching k = withPrism k $ \_ seta -> seta
 {-# INLINE matching #-}
+
+-- | Like 'matching', but also works for combinations of 'Lens' and 'Prism's,
+-- and also 'Traversal's.
+--
+-- >>> matching' (_2 . _Just) ('x', Just True)
+-- Right True
+--
+-- >>> matching' (_2 . _Just) ('x', Nothing :: Maybe Int) :: Either (Char, Maybe Bool) Int
+-- Left ('x',Nothing)
+--
+-- >>> matching' traverse "" :: Either [Int] Char
+-- Left []
+--
+-- >>> matching' traverse "xyz" :: Either [Int] Char
+-- Right 'x'
+matching' :: LensLike (Either a) s t a b -> s -> Either t a
+matching' k = either Right Left . k Left
+{-# INLINE matching' #-}
 
 ------------------------------------------------------------------------------
 -- Common Prisms
