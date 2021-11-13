@@ -159,7 +159,7 @@ jobs:
       - name: cache (tools)
         uses: actions/cache@v2
         with:
-          key: ${{ runner.os }}-${{ matrix.compiler }}-tools-582bfe5c
+          key: ${{ runner.os }}-${{ matrix.compiler }}-tools-98d26823
           path: ~/.haskell-ci-tools
       - name: install cabal-plan
         run: |
@@ -181,10 +181,10 @@ jobs:
           cabal-docspec --version
       - name: install hlint
         run: |
-          if [ $((HCNUMVER >= 90200)) -ne 0 ] ; then HLINTVER=$(cd /tmp && (${CABAL} v2-install -v $ARG_COMPILER --dry-run hlint  --constraint='hlint >=3.3 && <3.4' |  perl -ne 'if (/\bhlint-(\d+(\.\d+)*)\b/) { print "$1"; last; }')); echo "HLint version $HLINTVER" ; fi
-          if [ $((HCNUMVER >= 90200)) -ne 0 ] ; then if [ ! -e $HOME/.haskell-ci-tools/hlint-$HLINTVER/hlint ]; then echo "Downloading HLint version $HLINTVER"; mkdir -p $HOME/.haskell-ci-tools; curl --write-out 'Status Code: %{http_code} Redirects: %{num_redirects} Total time: %{time_total} Total Dsize: %{size_download}\n' --silent --location --output $HOME/.haskell-ci-tools/hlint-$HLINTVER.tar.gz "https://github.com/ndmitchell/hlint/releases/download/v$HLINTVER/hlint-$HLINTVER-x86_64-linux.tar.gz"; tar -xzv -f $HOME/.haskell-ci-tools/hlint-$HLINTVER.tar.gz -C $HOME/.haskell-ci-tools; fi ; fi
-          if [ $((HCNUMVER >= 90200)) -ne 0 ] ; then mkdir -p $CABAL_DIR/bin && ln -sf "$HOME/.haskell-ci-tools/hlint-$HLINTVER/hlint" $CABAL_DIR/bin/hlint ; fi
-          if [ $((HCNUMVER >= 90200)) -ne 0 ] ; then hlint --version ; fi
+          if [ $((HCNUMVER >= 90000 && HCNUMVER < 90200)) -ne 0 ] ; then HLINTVER=$(cd /tmp && (${CABAL} v2-install -v $ARG_COMPILER --dry-run hlint  --constraint='hlint >=3.3 && <3.4' |  perl -ne 'if (/\bhlint-(\d+(\.\d+)*)\b/) { print "$1"; last; }')); echo "HLint version $HLINTVER" ; fi
+          if [ $((HCNUMVER >= 90000 && HCNUMVER < 90200)) -ne 0 ] ; then if [ ! -e $HOME/.haskell-ci-tools/hlint-$HLINTVER/hlint ]; then echo "Downloading HLint version $HLINTVER"; mkdir -p $HOME/.haskell-ci-tools; curl --write-out 'Status Code: %{http_code} Redirects: %{num_redirects} Total time: %{time_total} Total Dsize: %{size_download}\n' --silent --location --output $HOME/.haskell-ci-tools/hlint-$HLINTVER.tar.gz "https://github.com/ndmitchell/hlint/releases/download/v$HLINTVER/hlint-$HLINTVER-x86_64-linux.tar.gz"; tar -xzv -f $HOME/.haskell-ci-tools/hlint-$HLINTVER.tar.gz -C $HOME/.haskell-ci-tools; fi ; fi
+          if [ $((HCNUMVER >= 90000 && HCNUMVER < 90200)) -ne 0 ] ; then mkdir -p $CABAL_DIR/bin && ln -sf "$HOME/.haskell-ci-tools/hlint-$HLINTVER/hlint" $CABAL_DIR/bin/hlint ; fi
+          if [ $((HCNUMVER >= 90000 && HCNUMVER < 90200)) -ne 0 ] ; then hlint --version ; fi
       - name: checkout
         uses: actions/checkout@v2
         with:
@@ -255,9 +255,9 @@ jobs:
           cabal-docspec $ARG_COMPILER
       - name: hlint
         run: |
-          if [ $((HCNUMVER >= 90200)) -ne 0 ] ; then (cd ${PKGDIR_lens} && hlint src) ; fi
-          if [ $((HCNUMVER >= 90200)) -ne 0 ] ; then (cd ${PKGDIR_lens_examples} && hlint .) ; fi
-          if [ $((HCNUMVER >= 90200)) -ne 0 ] ; then (cd ${PKGDIR_lens_properties} && hlint src) ; fi
+          if [ $((HCNUMVER >= 90000 && HCNUMVER < 90200)) -ne 0 ] ; then (cd ${PKGDIR_lens} && hlint src) ; fi
+          if [ $((HCNUMVER >= 90000 && HCNUMVER < 90200)) -ne 0 ] ; then (cd ${PKGDIR_lens_examples} && hlint .) ; fi
+          if [ $((HCNUMVER >= 90000 && HCNUMVER < 90200)) -ne 0 ] ; then (cd ${PKGDIR_lens_properties} && hlint src) ; fi
       - name: cabal check
         run: |
           cd ${PKGDIR_lens} || false
