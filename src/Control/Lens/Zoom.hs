@@ -6,8 +6,11 @@
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE RankNTypes #-}
-{-# OPTIONS_GHC -Wno-warnings-deprecations #-}
 {-# LANGUAGE Trustworthy #-}
+
+#if !MIN_VERSION_transformers(0,6,0)
+{-# OPTIONS_GHC -Wno-warnings-deprecations #-}
+#endif
 
 #include "lens-common.h"
 
@@ -43,12 +46,14 @@ import Control.Monad.Trans.Writer.Lazy as Lazy
 import Control.Monad.Trans.Writer.Strict as Strict
 import Control.Monad.Trans.RWS.Lazy as Lazy
 import Control.Monad.Trans.RWS.Strict as Strict
-import Control.Monad.Trans.Error
 import Control.Monad.Trans.Except
-import Control.Monad.Trans.List
 import Control.Monad.Trans.Identity
 import Control.Monad.Trans.Maybe
 import Control.Monad.Trans.Free
+#if !MIN_VERSION_transformers(0,6,0)
+import Control.Monad.Trans.Error
+import Control.Monad.Trans.List
+#endif
 import Data.Kind
 
 -- $setup
@@ -79,11 +84,13 @@ type instance Zoomed (Strict.RWST r w s z) = FocusingWith w z
 type instance Zoomed (Lazy.RWST r w s z) = FocusingWith w z
 type instance Zoomed (Strict.WriterT w m) = FocusingPlus w (Zoomed m)
 type instance Zoomed (Lazy.WriterT w m) = FocusingPlus w (Zoomed m)
-type instance Zoomed (ListT m) = FocusingOn [] (Zoomed m)
 type instance Zoomed (MaybeT m) = FocusingMay (Zoomed m)
-type instance Zoomed (ErrorT e m) = FocusingErr e (Zoomed m)
 type instance Zoomed (ExceptT e m) = FocusingErr e (Zoomed m)
 type instance Zoomed (FreeT f m) = FocusingFree f m (Zoomed m)
+#if !MIN_VERSION_transformers(0,6,0)
+type instance Zoomed (ErrorT e m) = FocusingErr e (Zoomed m)
+type instance Zoomed (ListT m) = FocusingOn [] (Zoomed m)
+#endif
 
 ------------------------------------------------------------------------------
 -- Magnified
@@ -175,16 +182,8 @@ instance (Monoid w, Zoom m n s t) => Zoom (Lazy.WriterT w m) (Lazy.WriterT w n) 
   zoom l = Lazy.WriterT . zoom (\afb -> unfocusingPlus #. l (FocusingPlus #. afb)) . Lazy.runWriterT
   {-# INLINE zoom #-}
 
-instance Zoom m n s t => Zoom (ListT m) (ListT n) s t where
-  zoom l = ListT . zoom (\afb -> unfocusingOn . l (FocusingOn . afb)) . runListT
-  {-# INLINE zoom #-}
-
 instance Zoom m n s t => Zoom (MaybeT m) (MaybeT n) s t where
   zoom l = MaybeT . liftM getMay . zoom (\afb -> unfocusingMay #. l (FocusingMay #. afb)) . liftM May . runMaybeT
-  {-# INLINE zoom #-}
-
-instance (Error e, Zoom m n s t) => Zoom (ErrorT e m) (ErrorT e n) s t where
-  zoom l = ErrorT . liftM getErr . zoom (\afb -> unfocusingErr #. l (FocusingErr #. afb)) . liftM Err . runErrorT
   {-# INLINE zoom #-}
 
 instance Zoom m n s t => Zoom (ExceptT e m) (ExceptT e n) s t where
@@ -193,6 +192,16 @@ instance Zoom m n s t => Zoom (ExceptT e m) (ExceptT e n) s t where
 
 instance (Functor f, Zoom m n s t) => Zoom (FreeT f m) (FreeT f n) s t where
   zoom l = FreeT . liftM (fmap (zoom l) . getFreed) . zoom (\afb -> unfocusingFree #. l (FocusingFree #. afb)) . liftM Freed . runFreeT
+
+#if !MIN_VERSION_transformers(0,6,0) && !MIN_VERSION_mtl(2,3,0)
+instance (Error e, Zoom m n s t) => Zoom (ErrorT e m) (ErrorT e n) s t where
+  zoom l = ErrorT . liftM getErr . zoom (\afb -> unfocusingErr #. l (FocusingErr #. afb)) . liftM Err . runErrorT
+  {-# INLINE zoom #-}
+
+instance Zoom m n s t => Zoom (ListT m) (ListT n) s t where
+  zoom l = ListT . zoom (\afb -> unfocusingOn . l (FocusingOn . afb)) . runListT
+  {-# INLINE zoom #-}
+#endif
 
 ------------------------------------------------------------------------------
 -- Magnify

@@ -15,7 +15,9 @@
 {-# LANGUAGE Trustworthy #-}
 #endif
 
+#if !(MIN_VERSION_base(4,16,0)) || !MIN_VERSION_transformers(0,6,0)
 {-# OPTIONS_GHC -Wno-warnings-deprecations #-}
+#endif
 
 #include "lens-common.h"
 
@@ -88,12 +90,10 @@ import           Control.Lens.Iso
 import           Control.Lens.Review
 import           Control.Monad.Catch.Pure
 import           Control.Monad.Trans.Cont
-import           Control.Monad.Trans.Error
 import           Control.Monad.Trans.Except
 import           Control.Monad.Trans.Free
 import           Control.Monad.Trans.Identity
 import           Control.Monad.Trans.Iter
-import           Control.Monad.Trans.List
 import           Control.Monad.Trans.Maybe
 import           Control.Monad.Trans.Reader
 import qualified Control.Monad.Trans.RWS.Lazy      as Lazy
@@ -102,6 +102,10 @@ import qualified Control.Monad.Trans.State.Lazy    as Lazy
 import qualified Control.Monad.Trans.State.Strict  as Strict
 import qualified Control.Monad.Trans.Writer.Lazy   as Lazy
 import qualified Control.Monad.Trans.Writer.Strict as Strict
+#if !MIN_VERSION_transformers(0,6,0)
+import           Control.Monad.Trans.Error
+import           Control.Monad.Trans.List
+#endif
 import           Data.Bifunctor.Biff
 import           Data.Bifunctor.Clown
 import           Data.Bifunctor.Fix
@@ -372,12 +376,6 @@ instance Wrapped (ContT r m a) where
   type Unwrapped (ContT r m a) = (a -> m r) -> m r
   _Wrapped' = iso runContT ContT
 
-instance (t ~ ErrorT e' m' a') => Rewrapped (ErrorT e m a) t
-instance Wrapped (ErrorT e m a) where
-  type Unwrapped (ErrorT e m a) = m (Either e a)
-  _Wrapped' = iso runErrorT ErrorT
-  {-# INLINE _Wrapped' #-}
-
 instance (t ~ ExceptT e' m' a') => Rewrapped (ExceptT e m a) t
 instance Wrapped (ExceptT e m a) where
   type Unwrapped (ExceptT e m a) = m (Either e a)
@@ -394,12 +392,6 @@ instance (t ~ IdentityT n b) => Rewrapped (IdentityT m a) t
 instance Wrapped (IdentityT m a) where
   type Unwrapped (IdentityT m a) = m a
   _Wrapped' = iso runIdentityT IdentityT
-  {-# INLINE _Wrapped' #-}
-
-instance (t ~ ListT n b) => Rewrapped (ListT m a) t
-instance Wrapped (ListT m a) where
-  type Unwrapped (ListT m a) = m [a]
-  _Wrapped' = iso runListT ListT
   {-# INLINE _Wrapped' #-}
 
 instance (t ~ MaybeT n b) => Rewrapped (MaybeT m a) t
@@ -455,6 +447,20 @@ instance Wrapped (Strict.WriterT w m a) where
   type Unwrapped (Strict.WriterT w m a) = m (a, w)
   _Wrapped' = iso Strict.runWriterT Strict.WriterT
   {-# INLINE _Wrapped' #-}
+
+#if !MIN_VERSION_transformers(0,6,0)
+instance (t ~ ErrorT e' m' a') => Rewrapped (ErrorT e m a) t
+instance Wrapped (ErrorT e m a) where
+  type Unwrapped (ErrorT e m a) = m (Either e a)
+  _Wrapped' = iso runErrorT ErrorT
+  {-# INLINE _Wrapped' #-}
+
+instance (t ~ ListT n b) => Rewrapped (ListT m a) t
+instance Wrapped (ListT m a) where
+  type Unwrapped (ListT m a) = m [a]
+  _Wrapped' = iso runListT ListT
+  {-# INLINE _Wrapped' #-}
+#endif
 
 -- * bifunctors
 
