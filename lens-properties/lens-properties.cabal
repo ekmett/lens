@@ -35,7 +35,7 @@ library
     base         >= 4.9 && < 5,
     lens         >= 4   && < 6,
     QuickCheck   >= 2.4 && < 2.15,
-    transformers >= 0.2 && < 0.6
+    transformers >= 0.2 && < 0.7
 
   exposed-modules:
     Control.Lens.Properties
