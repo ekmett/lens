@@ -16,6 +16,14 @@
   functions in `Control.Lens.TH`.
 * Add `Data.HashSet.Lens.hashMap`, an `Iso` between a `HashSet a` and a
   `HashMap a ()`.
+* Allow building with `transformers-0.6.*` and `mtl-2.3.*`.
+
+  Note that `lens` no longer defines `Zoom` instances for `ErrorT` or `ListT`
+  when building with `mtl-2.3` or later. This is because `MonadState` is a
+  superclass of `Zoom`, and the `MonadState` instances for `ErrorT` and `ListT`
+  were removed in `mtl-2.3`. Be watchful of this if you build `lens` with
+  `mtl-2.3` (or later) combined with an older version of `transformers`
+  (pre-`0.6`) that defines `ErrorT` or `ListT`.
 
 5.1 [2021.11.15]
 ----------------
