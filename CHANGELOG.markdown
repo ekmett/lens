@@ -1,4 +1,4 @@
-5.1 [????.??.??]
+5.1 [2021.11.15]
 ----------------
 * Allow building with GHC 9.2.
 * Drop support for GHC 7.10 and older.
