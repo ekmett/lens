@@ -385,13 +385,18 @@ universe = universeOf plate
 -- @
 -- 'universeOf' :: 'Fold' a a -> a -> [a]
 -- @
-universeOf :: Getting [a] a a -> a -> [a]
-universeOf l = go where
-  go a = a : foldMapOf l go a
+universeOf :: Getting (Endo [a]) a a -> a -> [a]
+universeOf l = \x -> appEndo (universeOf' l x) []
 {-# INLINE universeOf #-}
 
+universeOf' :: Getting (Endo [a]) a a -> a -> Endo [a]
+universeOf' l = go where
+  go a = Endo (a :) <> foldMapOf l go a
+{-# INLINE universeOf' #-}
+
+
 -- | Given a 'Fold' that knows how to find 'Plated' parts of a container retrieve them and all of their descendants, recursively.
-universeOn ::  Plated a => Getting [a] s a -> s -> [a]
+universeOn ::  Plated a => Getting (Endo [a]) s a -> s -> [a]
 universeOn b = universeOnOf b plate
 {-# INLINE universeOn #-}
 
@@ -401,8 +406,8 @@ universeOn b = universeOnOf b plate
 -- @
 -- 'toListOf' l ≡ 'universeOnOf' l 'ignored'
 -- @
-universeOnOf :: Getting [a] s a -> Getting [a] a a -> s -> [a]
-universeOnOf b = foldMapOf b . universeOf
+universeOnOf :: Getting (Endo [a]) s a -> Getting (Endo [a]) a a -> s -> [a]
+universeOnOf b = \p x -> appEndo (foldMapOf b (universeOf' p) x) []
 {-# INLINE universeOnOf #-}
 
 -- | Fold over all transitive descendants of a 'Plated' container, including itself.
