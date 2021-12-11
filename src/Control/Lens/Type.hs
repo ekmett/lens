@@ -201,6 +201,11 @@ type Traversal s t a b = forall f. Applicative f => (a -> f b) -> s -> f t
 -- @
 type Traversal' s a = Traversal s s a a
 
+-- | A 'Traversal' which targets at least one element.
+--
+-- Note that since 'Apply' is not a superclass of 'Applicative', a 'Traversal1'
+-- cannot always be used in place of a 'Traversal'. In such circumstances
+-- 'Control.Lens.Traversal.cloneTraversal' will convert a 'Traversal1' into a 'Traversal'.
 type Traversal1 s t a b = forall f. Apply f => (a -> f b) -> s -> f t
 type Traversal1' s a = Traversal1 s s a a
 
