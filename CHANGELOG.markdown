@@ -1,3 +1,17 @@
+5.2 [????.??.??]
+----------------
+* The type of `universeOf` has changed:
+
+  ```diff
+  -universeOf :: Getting       [a]  a a -> a -> [a]
+  +universeOf :: Getting (Endo [a]) a a -> a -> [a]
+  ```
+
+  In many cases, using `Endo [a]` over `[a]` improves performance. Most call
+  sites to `universeOf` will not be affected by this change, although you may
+  need to update your code if you define your own combinators in terms of
+  `universeOf`.
+
 5.1 [2021.11.15]
 ----------------
 * Allow building with GHC 9.2.
