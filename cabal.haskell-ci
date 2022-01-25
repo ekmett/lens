@@ -2,7 +2,7 @@ distribution:           bionic
 no-tests-no-benchmarks: False
 unconstrained:          False
 hlint:                  True
-hlint-job:              9.0.1
+hlint-job:              9.0.2
 apt:                    freeglut3-dev
 -- irc-channels:           irc.freenode.org#haskell-lens
 irc-if-in-origin-repo:  True
