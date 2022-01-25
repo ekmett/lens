@@ -98,32 +98,30 @@ unfoldType = go []
 datatypeTypeKinded :: D.DatatypeInfo -> Type
 datatypeTypeKinded di
   = foldl AppT (ConT (D.datatypeName di))
-  $ dropSigsIfNonDataFam
+  $ dropSigsIfNonDataFam di
   $ D.datatypeInstTypes di
+
+-- | In an effort to prevent users from having to enable KindSignatures every
+-- time that they use lens' TH functionality, we strip off reified kind
+-- annotations from when:
+--
+-- 1. The kind of a type does not contain any kind variables. If it *does*
+--    contain kind variables, we want to preserve them so that we can generate
+--    type signatures that preserve the dependency order of kind and type
+--    variables. (The data types in test/T917.hs contain examples where this
+--    is important.) This will require enabling `PolyKinds`, but since
+--    `PolyKinds` implies `KindSignatures`, we can at least accomplish two
+--    things at once.
+-- 2. The data type is not an instance of a data family. We make an exception
+--    for data family instances, since the presence or absence of a kind
+--    annotation can be the difference between typechecking or not.
+--    (See T917DataFam in tests/T917.hs for an example.) Moreover, the
+--    `TypeFamilies` extension implies `KindSignatures`.
+dropSigsIfNonDataFam :: D.DatatypeInfo -> [Type] -> [Type]
+dropSigsIfNonDataFam di
+  | isDataFamily (D.datatypeVariant di) = id
+  | otherwise                           = map dropSig
   where
-    {-
-    In an effort to prevent users from having to enable KindSignatures every
-    time that they use lens' TH functionality, we strip off reified kind
-    annotations from when:
-
-    1. The kind of a type does not contain any kind variables. If it *does*
-       contain kind variables, we want to preserve them so that we can generate
-       type signatures that preserve the dependency order of kind and type
-       variables. (The data types in test/T917.hs contain examples where this
-       is important.) This will require enabling `PolyKinds`, but since
-       `PolyKinds` implies `KindSignatures`, we can at least accomplish two
-       things at once.
-    2. The data type is not an instance of a data family. We make an exception
-       for data family instances, since the presence or absence of a kind
-       annotation can be the difference between typechecking or not.
-       (See T917DataFam in tests/T917.hs for an example.) Moreover, the
-       `TypeFamilies` extension implies `KindSignatures`.
-    -}
-    dropSigsIfNonDataFam :: [Type] -> [Type]
-    dropSigsIfNonDataFam
-      | isDataFamily (D.datatypeVariant di) = id
-      | otherwise                           = map dropSig
-
     dropSig :: Type -> Type
     dropSig (SigT t k) | null (D.freeVariables k) = t
     dropSig t                                     = t

@@ -11,6 +11,9 @@
   sites to `universeOf` will not be affected by this change, although you may
   need to update your code if you define your own combinators in terms of
   `universeOf`.
+* Allow `makeWrapped` to accept the names of data constructors. This way,
+  `makeWrapped` can be used with data family instances, much like other
+  functions in `Control.Lens.TH`.
 
 5.1 [2021.11.15]
 ----------------

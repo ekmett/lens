@@ -88,7 +88,6 @@ import Control.Lens.Fold
 import Control.Lens.Getter
 import Control.Lens.Lens
 import Control.Lens.Setter
-import Control.Lens.Tuple
 import Control.Lens.Traversal
 import Control.Lens.Internal.Prelude as Prelude
 import Control.Lens.Internal.TH
@@ -104,15 +103,10 @@ import Data.Map (Map)
 import Data.Maybe (maybeToList)
 import qualified Data.Set as Set
 import Data.Set (Set)
-import Data.Set.Lens
 import Data.Traversable hiding (mapM)
 import Language.Haskell.TH.Datatype
-import Language.Haskell.TH.Datatype.TyVarBndr as D
 import Language.Haskell.TH.Lens
 import Language.Haskell.TH.Lib
-#if MIN_VERSION_template_haskell(2,15,0)
-import Language.Haskell.TH.Ppr (pprint)
-#endif
 import Language.Haskell.TH.Syntax hiding (lift)
 
 -- | Generate "simple" optics even when type-changing optics are possible.
@@ -446,7 +440,9 @@ declarePrisms = declareWith $ \dec -> do
 -- | Build 'Control.Lens.Wrapped.Wrapped' instance for each newtype.
 declareWrapped :: DecsQ -> DecsQ
 declareWrapped = declareWith $ \dec -> do
-  maybeDecs <- liftDeclare (makeWrappedForDec dec)
+  maybeDecs <- liftDeclare $ do
+    inf <- normalizeDec dec
+    makeWrappedForDatatypeInfo inf
   forM_ maybeDecs emit
   return dec
 
@@ -466,14 +462,6 @@ declareLensesWith rules = declareWith $ \dec -> do
 -- Internal TH Implementation
 -----------------------------------------------------------------------------
 
--- | Transform @NewtypeD@s declarations to @DataD@s and @NewtypeInstD@s to
--- @DataInstD@s.
-deNewtype :: Dec -> Dec
-deNewtype (NewtypeD ctx tyName args kind c d) = DataD ctx tyName args kind [c] d
-deNewtype (NewtypeInstD ctx tyName args kind c d) = DataInstD ctx tyName args kind [c] d
-deNewtype d = d
-
-
 -- | Given a set of names, build a map from those names to a set of fresh names
 -- based on them.
 freshMap :: Set Name -> Q (Map Name Name)
@@ -484,96 +472,39 @@ apps :: Type -> [Type] -> Type
 apps = Prelude.foldl AppT
 
 
-makeDataDecl :: Dec -> Maybe DataDecl
-makeDataDecl dec = case deNewtype dec of
-  DataD ctx tyName args _ cons _ -> Just DataDecl
-    { dataContext = ctx
-    , tyConName = Just tyName
-    , dataParameters = args
-    , fullType = apps $ ConT tyName
-    , constructors = cons
-    }
-#if MIN_VERSION_template_haskell(2,15,0)
-  DataInstD ctx _ fnArgs _ cons _
-#else
-  DataInstD ctx familyName args _ cons _
-#endif
-                    -> Just DataDecl
-    { dataContext = ctx
-    , tyConName = Nothing
-    , dataParameters = map D.plainTV vars
-    , fullType = \tys -> apps (ConT familyName) $
-        substType (Map.fromList $ zip vars tys) args
-    , constructors = cons
-    }
-    where
-      -- The list of "type parameters" to a data family instance is not
-      -- explicitly specified in the source. Here we define it to be
-      -- the set of distinct type variables that appear in the LHS. e.g.
-      --
-      -- data instance F a Int (Maybe (a, b)) = G
-      --
-      -- has 2 type parameters: a and b.
-      vars = toList $ setOf typeVars args
-
-#if MIN_VERSION_template_haskell(2,15,0)
-      (familyName, args) =
-        case unfoldType fnArgs of
-          (ConT familyName', args') -> (familyName', args')
-          (_, _) -> error $ "Illegal data instance LHS: " ++ pprint fnArgs
-#endif
-  _ -> Nothing
-
--- | A data, newtype, data instance or newtype instance declaration.
-data DataDecl = DataDecl
-  { dataContext :: Cxt -- ^ Datatype context.
-  , tyConName :: Maybe Name
-    -- ^ Type constructor name, or Nothing for a data family instance.
-  , dataParameters :: [TyVarBndrUnit] -- ^ List of type parameters
-  , fullType :: [Type] -> Type
-    -- ^ Create a concrete record type given a substitution to
-    -- 'detaParameters'.
-  , constructors :: [Con] -- ^ Constructors
-  -- , derivings :: [Name] -- currently not needed
-  }
-
-
-
 -- | Build 'Wrapped' instance for a given newtype
 makeWrapped :: Name -> DecsQ
 makeWrapped nm = do
-  inf <- reify nm
-  case inf of
-    TyConI decl -> do
-      maybeDecs <- makeWrappedForDec decl
-      maybe (fail "makeWrapped: Unsupported data type") return maybeDecs
-    _ -> fail "makeWrapped: Expected the name of a newtype or datatype"
+  inf <- reifyDatatype nm
+  maybeDecs <- makeWrappedForDatatypeInfo inf
+  maybe (fail "makeWrapped: Unsupported data type") return maybeDecs
 
-makeWrappedForDec :: Dec -> Q (Maybe [Dec])
-makeWrappedForDec decl = case makeDataDecl decl of
-  Just dataDecl | [con]   <- constructors dataDecl
-                , [field] <- toListOf (conFields._2) con
-    -> do wrapped   <- makeWrappedInstance dataDecl con field
-          rewrapped <- makeRewrappedInstance dataDecl
-          return (Just [rewrapped, wrapped])
-  _ -> return Nothing
+makeWrappedForDatatypeInfo :: DatatypeInfo -> Q (Maybe [Dec])
+makeWrappedForDatatypeInfo dataInfo@(DatatypeInfo{datatypeCons = cons})
+  | [conInfo@(ConstructorInfo{constructorFields = fields})] <- cons
+  , [field] <- fields
+  = do wrapped   <- makeWrappedInstance dataInfo conInfo field
+       rewrapped <- makeRewrappedInstance dataInfo
+       return (Just [rewrapped, wrapped])
 
-makeRewrappedInstance :: DataDecl -> DecQ
-makeRewrappedInstance dataDecl = do
+  | otherwise = return Nothing
+
+makeRewrappedInstance :: DatatypeInfo -> DecQ
+makeRewrappedInstance dataInfo = do
 
    t <- varT <$> newName "t"
 
-   let typeArgs = map (view name) (dataParameters dataDecl)
+   let typeArgs = map (view name) (datatypeVars dataInfo)
 
    typeArgs' <- do
      m <- freshMap (Set.fromList typeArgs)
      return (substTypeVars m typeArgs)
 
        -- Con a b c...
-   let appliedType  = return (fullType dataDecl (map VarT typeArgs))
+   let appliedType  = return (applyDatatypeToArgs dataInfo (map VarT typeArgs))
 
        -- Con a' b' c'...
-       appliedType' = return (fullType dataDecl (map VarT typeArgs'))
+       appliedType' = return (applyDatatypeToArgs dataInfo (map VarT typeArgs'))
 
        -- Con a' b' c'... ~ t
        eq = AppT. AppT EqualityT <$> appliedType' <*> t
@@ -584,14 +515,14 @@ makeRewrappedInstance dataDecl = do
    -- instance (Con a' b' c'... ~ t) => Rewrapped (Con a b c...) t
    instanceD (cxt [eq]) klass []
 
-makeWrappedInstance :: DataDecl-> Con -> Type -> DecQ
-makeWrappedInstance dataDecl con fieldType = do
+makeWrappedInstance :: DatatypeInfo -> ConstructorInfo -> Type -> DecQ
+makeWrappedInstance dataInfo conInfo fieldType = do
 
-  let conName = view name con
-  let typeArgs = toListOf typeVars (dataParameters dataDecl)
+  let conName = constructorName conInfo
+  let typeArgs = toListOf typeVars (datatypeVars dataInfo)
 
   -- Con a b c...
-  let appliedType  = fullType dataDecl (map VarT typeArgs)
+  let appliedType  = applyDatatypeToArgs dataInfo (map VarT typeArgs)
 
   -- type Unwrapped (Con a b c...) = $fieldType
   let unwrappedATF = tySynInstDCompat unwrappedTypeName Nothing
@@ -610,6 +541,23 @@ makeWrappedInstance dataDecl con fieldType = do
   --   type Unwrapped (Con a b c...) = fieldType
   --   _Wrapped' = iso (\(Con x) -> x) Con
   instanceD (cxt []) klass [unwrappedATF, isoMethod]
+
+-- | Apply the 'datatypeName' of a 'DatatypeInfo' to some argument 'Type's,
+-- which are used to instantiate its 'datatypeVars'.
+applyDatatypeToArgs :: DatatypeInfo -> [Type] -> Type
+applyDatatypeToArgs di@(DatatypeInfo { datatypeName = nm
+                                     , datatypeVars = vars
+                                     , datatypeInstTypes = instTypes
+                                     }) args =
+  apps (ConT nm) $
+  -- Drop kind signatures if possible to reduce the likelihood of needing to
+  -- enable KindSignatures. The likelihood is already quite small, however.
+  -- This function is only used for the benefit of {make,declare}Wrapped, and
+  -- one needs to enable TypeFamilies in order for the generated code to
+  -- typecheck. Since TypeFamilies implies KindSignatures, dropping kind
+  -- signatures is probably not required, but better to be safe then sorry.
+  dropSigsIfNonDataFam di $
+  applySubstitution (Map.fromList (zip (map tvName vars) args)) instTypes
 
 overHead :: (a -> a) -> [a] -> [a]
 overHead _ []     = []
