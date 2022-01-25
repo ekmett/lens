@@ -449,5 +449,23 @@ $(makeClassyPrisms ''T865)
 instance AsT866 T865 where
   _T866 = __T865 . _T866
 
+-- {make,declare}Wrapped test cases for ordinary data types
+newtype T997A a = MkT997A a
+$(makeWrapped ''T997A)
+
+$(declareWrapped [d|
+  newtype T997B b = MkT997B b
+  |])
+
+-- {make,declare}Wrapped test cases for data family instances (#997)
+data family T997FamA a
+newtype instance T997FamA a = MkT997FamA a
+$(makeWrapped 'MkT997FamA)
+
+$(declareWrapped [d|
+  data family T997FamB b
+  newtype instance T997FamB b = MkT997FamB b
+  |])
+
 main :: IO ()
 main = putStrLn "test/templates.hs: ok"
