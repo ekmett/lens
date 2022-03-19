@@ -513,7 +513,7 @@ prismName = prismName' False
 -- | Compute a prism's name with a special case for when the type
 -- constructor matches one of the value constructors.
 --
--- The overlapping flag wil be 'True' in the event that:
+-- The overlapping flag will be 'True' in the event that:
 --
 -- 1. We are generating the name of a classy prism for a
 --    data type, and

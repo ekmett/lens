@@ -302,8 +302,8 @@ type Traversing1' p f s a = Traversing1 p f s s a a
 -- Note that the 'traversal' function actually just returns the same function you pass to
 -- it. The function it accepts is in fact a valid traversal all on its own! The use of
 -- 'traversal' does nothing except verify that the function it is passed matches the signature
--- of a valid traversal. One could remove the @traversal@ cominator from either of the last
--- two examples and use the definiton of @go@ directly with no change in behaviour.
+-- of a valid traversal. One could remove the @traversal@ combinator from either of the last
+-- two examples and use the definition of @go@ directly with no change in behaviour.
 --
 -- This function exists for consistency with the 'lens', 'prism' and 'iso' constructors
 -- as well as to serve as a touchpoint for beginners who wish to construct their own
