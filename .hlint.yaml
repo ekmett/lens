@@ -1,4 +1,4 @@
-- arguments: [--cpp-ansi, --cpp-include=include]
+- arguments: [-XCPP, --cpp-ansi, --cpp-include=include]
 
 - ignore: {name: Reduce duplication}
 - ignore: {name: Redundant lambda}
