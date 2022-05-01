@@ -236,6 +236,6 @@ Contact Information
 
 Contributions and bug reports are welcome!
 
-Please feel free to contact me through github or on the #haskell IRC channel on irc.freenode.net.
+Please feel free to contact me through Github or on the [#haskell-lens](https://web.libera.chat/#haskell-lens) or [#haskell](https://web.libera.chat/#haskell) IRC channel on Libera Chat.
 
 -Edward Kmett
