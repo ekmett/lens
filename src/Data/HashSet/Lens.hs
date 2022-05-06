@@ -12,13 +12,16 @@
 module Data.HashSet.Lens
   ( setmapped
   , setOf
+  , hashMap
   ) where
 
 import Control.Lens.Getter (Getting, views)
+import Control.Lens.Iso (iso)
 import Control.Lens.Setter (setting)
 import Control.Lens.Type
 import qualified Data.HashSet as HashSet
-import Data.HashSet (HashSet)
+import Data.HashSet (HashSet, fromMap, toMap)
+import Data.HashMap.Lazy (HashMap)
 import Data.Hashable
 
 -- $setup
@@ -46,3 +49,7 @@ setmapped = setting HashSet.map
 setOf :: Hashable a => Getting (HashSet a) s a -> s -> HashSet a
 setOf l = views l HashSet.singleton
 {-# INLINE setOf #-}
+
+-- | An `Iso` between a `HashSet` and a `HashMap` with unit values. \(\mathcal{O}(1)\).
+hashMap :: Iso' (HashSet a) (HashMap a ())
+hashMap = iso toMap fromMap
