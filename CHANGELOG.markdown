@@ -1,3 +1,8 @@
+next [????.??.??]
+-----------------
+* Add `Data.HashSet.Lens.hashMap`, an `Iso` between a `HashSet a` and a
+  `HashMap a ()`.
+
 5.1 [2021.11.15]
 ----------------
 * Allow building with GHC 9.2.
