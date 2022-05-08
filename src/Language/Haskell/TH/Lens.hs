@@ -125,6 +125,9 @@ module Language.Haskell.TH.Lens
 #if MIN_VERSION_template_haskell(2,15,0)
   , _ImplicitParamBindD
 #endif
+#if MIN_VERSION_template_haskell(2,19,0)
+  , _DefaultD
+#endif
 #if MIN_VERSION_template_haskell(2,12,0)
   -- ** PatSynDir Prisms
   , _Unidir
@@ -181,6 +184,9 @@ module Language.Haskell.TH.Lens
   , _LineP
 #if MIN_VERSION_template_haskell(2,12,0)
   , _CompleteP
+#endif
+#if MIN_VERSION_template_haskell(2,19,0)
+  , _OpaqueP
 #endif
   -- ** Inline Prisms
   , _NoInline
@@ -248,6 +254,9 @@ module Language.Haskell.TH.Lens
 #if MIN_VERSION_template_haskell(2,15,0)
   , _MDoE
   , _ImplicitParamVarE
+#endif
+#if MIN_VERSION_template_haskell(2,19,0)
+  , _LamCasesE
 #endif
   -- ** Body Prisms
   , _GuardedB
@@ -336,6 +345,10 @@ module Language.Haskell.TH.Lens
 #endif
 #if MIN_VERSION_template_haskell(2,17,0)
   , _MulArrowT
+#endif
+#if MIN_VERSION_template_haskell(2,19,0)
+  , _PromotedInfixT
+  , _PromotedUInfixT
 #endif
 #if MIN_VERSION_template_haskell(2,17,0)
   -- ** Specificity Prisms
@@ -533,6 +546,14 @@ instance HasTypeVars Type where
 #if MIN_VERSION_template_haskell(2,17,0)
   typeVarsEx _ _ t@MulArrowT{}        = pure t
 #endif
+#if MIN_VERSION_template_haskell(2,19,0)
+  typeVarsEx s f (PromotedInfixT  t1 n t2) = PromotedInfixT  <$> typeVarsEx s f t1
+                                                             <*> pure n
+                                                             <*> typeVarsEx s f t2
+  typeVarsEx s f (PromotedUInfixT t1 n t2) = PromotedUInfixT <$> typeVarsEx s f t1
+                                                             <*> pure n
+                                                             <*> typeVarsEx s f t2
+#endif
 
 instance HasTypeVars Con where
   typeVarsEx s f (NormalC n ts) = NormalC n <$> traverseOf (traverse . _2) (typeVarsEx s f) ts
@@ -604,6 +625,10 @@ instance SubstType Type where
 #endif
 #if MIN_VERSION_template_haskell(2,17,0)
   substType _ t@MulArrowT{}        = t
+#endif
+#if MIN_VERSION_template_haskell(2,19,0)
+  substType m (PromotedInfixT  t1 n t2) = PromotedInfixT  (substType m t1) n (substType m t2)
+  substType m (PromotedUInfixT t1 n t2) = PromotedUInfixT (substType m t1) n (substType m t2)
 #endif
 
 instance SubstType t => SubstType [t] where
@@ -1137,6 +1162,16 @@ _ImplicitParamBindD
       remitter _ = Nothing
 #endif
 
+#if MIN_VERSION_template_haskell(2,19,0)
+_DefaultD :: Prism' Dec [Type]
+_DefaultD
+  = prism' reviewer remitter
+  where
+      reviewer = DefaultD
+      remitter (DefaultD x) = Just x
+      remitter _ = Nothing
+#endif
+
 #if MIN_VERSION_template_haskell(2,12,0)
 _Unidir :: Prism' PatSynDir ()
 _Unidir
@@ -1459,6 +1494,16 @@ _CompleteP
   where
       reviewer (x, y) = CompleteP x y
       remitter (CompleteP x y) = Just (x, y)
+      remitter _ = Nothing
+#endif
+
+#if MIN_VERSION_template_haskell(2,19,0)
+_OpaqueP :: Prism' Pragma Name
+_OpaqueP
+  = prism' reviewer remitter
+  where
+      reviewer = OpaqueP
+      remitter (OpaqueP x) = Just x
       remitter _ = Nothing
 #endif
 
@@ -1929,6 +1974,16 @@ _ImplicitParamVarE
   where
       reviewer = ImplicitParamVarE
       remitter (ImplicitParamVarE x) = Just x
+      remitter _ = Nothing
+#endif
+
+#if MIN_VERSION_template_haskell(2,19,0)
+_LamCasesE :: Prism' Exp [Clause]
+_LamCasesE
+  = prism' reviewer remitter
+  where
+      reviewer = LamCasesE
+      remitter (LamCasesE x) = Just x
       remitter _ = Nothing
 #endif
 
@@ -2494,6 +2549,24 @@ _MulArrowT
   where
       reviewer () = MulArrowT
       remitter MulArrowT = Just ()
+      remitter _ = Nothing
+#endif
+
+#if MIN_VERSION_template_haskell(2,19,0)
+_PromotedInfixT :: Prism' Type (Type, Name, Type)
+_PromotedInfixT
+  = prism' reviewer remitter
+  where
+      reviewer (x, y, z) = PromotedInfixT x y z
+      remitter (PromotedInfixT x y z) = Just (x, y, z)
+      remitter _ = Nothing
+
+_PromotedUInfixT :: Prism' Type (Type, Name, Type)
+_PromotedUInfixT
+  = prism' reviewer remitter
+  where
+      reviewer (x, y, z) = PromotedUInfixT x y z
+      remitter (PromotedUInfixT x y z) = Just (x, y, z)
       remitter _ = Nothing
 #endif
 

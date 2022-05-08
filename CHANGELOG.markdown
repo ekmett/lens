@@ -1,5 +1,6 @@
 5.2 [????.??.??]
 ----------------
+* Allow building with GHC 9.4.
 * The type of `universeOf` has changed:
 
   ```diff
@@ -14,6 +15,9 @@
 * Allow `makeWrapped` to accept the names of data constructors. This way,
   `makeWrapped` can be used with data family instances, much like other
   functions in `Control.Lens.TH`.
+* Define `_OpaqueP`, `_DefaultD`, `_LamCasesE`, `_PromotedInfixT`, and
+  `_PromotedUInfixT` in `Language.Haskell.TH.Lens` when building with
+  `template-haskell-2.19.0.0` (GHC 9.4) or later.
 
 5.1.1 [2022.05.17]
 ------------------
