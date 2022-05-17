@@ -1,5 +1,5 @@
-next [????.??.??]
------------------
+5.1.1 [2022.05.17]
+------------------
 * Add `Data.HashSet.Lens.hashMap`, an `Iso` between a `HashSet a` and a
   `HashMap a ()`.
 * Allow building with `transformers-0.6.*` and `mtl-2.3.*`.
