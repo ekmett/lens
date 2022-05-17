@@ -14,6 +14,9 @@
 * Allow `makeWrapped` to accept the names of data constructors. This way,
   `makeWrapped` can be used with data family instances, much like other
   functions in `Control.Lens.TH`.
+
+5.1.1 [2022.05.17]
+------------------
 * Add `Data.HashSet.Lens.hashMap`, an `Iso` between a `HashSet a` and a
   `HashMap a ()`.
 * Allow building with `transformers-0.6.*` and `mtl-2.3.*`.
