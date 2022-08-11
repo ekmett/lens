@@ -1,4 +1,4 @@
-5.2 [????.??.??]
+5.2 [2022.08.11]
 ----------------
 * Allow building with GHC 9.4.
 * The type of `universeOf` has changed:
