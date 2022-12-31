@@ -22,8 +22,11 @@ instance Contravariant f => Contravariant (BoxT f) where
   contramap f (BoxT m) = BoxT $ contramap (fmap f) m
   {-# INLINE contramap #-}
 instance Apply f => Apply (BoxT f) where
+  BoxT m <.> BoxT n = BoxT (liftF2 (<*>) m n)
+#if MIN_VERSION_semigroupoids(5,3,0)
   liftF2 f (BoxT m) (BoxT n) = BoxT (liftF2 (liftA2 f) m n)
   {-# INLINE liftF2 #-}
+#endif
 instance Applicative f => Applicative (BoxT f) where
   pure = BoxT . pure . Solo
   {-# INLINE pure #-}

@@ -125,6 +125,8 @@ module Control.Lens.Traversal
   , imodifying'
   , (%!@=)
   , strictly
+  , strictlyM
+  , strictlyT
 
   -- * Reflection
   , traverseBy
@@ -1607,6 +1609,10 @@ imodifying' l f = do
 -- | Use an optic /strictly/. @strictly l f s@ will force the results of /all/
 -- the targets of @l@ when a new outer value is forced.
 --
+-- @
+-- strictly ('itraverse' \@(Map _)) = "Data.Map.Strict".'Data.Map.Strict.traverseWithKey' . 'Indexed'
+-- @
+--
 -- @strictly@ does not affect folds or getters in any way, as they don't produce
 -- new outer values.
 --
@@ -1629,16 +1635,26 @@ strictly :: (Functor f, Profunctor p, Profunctor q) => Optical p q (BoxT f) s t 
 strictly l f = rmap (fmap getSolo .# runBoxT) $ l (rmap (BoxT #. fmap (Solo $!)) f)
 {-# INLINE strictly #-}
 
-{-
--- If the ambient functor is either a Traversable or a Monad, then we can get
--- rid of the Solo boxes ourselves:
+-- | A version of 'strictly' for use in /strict monads/ such as 'IO',
+-- "Control.Monad.Trans.State.Strict".'Control.Monad.Trans.State.Strict.StateT',
+-- or @[]@.  In these contexts, all the targets will be forced by the time a
+-- new outer value is /produced/, even if it is not /forced/.
+--
+-- Caution: @strictlyM@ will not work properly with /lazy monads/ such as
+-- @Identity@ or
+-- "Control.Monad.Trans.State.Lazy".'Control.Monad.Trans.State.Lazy.StateT',
+-- and /should not be used/ in those contexts. A monad is considered lazy if
+-- @() <$ ⊥ ≠ ⊥@.
+strictlyM :: (Monad f, Profunctor p, Profunctor q) => Optical p q f s t a b -> Optical p q f s t a b
+strictlyM l f = l (rmap (>>= (pure $!)) f)
+{-# INLINE strictlyM #-}
 
+-- | A version of 'strictly' for use in 'Traversable' functors. The container
+-- is not produced until all the targets in /all/ of the values have been
+-- forced.
 strictlyT :: (Traversable f, Profunctor p, Profunctor q) => Optical p q (BoxT f) s t a b -> Optical p q f s t a b
-strictlyT l f = rmap (getSolo . sequenceA .# runBoxT) $ l (rmap (BoxT #. fmap (Solo $!)) f)
-
-strictlyM :: (Monad f, Profunctor p, Profunctor q) => Optical p q (BoxT f) s t a b -> Optical p q f s t a b
-strictlyM l f = rmap ((>>= \(Solo r) -> pure r) .# runBoxT) $ l (rmap (BoxT #. fmap (Solo $!)) f)
--}
+strictlyT l f = rmap (getSolo . sequenceA . runBoxT) $ l (rmap (BoxT #. fmap (Solo $!)) f)
+{-# INLINE strictlyT #-}
 
 -- $
 -- >>> :{
