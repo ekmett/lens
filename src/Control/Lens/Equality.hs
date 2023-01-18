@@ -144,8 +144,6 @@ fromLeibniz f = case f Identical of Identical -> id
 --
 -- @fromLeibniz' :: (forall f. f s -> f a) -> Equality' s a@
 fromLeibniz' :: (s :~: s -> s :~: a) -> Equality' s a
--- Note: even though its type signature mentions (:~:), this function works just
--- fine in base versions before 4.7.0; it just requires a polymorphic argument!
 fromLeibniz' f = case f Refl of Refl -> id
 {-# INLINE fromLeibniz' #-}
 
