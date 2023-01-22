@@ -1,5 +1,4 @@
 {-# LANGUAGE CPP #-}
-{-# LANGUAGE PolyKinds #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies #-}
@@ -7,7 +6,9 @@
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE Trustworthy #-}
 
-#if __GLASGOW_HASKELL__ < 806
+#if __GLASGOW_HASKELL__ >= 806
+{-# LANGUAGE PolyKinds #-}
+#else
 {-# LANGUAGE TypeInType #-}
 #endif
 
