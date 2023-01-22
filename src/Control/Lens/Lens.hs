@@ -1,12 +1,16 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE GADTs #-}
+{-# LANGUAGE PolyKinds #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE Trustworthy #-}
+
+#if __GLASGOW_HASKELL__ < 806
 {-# LANGUAGE TypeInType #-}
+#endif
 
 #include "lens-common.h"
 
