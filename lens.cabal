@@ -19,7 +19,9 @@ tested-with:   GHC == 8.0.2
              , GHC == 8.8.4
              , GHC == 8.10.7
              , GHC == 9.0.2
-             , GHC == 9.2.2
+             , GHC == 9.2.6
+             , GHC == 9.4.4
+             , GHC == 9.6.1
 synopsis:      Lenses, Folds and Traversals
 description:
   This package comes \"Batteries Included\" with many useful lenses for the types
@@ -196,7 +198,7 @@ library
     semigroupoids                 >= 5.0.1    && < 6,
     strict                        >= 0.4      && < 0.5,
     tagged                        >= 0.8.6    && < 1,
-    template-haskell              >= 2.11.1.0 && < 2.20,
+    template-haskell              >= 2.11.1.0 && < 2.21,
     text                          >= 1.2.3.0  && < 2.1,
     th-abstraction                >= 0.4.1    && < 0.5,
     these                         >= 1.1.1.1  && < 1.2,

@@ -128,6 +128,9 @@ module Language.Haskell.TH.Lens
 #if MIN_VERSION_template_haskell(2,19,0)
   , _DefaultD
 #endif
+#if MIN_VERSION_template_haskell(2,20,0)
+  , _TypeDataD
+#endif
 #if MIN_VERSION_template_haskell(2,12,0)
   -- ** PatSynDir Prisms
   , _Unidir
@@ -1169,6 +1172,16 @@ _DefaultD
   where
       reviewer = DefaultD
       remitter (DefaultD x) = Just x
+      remitter _ = Nothing
+#endif
+
+#if MIN_VERSION_template_haskell(2,20,0)
+_TypeDataD :: Prism' Dec (Name, [TyVarBndr ()], Maybe Kind, [Con])
+_TypeDataD
+  = prism' reviewer remitter
+  where
+      reviewer (x, y, z, u) = TypeDataD x y z u
+      remitter (TypeDataD x y z u) = Just (x, y, z, u)
       remitter _ = Nothing
 #endif
 
