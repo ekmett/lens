@@ -1000,7 +1000,12 @@ instance Wrapped CWchar where
 
 instance Rewrapped CSigAtomic t
 instance Wrapped CSigAtomic where
-  type Unwrapped CSigAtomic = HTYPE_SIG_ATOMIC_T
+  type Unwrapped CSigAtomic =
+#if defined(HTYPE_SIG_ATOMIC_T)
+    HTYPE_SIG_ATOMIC_T
+#else
+    Int32
+#endif
   _Wrapped' = iso (\(CSigAtomic x) -> x) CSigAtomic
   {-# INLINE _Wrapped' #-}
 
