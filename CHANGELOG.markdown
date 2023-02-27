@@ -1,3 +1,8 @@
+next [????.??.??]
+-----------------
+* Allow building with GHC backends where `HTYPE_SIG_ATOMIC_T` is not defined,
+  such as the WASM backend.
+
 5.2 [2022.08.11]
 ----------------
 * Allow building with GHC 9.4.
