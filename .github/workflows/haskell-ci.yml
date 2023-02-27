@@ -8,9 +8,9 @@
 #
 # For more information, see https://github.com/haskell-CI/haskell-ci
 #
-# version: 0.15.20230217
+# version: 0.15.20230227
 #
-# REGENDATA ("0.15.20230217",["--config=cabal.haskell-ci","cabal.project"])
+# REGENDATA ("0.15.20230227",["--config=cabal.haskell-ci","cabal.project"])
 #
 name: Haskell-CI
 on:
@@ -307,7 +307,7 @@ jobs:
           ${CABAL} -vnormal check
       - name: haddock
         run: |
-          $CABAL v2-haddock --disable-documentation --haddock-all $ARG_COMPILER --with-haddock $HADDOCK $ARG_TESTS $ARG_BENCH all
+          if [ $((HCNUMVER < 80200 || HCNUMVER >= 80400)) -ne 0 ] ; then $CABAL v2-haddock --disable-documentation --haddock-all $ARG_COMPILER --with-haddock $HADDOCK $ARG_TESTS $ARG_BENCH all ; fi
       - name: save cache
         uses: actions/cache/save@v3
         if: always()
