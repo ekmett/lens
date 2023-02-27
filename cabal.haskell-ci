@@ -7,3 +7,5 @@ apt:                    freeglut3-dev
 -- irc-channels:           irc.freenode.org#haskell-lens
 irc-if-in-origin-repo:  True
 docspec:                True
+-- Work around https://github.com/haskell/haddock/issues/679
+haddock:                <8.2 || >=8.4
