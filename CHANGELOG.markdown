@@ -1,5 +1,5 @@
-next [????.??.??]
------------------
+5.2.1 [2023.02.27]
+------------------
 * Allow building with GHC 9.6.
 * Allow building with GHC backends where `HTYPE_SIG_ATOMIC_T` is not defined,
   such as the WASM backend.
