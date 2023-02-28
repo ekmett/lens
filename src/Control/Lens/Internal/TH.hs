@@ -154,6 +154,9 @@ isDataFamily D.Datatype        = False
 isDataFamily D.Newtype         = False
 isDataFamily D.DataInstance    = True
 isDataFamily D.NewtypeInstance = True
+#if MIN_VERSION_th_abstraction(0,5,0)
+isDataFamily D.TypeData        = False
+#endif
 
 ------------------------------------------------------------------------
 -- TH-quoted names
