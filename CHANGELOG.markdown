@@ -3,6 +3,7 @@ next [????.??.??]
 * Allow building with GHC 9.6.
 * Allow building with GHC backends where `HTYPE_SIG_ATOMIC_T` is not defined,
   such as the WASM backend.
+* Support building with `th-abstraction-0.5.*`.
 * Define `_TypeDataD` in `Language.Haskell.TH.Lens` when building with
   `template-haskell-2.20.0.0` (GHC 9.6) or later.
 
