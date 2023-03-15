@@ -173,7 +173,7 @@ flag j
 library
   build-depends:
     array                         >= 0.5.0.0  && < 0.6,
-    assoc                         >= 1.0.2    && < 1.1,
+    assoc                         >= 1.0.2    && < 1.2,
     base                          >= 4.9      && < 5,
     base-orphans                  >= 0.5.2    && < 1,
     bifunctors                    >= 5.5.7    && < 6,
@@ -196,12 +196,12 @@ library
     profunctors                   >= 5.5.2    && < 6,
     reflection                    >= 2.1      && < 3,
     semigroupoids                 >= 5.0.1    && < 7,
-    strict                        >= 0.4      && < 0.5,
+    strict                        >= 0.4      && < 0.6,
     tagged                        >= 0.8.6    && < 1,
     template-haskell              >= 2.11.1.0 && < 2.21,
     text                          >= 1.2.3.0  && < 2.1,
     th-abstraction                >= 0.4.1    && < 0.6,
-    these                         >= 1.1.1.1  && < 1.2,
+    these                         >= 1.1.1.1  && < 1.3,
     transformers                  >= 0.5.0.0  && < 0.7,
     transformers-compat           >= 0.5.0.4  && < 1,
     unordered-containers          >= 0.2.10   && < 0.3,
