@@ -283,20 +283,20 @@ case_write_through_list_entry =
                          , Point { _x = 4, _y = 7 }
                          , Point { _x = 8, _y = 0 } ] }
 
-case_correct_indexing_strict_text = 
-  map ((preview ?? StrictT.pack "12") . ix) [-1..2]
+case_correct_indexing_strict_text =
+  map (\i -> StrictT.pack "12" ^? ix i) [-1..2]
     @?= [Nothing, Just '1', Just '2', Nothing]
 
-case_correct_indexing_lazy_text = 
-  map ((preview ?? LazyT.pack "12") . ix) [-1..2]
+case_correct_indexing_lazy_text =
+  map (\i -> LazyT.pack "12" ^? ix i) [-1..2]
     @?= [Nothing, Just '1', Just '2', Nothing]
 
-case_correct_indexing_strict_bytestring = 
-  map ((preview ?? StrictB.pack [1,2]) . ix) [-1..2]
+case_correct_indexing_strict_bytestring =
+  map (\i -> StrictB.pack [1,2] ^? ix i) [-1..2]
     @?= [Nothing, Just 1, Just 2, Nothing]
 
-case_correct_indexing_lazy_bytestring = 
-  map ((preview ?? LazyB.pack [1,2]) . ix) [-1..2]
+case_correct_indexing_lazy_bytestring =
+  map (\i -> LazyB.pack [1,2] ^? ix i) [-1..2]
     @?= [Nothing, Just 1, Just 2, Nothing]
 
 main :: IO ()
