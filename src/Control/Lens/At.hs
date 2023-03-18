@@ -398,35 +398,43 @@ instance Unbox a => Ixed (Unboxed.Vector a) where
 
 type instance IxValue StrictT.Text = Char
 instance Ixed StrictT.Text where
-  ix e f s = case StrictT.splitAt e s of
-     (l, mr) -> case StrictT.uncons mr of
-       Nothing      -> pure s
-       Just (c, xs) -> f c <&> \d -> StrictT.concat [l, StrictT.singleton d, xs]
+  ix e f s 
+      | e < 0 = pure s
+      | otherwise = case StrictT.splitAt e s of
+            (l, mr) -> case StrictT.uncons mr of
+                Nothing      -> pure s
+                Just (c, xs) -> f c <&> \d -> StrictT.concat [l, StrictT.singleton d, xs]
   {-# INLINE ix #-}
 
 type instance IxValue LazyT.Text = Char
 instance Ixed LazyT.Text where
-  ix e f s = case LazyT.splitAt e s of
-     (l, mr) -> case LazyT.uncons mr of
-       Nothing      -> pure s
-       Just (c, xs) -> f c <&> \d -> LazyT.append l (LazyT.cons d xs)
+  ix e f s 
+        | e < 0 = pure s
+        | otherwise = case LazyT.splitAt e s of
+            (l, mr) -> case LazyT.uncons mr of
+              Nothing      -> pure s
+              Just (c, xs) -> f c <&> \d -> LazyT.append l (LazyT.cons d xs)
   {-# INLINE ix #-}
 
 type instance IxValue StrictB.ByteString = Word8
 instance Ixed StrictB.ByteString where
-  ix e f s = case StrictB.splitAt e s of
-     (l, mr) -> case StrictB.uncons mr of
-       Nothing      -> pure s
-       Just (c, xs) -> f c <&> \d -> StrictB.concat [l, StrictB.singleton d, xs]
+  ix e f s 
+        | e < 0 = pure s
+        | otherwise = case StrictB.splitAt e s of
+          (l, mr) -> case StrictB.uncons mr of
+            Nothing      -> pure s
+            Just (c, xs) -> f c <&> \d -> StrictB.concat [l, StrictB.singleton d, xs]
   {-# INLINE ix #-}
 
 type instance IxValue LazyB.ByteString = Word8
 instance Ixed LazyB.ByteString where
   -- TODO: we could be lazier, returning each chunk as it is passed
-  ix e f s = case LazyB.splitAt e s of
-     (l, mr) -> case LazyB.uncons mr of
-       Nothing      -> pure s
-       Just (c, xs) -> f c <&> \d -> LazyB.append l (LazyB.cons d xs)
+  ix e f s 
+        | e < 0 = pure s
+        | otherwise =  case LazyB.splitAt e s of
+          (l, mr) -> case LazyB.uncons mr of
+            Nothing      -> pure s
+            Just (c, xs) -> f c <&> \d -> LazyB.append l (LazyB.cons d xs)
   {-# INLINE ix #-}
 
 

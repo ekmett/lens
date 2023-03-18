@@ -380,6 +380,8 @@ test-suite hunit
       HUnit >= 1.2,
       lens,
       mtl,
+      text,
+      bytestring,
       test-framework       >= 0.6,
       test-framework-hunit >= 0.2
 
