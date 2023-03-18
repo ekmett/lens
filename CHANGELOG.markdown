@@ -1,3 +1,9 @@
+next [????.??.??]
+-----------------
+* Fix a bug in which calling `ix i` (where `i` is a negative number) on `Text`
+  or `ByteString` would return the `Just` the first character instead of
+  returning `Nothing`.
+
 5.2.1 [2023.02.27]
 ------------------
 * Allow building with GHC 9.6.
