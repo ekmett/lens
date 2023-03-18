@@ -23,6 +23,10 @@ module Main (main) where
 import Control.Lens
 import Control.Monad.State
 import Data.Char
+import qualified Data.Text as StrictT
+import qualified Data.Text.Lazy as LazyT
+import qualified Data.ByteString as StrictB
+import qualified Data.ByteString.Lazy as LazyB
 import qualified Data.List as List
 import qualified Data.Map as Map
 import Data.Map (Map)
@@ -279,6 +283,22 @@ case_write_through_list_entry =
                          , Point { _x = 4, _y = 7 }
                          , Point { _x = 8, _y = 0 } ] }
 
+case_correct_indexing_strict_text = 
+  map ((preview ?? StrictT.pack "12") . ix) [-1..2]
+    @?= [Nothing, Just '1', Just '2', Nothing]
+
+case_correct_indexing_lazy_text = 
+  map ((preview ?? LazyT.pack "12") . ix) [-1..2]
+    @?= [Nothing, Just '1', Just '2', Nothing]
+
+case_correct_indexing_strict_bytestring = 
+  map ((preview ?? StrictB.pack [1,2]) . ix) [-1..2]
+    @?= [Nothing, Just 1, Just 2, Nothing]
+
+case_correct_indexing_lazy_bytestring = 
+  map ((preview ?? LazyB.pack [1,2]) . ix) [-1..2]
+    @?= [Nothing, Just 1, Just 2, Nothing]
+
 main :: IO ()
 main = defaultMain
   [ testGroup "Main"
@@ -317,5 +337,9 @@ main = defaultMain
     , testCase "read list entry" case_read_list_entry
     , testCase "write list entry" case_write_list_entry
     , testCase "write through list entry" case_write_through_list_entry
+    , testCase "correct indexing strict text" case_correct_indexing_strict_text
+    , testCase "correct indexing lazy text" case_correct_indexing_lazy_text
+    , testCase "correct indexing strict bytestring" case_correct_indexing_strict_bytestring
+    , testCase "correct indexing lazy bytestring" case_correct_indexing_lazy_bytestring
     ]
   ]
