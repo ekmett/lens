@@ -1,5 +1,5 @@
-next [????.??.??]
------------------
+5.2.2 [2023.03.18]
+------------------
 * Fix a bug in which calling `ix i` (where `i` is a negative number) on `Text`
   or `ByteString` would return the `Just` the first character instead of
   returning `Nothing`.
