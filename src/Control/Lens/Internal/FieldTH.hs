@@ -433,7 +433,16 @@ makeFieldInstance defType className decs =
 
   containsTypeFamilies = go <=< D.resolveTypeSynonyms
     where
-    go (ConT nm) = has (_FamilyI . _1 . _TypeFamilyD) <$> reify nm
+    go :: Type -> Q Bool
+    go (ConT nm) =
+      -- Note that the call to `reify` can fail if `nm` is not yet defined.
+      -- (This can actually happen if `nm` is declared in a Template Haskell
+      -- quote.) If this fails, there is no way to tell if the type contains
+      -- type families, so we recover and conservatively assume that is does not
+      -- contain any.
+      recover
+        (pure False)
+        (has (_FamilyI . _1 . _TypeFamilyD) <$> reify nm)
     go ty = or <$> traverse go (ty ^.. plate)
 
     -- We want to catch type families, but not *data* families. See #799.
