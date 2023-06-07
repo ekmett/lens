@@ -468,5 +468,12 @@ $(declareWrapped [d|
   newtype instance T997FamB b = MkT997FamB b
   |])
 
+-- Ensure that a data type defined in a TH quote can have a field whose type
+-- references another data type defined in the same quote (#1032)
+declareFields [d|
+    data T1032A = T1032A { t1032ASubB :: T1032B }
+    data T1032B = T1032B { t1032BB :: Int }
+  |]
+
 main :: IO ()
 main = putStrLn "test/templates.hs: ok"

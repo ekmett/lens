@@ -1,3 +1,9 @@
+next [????.??.??]
+-----------------
+* Fix a bug in which the `declare*` Template Haskell functions would fail if a
+  data type's field has a type that is defined in the same Template Haskell
+  quotation.
+
 5.2.2 [2023.03.18]
 ------------------
 * Fix a bug in which calling `ix i` (where `i` is a negative number) on `Text`
