@@ -1,5 +1,10 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE PatternGuards #-}
+#if __GLASGOW_HASKELL__ >= 800
+{-# LANGUAGE TemplateHaskellQuotes #-}
+#else
+{-# LANGUAGE TemplateHaskell #-}
+#endif
 #ifdef TRUSTWORTHY
 # if MIN_VERSION_template_haskell(2,12,0)
 {-# LANGUAGE Safe #-}
@@ -34,6 +39,7 @@ import Prelude ()
 
 import Control.Lens.At
 import Control.Lens.Fold
+import Control.Lens.Indexed
 import Control.Lens.Internal.TH
 import Control.Lens.Internal.Prelude
 import Control.Lens.Lens
@@ -50,7 +56,7 @@ import Language.Haskell.TH
 import qualified Language.Haskell.TH.Datatype as D
 import qualified Language.Haskell.TH.Datatype.TyVarBndr as D
 import Data.Maybe (fromMaybe,isJust,maybeToList)
-import Data.List (nub, findIndices)
+import Data.List (nub)
 import Data.Either (partitionEithers)
 import Data.Semigroup (Any (..))
 import Data.Set.Lens
@@ -84,7 +90,7 @@ makeFieldOpticsForDatatype rules info =
        fieldCons <- traverse normalizeConstructor cons
        let allFields  = toListOf (folded . _2 . folded . _1 . folded) fieldCons
        let defCons    = over normFieldLabels (expandName allFields) fieldCons
-           allDefs    = setOf (normFieldLabels . folded) defCons
+           allDefs    = setOf (normFieldLabels . folded . _1) defCons
        T.sequenceA (Map.fromSet (buildScaffold rules s defCons) allDefs)
 
      let defs = Map.toList perDef
@@ -104,8 +110,8 @@ makeFieldOpticsForDatatype rules info =
   normFieldLabels = traverse . _2 . traverse . _1
 
   -- Map a (possibly missing) field's name to zero-to-many optic definitions
-  expandName :: [Name] -> Maybe Name -> [DefName]
-  expandName allFields = concatMap (_fieldToDef rules tyName allFields) . maybeToList
+  expandName :: [Name] -> Maybe Name -> [(DefName, Maybe Name)]
+  expandName allFields mName = (\x -> (x, mName)) <$> (maybeToList mName >>= _fieldToDef rules tyName allFields)
 
 -- | Normalized the Con type into a uniform positional representation,
 -- eliminating the variance between records, infix constructors, and normal
@@ -141,15 +147,15 @@ data OpticType = GetterType | LensType | IsoType
 -- type of clauses to generate and the type to annotate the declaration
 -- with.
 buildScaffold ::
-  LensRules                                                                  ->
-  Type                              {- ^ outer type                       -} ->
-  [(Name, [([DefName], Type)])]     {- ^ normalized constructors          -} ->
-  DefName                           {- ^ target definition                -} ->
-  Q (OpticType, OpticStab, [(Name, Int, [Int])])
+  LensRules                                                                            ->
+  Type                                        {- ^ outer type                       -} ->
+  [(Name, [([(DefName, Maybe Name)], Type)])] {- ^ normalized constructors          -} ->
+  DefName                                     {- ^ target definition                -} ->
+  Q (OpticType, OpticStab, [(Name, Int, [(Maybe Name, Int)])])
               {- ^ optic type, definition type, field count, target fields -}
 buildScaffold rules s cons defName =
 
-  do (s',t,a,b) <- buildStab s (concatMap snd consForDef)
+  do (s',t,a,b) <- buildStab s (concatMap snd (consForDef <&> _2 . mapped . _Right %~ snd))
 
      let defType
            | Just (_,cx,a') <- preview _ForallT a =
@@ -184,29 +190,27 @@ buildScaffold rules s cons defName =
 
      return (opticType, defType, scaffolds)
   where
-  consForDef :: [(Name, [Either Type Type])]
+  consForDef :: [(Name, [Either Type (Maybe Name, Type)])]
   consForDef = over (mapped . _2 . mapped) categorize cons
 
-  scaffolds :: [(Name, Int, [Int])]
-  scaffolds = [ (n, length ts, rightIndices ts) | (n,ts) <- consForDef ]
-
-  rightIndices :: [Either Type Type] -> [Int]
-  rightIndices = findIndices (has _Right)
+  scaffolds :: [(Name, Int, [(Maybe Name, Int)])]
+  scaffolds = [ (n, length ts, (\(a, b) -> (b, a)) <$> ts ^@.. folded <. _Right . _1) | (n,ts) <- consForDef ]
 
   -- Right: types for this definition
   -- Left : other types
-  categorize :: ([DefName], Type) -> Either Type Type
-  categorize (defNames, t)
-    | defName `elem` defNames = Right t
-    | otherwise               = Left  t
+  categorize :: ([(DefName, Maybe Name)], Type) -> Either Type (Maybe Name, Type)
+  categorize (defNames, t) =
+    case lookup defName defNames of
+    Just c -> Right (c, t)
+    Nothing -> Left t
 
   lensCase :: Bool
   lensCase = all (\x -> lengthOf (_2 . folded . _Right) x == 1) consForDef
 
   isoCase :: Bool
   isoCase = case scaffolds of
-              [(_,1,[0])] -> True
-              _           -> False
+              [(_,1,[(_, 0)])] -> True
+              _                -> False
 
 
 data OpticStab = OpticStab     Name Type Type Type Type
@@ -301,7 +305,7 @@ buildStab s categorizedFields =
 -- used to enable the resulting lenses to be used on a bottom value.
 makeFieldOptic ::
   LensRules ->
-  (DefName, (OpticType, OpticStab, [(Name, Int, [Int])])) ->
+  (DefName, (OpticType, OpticStab, [(Name, Int, [(Maybe Name, Int)])])) ->
   HasFieldClasses [Dec]
 makeFieldOptic rules (defName, (opticType, defType, cons)) = do
   locals <- get
@@ -342,7 +346,7 @@ makeClassyDriver ::
   Name ->
   Name ->
   Type {- ^ Outer 's' type -} ->
-  [(DefName, (OpticType, OpticStab, [(Name, Int, [Int])]))] ->
+  [(DefName, (OpticType, OpticStab, [(Name, Int, [(Maybe Name, Int)])]))] ->
   HasFieldClasses [Dec]
 makeClassyDriver rules className methodName s defs = T.sequenceA (cls ++ inst)
 
@@ -357,7 +361,7 @@ makeClassyClass ::
   Name ->
   Name ->
   Type {- ^ Outer 's' type -} ->
-  [(DefName, (OpticType, OpticStab, [(Name, Int, [Int])]))] ->
+  [(DefName, (OpticType, OpticStab, [(Name, Int, [(Maybe Name, Int)])]))] ->
   DecQ
 makeClassyClass className methodName s defs = do
   let ss   = map (stabToS . view (_2 . _2)) defs
@@ -390,7 +394,7 @@ makeClassyInstance ::
   Name ->
   Name ->
   Type {- ^ Outer 's' type -} ->
-  [(DefName, (OpticType, OpticStab, [(Name, Int, [Int])]))] ->
+  [(DefName, (OpticType, OpticStab, [(Name, Int, [(Maybe Name, Int)])]))] ->
   HasFieldClasses Dec
 makeClassyInstance rules className methodName s defs = do
   methodss <- traverse (makeFieldOptic rules') defs
@@ -465,20 +469,21 @@ makeFieldInstance defType className decs =
 ------------------------------------------------------------------------
 
 
-makeFieldClauses :: LensRules -> OpticType -> [(Name, Int, [Int])] -> [ClauseQ]
+makeFieldClauses :: LensRules -> OpticType -> [(Name, Int, [(Maybe Name, Int)])] -> [ClauseQ]
 makeFieldClauses rules opticType cons =
   case opticType of
 
     IsoType    -> [ makeIsoClause conName | (conName, _, _) <- cons ]
 
-    GetterType -> [ makeGetterClause conName fieldCount fields
+    GetterType -> [ makeGetterClause conName fieldCount (snd <$> fields)
                     | (conName, fieldCount, fields) <- cons ]
 
-    LensType   -> [ makeFieldOpticClause conName fieldCount fields irref
+    LensType   -> [ makeFieldOpticClause conName fieldCount fields irref recSyn
                     | (conName, fieldCount, fields) <- cons ]
       where
       irref = _lazyPatterns rules
            && length cons == 1
+      recSyn = _recordSyntax rules && length cons == 1
 
 
 
@@ -520,15 +525,25 @@ makeGetterClause conName fieldCount fields =
 -- | Build a clause that updates the field at the given indexes
 -- When irref is 'True' the value with me matched with an irrefutable
 -- pattern. This is suitable for Lens and Traversal construction
-makeFieldOpticClause :: Name -> Int -> [Int] -> Bool -> ClauseQ
-makeFieldOpticClause conName fieldCount [] _ =
+makeFieldOpticClause :: Name -> Int -> [(Maybe Name, Int)] -> Bool -> Bool -> ClauseQ
+makeFieldOpticClause conName fieldCount [] _ _ =
   makePureClause conName fieldCount
-makeFieldOpticClause conName fieldCount (field:fields) irref =
+makeFieldOpticClause _ _ [(Just fieldName, _)] _ True =
+  do f <- newName "f"
+     r <- newName "r"
+     x <- newName "x"
+     let body = appsE [ [| fmap |]
+                      , lamE [varP x] (recUpdE (varE r) [(,) fieldName <$> varE x])
+                      , varE f `appE` (varE fieldName `appE` varE r)
+                      ]
+     clause [varP f, varP r] (normalB body) []
+makeFieldOpticClause conName fieldCount ((_, field):fieldsWithNames) irref _ =
   do f  <- newName "f"
      xs <- newNames "x" fieldCount
-     ys <- newNames "y" (1 + length fields)
+     ys <- newNames "y" (1 + length fieldsWithNames)
 
-     let xs' = foldr (\(i,x) -> set (ix i) x) xs (zip (field:fields) ys)
+     let fields = snd <$> fieldsWithNames
+         xs' = foldr (\(i,x) -> set (ix i) x) xs (zip (field:fields) ys)
 
          mkFx i = appE (varE f) (varE (xs !! i))
 
@@ -634,6 +649,7 @@ data LensRules = LensRules
   , _allowIsos       :: Bool
   , _allowUpdates    :: Bool -- ^ Allow Lens/Traversal (otherwise Getter/Fold)
   , _lazyPatterns    :: Bool
+  , _recordSyntax    :: Bool
   , _fieldToDef      :: FieldNamer
        -- ^ Type Name -> Field Names -> Target Field Name -> Definition Names
   , _classyLenses    :: ClassyNamer
