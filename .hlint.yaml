@@ -16,6 +16,7 @@
 - ignore: {name: Use list comprehension, within: [Control.Lens.Internal.FieldTH]}
 - ignore: {name: Use fmap, within: [Control.Exception.Lens, Control.Lens.Internal.Zoom, Control.Lens.Zoom, Control.Lens.Indexed, Control.Lens.Fold, Control.Monad.Error.Lens,Control.Lens.Setter]} # Needed to support pre-AMP GHC-7.8
 - ignore: {name: Use uncurry}
+- ignore: {name: Fuse concatMap/<&>, within: [Control.Lens.Internal.FieldTH]}
 
 - fixity: "infixr 9 ..."
 - fixity: "infixl 1 &~"
