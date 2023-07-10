@@ -74,6 +74,7 @@ module Control.Lens.Fold
   , foldMapOf, foldOf
   , foldrOf, foldlOf
   , toListOf, toNonEmptyOf
+  , altOf
   , anyOf, allOf, noneOf
   , andOf, orOf
   , productOf, sumOf
@@ -162,7 +163,7 @@ import Data.Functor.Apply hiding ((<.))
 import Data.Int (Int64)
 import Data.List (intercalate)
 import Data.Maybe (fromMaybe)
-import Data.Monoid (First (..), All (..), Any (..))
+import Data.Monoid (First (..), All (..), Alt (..), Any (..))
 import Data.Reflection
 
 import qualified Data.Semigroup as Semi
@@ -642,6 +643,33 @@ toListOf l = foldrOf l (:) []
 -- @
 toNonEmptyOf :: Getting (NonEmptyDList a) s a -> s -> NonEmpty a
 toNonEmptyOf l = flip getNonEmptyDList [] . foldMapOf l (NonEmptyDList #. (:|))
+
+-- | Calls 'pure' on the target of a 'Lens', 'Getter', or 'Iso'.
+--
+-- Calls 'pure' on the targets of a 'Traversal', 'Fold', or 'Prism', and
+-- combines them with '<|>' (or `empty` if none).  Intuitively, it collects
+-- targets into an 'Alternative' until the container fills up or it runs out of
+-- targets, whichever comes first.
+--
+-- Generalizes 'toListOf' and '(^?)'.
+--
+-- >>> altOf both ("hello", "world") :: [String]
+-- ["hello","world"]
+-- >>> altOf both ("hello", "world") :: Maybe String
+-- Just "hello"
+--
+-- @
+-- 'altOf' :: Applicative f => 'Lens'' s a      -> s -> f a
+-- 'altOf' :: Applicative f => 'Getter' s a     -> s -> f a
+-- 'altOf' :: Applicative f => 'Iso'' s a       -> s -> f a
+--
+-- 'altOf' :: Alternative f => 'Traversal'' s a -> s -> f a
+-- 'altOf' :: Alternative f => 'Fold' s a       -> s -> f a
+-- 'altOf' :: Alternative f => 'Prism'' s a     -> s -> f a
+-- @
+altOf :: Applicative f => Getting (Alt f a) s a -> s -> f a
+altOf l = getAlt #. views l (Alt #. pure)
+{-# INLINE altOf #-}
 
 -- | A convenient infix (flipped) version of 'toListOf'.
 --
