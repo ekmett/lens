@@ -639,7 +639,6 @@ toListOf l = foldrOf l (:) []
 -- 'toNonEmptyOf' :: 'Lens'' s a       -> s -> NonEmpty a
 -- 'toNonEmptyOf' :: 'Iso'' s a        -> s -> NonEmpty a
 -- 'toNonEmptyOf' :: 'Traversal1'' s a -> s -> NonEmpty a
--- 'toNonEmptyOf' :: 'Prism'' s a      -> s -> NonEmpty a
 -- @
 toNonEmptyOf :: Getting (NonEmptyDList a) s a -> s -> NonEmpty a
 toNonEmptyOf l = flip getNonEmptyDList [] . foldMapOf l (NonEmptyDList #. (:|))
