@@ -7,7 +7,7 @@
 -- Stability   :  provisional
 -- Portability :  portable
 --
--- A 'Fold' can be used to take the role of 'Foldable' in @Control.Seq@.
+-- A t'Fold' can be used to take the role of 'Foldable' in @Control.Seq@.
 ----------------------------------------------------------------------------
 module Control.Seq.Lens
   ( seqOf
@@ -17,8 +17,8 @@ import Control.Lens
 import Control.Seq
 import Data.Monoid
 
--- | Evaluate the elements targeted by a 'Lens', 'Traversal', 'Iso',
--- 'Getter' or 'Fold' according to the given strategy.
+-- | Evaluate the elements targeted by a t'Lens', t'Traversal', t'Iso',
+-- t'Getter' or t'Fold' according to the given strategy.
 --
 -- @'seqFoldable' = 'seqOf' 'folded'@
 seqOf :: Getting (Endo [a]) s a -> Strategy a -> Strategy s

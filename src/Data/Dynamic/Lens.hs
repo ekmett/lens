@@ -22,16 +22,16 @@ import Control.Exception.Lens
 import Control.Lens
 import Data.Dynamic
 
--- | Any 'Dynamic' can be thrown as an 'Exception'
+-- | Any t'Dynamic' can be thrown as an t'Exception'
 class AsDynamic t where
-  -- | This 'Prism' allows you to traverse the typed value contained in a
-  -- 'Dynamic' where the type required by your function matches that
-  -- of the contents of the 'Dynamic', or construct a 'Dynamic' value
-  -- out of whole cloth. It can also be used to catch or throw a 'Dynamic'
+  -- | This t'Prism' allows you to traverse the typed value contained in a
+  -- t'Dynamic' where the type required by your function matches that
+  -- of the contents of the t'Dynamic', or construct a t'Dynamic' value
+  -- out of whole cloth. It can also be used to catch or throw a t'Dynamic'
   -- value as 'SomeException'.
   --
   -- @
-  -- '_Dynamic' :: 'Typeable' a => 'Prism'' 'Dynamic'       a
+  -- '_Dynamic' :: 'Typeable' a => 'Prism'' t'Dynamic'      a
   -- '_Dynamic' :: 'Typeable' a => 'Prism'' 'SomeException' a
   -- @
   _Dynamic :: Typeable a => Prism' t a

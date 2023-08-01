@@ -40,14 +40,14 @@ import Data.Vector (Vector)
 -- >>> import qualified Data.Vector as Vector
 -- >>> import Control.Lens
 
--- | @sliced i n@ provides a 'Lens' that edits the @n@ elements starting
--- at index @i@ from a 'Lens'.
+-- | @sliced i n@ provides a t'Lens' that edits the @n@ elements starting
+-- at index @i@ from a t'Lens'.
 --
--- This is only a valid 'Lens' if you do not change the length of the
+-- This is only a valid t'Lens' if you do not change the length of the
 -- resulting 'Vector'.
 --
 -- Attempting to return a longer or shorter vector will result in
--- violations of the 'Lens' laws.
+-- violations of the t'Lens' laws.
 --
 -- >>> Vector.fromList [1..10] ^. sliced 2 5 == Vector.fromList [3,4,5,6,7]
 -- True
@@ -88,7 +88,7 @@ forced :: Iso (Vector a) (Vector b) (Vector a) (Vector b)
 forced = iso V.force V.force
 {-# INLINE forced #-}
 
--- | This 'Traversal' will ignore any duplicates in the supplied list
+-- | This t'Traversal' will ignore any duplicates in the supplied list
 -- of indices.
 --
 -- >>> toListOf (ordinals [1,3,2,5,9,10]) $ Vector.fromList [2,4..40]

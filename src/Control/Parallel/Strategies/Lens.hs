@@ -14,7 +14,7 @@
 -- Stability   :  provisional
 -- Portability :  portable
 --
--- A 'Lens' or 'Traversal' can be used to take the role of 'Traversable' in
+-- A t'Lens' or t'Traversal' can be used to take the role of 'Traversable' in
 -- @Control.Parallel.Strategies@, enabling those combinators to work with
 -- monomorphic containers.
 ----------------------------------------------------------------------------
@@ -28,7 +28,7 @@ module Control.Parallel.Strategies.Lens
 import Control.Lens
 import Control.Parallel.Strategies
 
--- | Evaluate the targets of a 'Lens' or 'Traversal' into a data structure
+-- | Evaluate the targets of a t'Lens' or t'Traversal' into a data structure
 -- according to the given 'Strategy'.
 --
 -- @
@@ -45,7 +45,7 @@ evalOf :: LensLike' Eval s a -> Strategy a -> Strategy s
 evalOf l = l
 {-# INLINE evalOf #-}
 
--- | Evaluate the targets of a 'Lens' or 'Traversal' according into a
+-- | Evaluate the targets of a t'Lens' or t'Traversal' according into a
 -- data structure according to a given 'Strategy' in parallel.
 --
 -- @'parTraversable' = 'parOf' 'traverse'@
@@ -59,7 +59,7 @@ parOf :: LensLike' Eval s a -> Strategy a -> Strategy s
 parOf l s = l (rparWith s)
 {-# INLINE parOf #-}
 
--- | Transform a 'Lens', 'Fold', 'Getter', 'Setter' or 'Traversal' to
+-- | Transform a t'Lens', t'Fold', t'Getter', t'Setter' or t'Traversal' to
 -- first evaluates its argument according to a given 'Strategy' /before/ proceeding.
 --
 -- @
@@ -69,7 +69,7 @@ after :: Strategy s -> LensLike f s t a b -> LensLike f s t a b
 after s l f = l f $| s
 {-# INLINE after #-}
 
--- | Transform a 'Lens', 'Fold', 'Getter', 'Setter' or 'Traversal' to
+-- | Transform a t'Lens', t'Fold', t'Getter', t'Setter' or t'Traversal' to
 -- evaluate its argument according to a given 'Strategy' /in parallel with/ evaluating.
 --
 -- @

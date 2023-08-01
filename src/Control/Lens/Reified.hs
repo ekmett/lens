@@ -50,7 +50,7 @@ import Data.Semigroup
 -- Lens
 ------------------------------------------------------------------------------
 
--- | Reify a 'Lens' so it can be stored safely in a container.
+-- | Reify a t'Lens' so it can be stored safely in a container.
 newtype ReifiedLens s t a b = Lens { runLens :: Lens s t a b }
 
 -- | @
@@ -62,7 +62,7 @@ type ReifiedLens' s a = ReifiedLens s s a a
 -- IndexedLens
 ------------------------------------------------------------------------------
 
--- | Reify an 'IndexedLens' so it can be stored safely in a container.
+-- | Reify an t'IndexedLens' so it can be stored safely in a container.
 newtype ReifiedIndexedLens i s t a b = IndexedLens { runIndexedLens :: IndexedLens i s t a b }
 
 -- | @
@@ -74,7 +74,7 @@ type ReifiedIndexedLens' i s a = ReifiedIndexedLens i s s a a
 -- IndexedTraversal
 ------------------------------------------------------------------------------
 
--- | Reify an 'IndexedTraversal' so it can be stored safely in a container.
+-- | Reify an t'IndexedTraversal' so it can be stored safely in a container.
 newtype ReifiedIndexedTraversal i s t a b = IndexedTraversal { runIndexedTraversal :: IndexedTraversal i s t a b }
 
 -- | @
@@ -86,7 +86,7 @@ type ReifiedIndexedTraversal' i s a = ReifiedIndexedTraversal i s s a a
 -- Traversal
 ------------------------------------------------------------------------------
 
--- | A form of 'Traversal' that can be stored monomorphically in a container.
+-- | A form of t'Traversal' that can be stored monomorphically in a container.
 newtype ReifiedTraversal s t a b = Traversal { runTraversal :: Traversal s t a b }
 
 -- | @
@@ -98,7 +98,7 @@ type ReifiedTraversal' s a = ReifiedTraversal s s a a
 -- Getter
 ------------------------------------------------------------------------------
 
--- | Reify a 'Getter' so it can be stored safely in a container.
+-- | Reify a t'Getter' so it can be stored safely in a container.
 --
 -- This can also be useful when combining getters in novel ways, as
 -- 'ReifiedGetter' is isomorphic to '(->)' and provides similar instances.
@@ -249,7 +249,7 @@ instance ArrowLoop ReifiedGetter where
 -- IndexedGetter
 ------------------------------------------------------------------------------
 
--- | Reify an 'IndexedGetter' so it can be stored safely in a container.
+-- | Reify an t'IndexedGetter' so it can be stored safely in a container.
 newtype ReifiedIndexedGetter i s a = IndexedGetter { runIndexedGetter :: IndexedGetter i s a }
 
 instance Profunctor (ReifiedIndexedGetter i) where
@@ -289,7 +289,7 @@ instance Semigroup i => Apply (ReifiedIndexedGetter i s) where
 -- Fold
 ------------------------------------------------------------------------------
 
--- | Reify a 'Fold' so it can be stored safely in a container.
+-- | Reify a t'Fold' so it can be stored safely in a container.
 --
 -- This can also be useful for creatively combining folds as
 -- @'ReifiedFold' s@ is isomorphic to @ReaderT s []@ and provides similar
@@ -490,7 +490,7 @@ instance Strong (ReifiedIndexedFold i) where
 -- Setter
 ------------------------------------------------------------------------------
 
--- | Reify a 'Setter' so it can be stored safely in a container.
+-- | Reify a t'Setter' so it can be stored safely in a container.
 newtype ReifiedSetter s t a b = Setter { runSetter :: Setter s t a b }
 
 -- | @
@@ -502,7 +502,7 @@ type ReifiedSetter' s a = ReifiedSetter s s a a
 -- IndexedSetter
 ------------------------------------------------------------------------------
 
--- | Reify an 'IndexedSetter' so it can be stored safely in a container.
+-- | Reify an t'IndexedSetter' so it can be stored safely in a container.
 newtype ReifiedIndexedSetter i s t a b =
   IndexedSetter { runIndexedSetter :: IndexedSetter i s t a b }
 
@@ -515,7 +515,7 @@ type ReifiedIndexedSetter' i s a = ReifiedIndexedSetter i s s a a
 -- Iso
 ------------------------------------------------------------------------------
 
--- | Reify an 'Iso' so it can be stored safely in a container.
+-- | Reify an t'Iso' so it can be stored safely in a container.
 newtype ReifiedIso s t a b = Iso { runIso :: Iso s t a b }
 
 -- | @
@@ -527,7 +527,7 @@ type ReifiedIso' s a = ReifiedIso s s a a
 -- Prism
 ------------------------------------------------------------------------------
 
--- | Reify a 'Prism' so it can be stored safely in a container.
+-- | Reify a t'Prism' so it can be stored safely in a container.
 newtype ReifiedPrism s t a b = Prism { runPrism :: Prism s t a b }
 
 -- | @

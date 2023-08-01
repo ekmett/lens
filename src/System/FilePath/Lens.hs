@@ -61,10 +61,10 @@ infix 4 </>=, <</>=, <<</>=, <.>=, <<.>=, <<<.>=
 -- True
 --
 -- @
--- ('</>~') :: 'Setter' s a 'FilePath' 'FilePath' -> 'FilePath' -> s -> a
--- ('</>~') :: 'Iso' s a 'FilePath' 'FilePath' -> 'FilePath' -> s -> a
--- ('</>~') :: 'Lens' s a 'FilePath' 'FilePath' -> 'FilePath' -> s -> a
--- ('</>~') :: 'Traversal' s a 'FilePath' 'FilePath' -> 'FilePath' -> s -> a
+-- ('</>~') :: t'Setter' s a 'FilePath' 'FilePath' -> 'FilePath' -> s -> a
+-- ('</>~') :: t'Iso' s a 'FilePath' 'FilePath' -> 'FilePath' -> s -> a
+-- ('</>~') :: t'Lens' s a 'FilePath' 'FilePath' -> 'FilePath' -> s -> a
+-- ('</>~') :: t'Traversal' s a 'FilePath' 'FilePath' -> 'FilePath' -> s -> a
 -- @
 (</>~) :: ASetter s t FilePath FilePath -> FilePath -> s -> t
 l </>~ n = over l (</> n)
@@ -87,7 +87,7 @@ l </>= b = State.modify (l </>~ b)
 {-# INLINE (</>=) #-}
 
 
--- | Add a path onto the end of the target of a 'Lens' and return the result
+-- | Add a path onto the end of the target of a t'Lens' and return the result
 --
 -- When you do not need the result of the operation, ('</>~') is more flexible.
 (<</>~) :: LensLike ((,)FilePath) s a FilePath FilePath -> FilePath -> s -> (FilePath, a)
@@ -95,7 +95,7 @@ l <</>~ m = l <%~ (</> m)
 {-# INLINE (<</>~) #-}
 
 
--- | Add a path onto the end of the target of a 'Lens' into
+-- | Add a path onto the end of the target of a t'Lens' into
 -- your monad's state and return the result.
 --
 -- When you do not need the result of the operation, ('</>=') is more flexible.
@@ -104,7 +104,7 @@ l <</>= r = l <%= (</> r)
 {-# INLINE (<</>=) #-}
 
 
--- | Add a path onto the end of the target of a 'Lens' and return the original
+-- | Add a path onto the end of the target of a t'Lens' and return the original
 -- value.
 --
 -- When you do not need the original value, ('</>~') is more flexible.
@@ -112,7 +112,7 @@ l <</>= r = l <%= (</> r)
 l <<</>~ b = l $ \a -> (a, a </> b)
 {-# INLINE (<<</>~) #-}
 
--- | Add a path onto the end of a target of a 'Lens' into your monad's state
+-- | Add a path onto the end of a target of a t'Lens' into your monad's state
 -- and return the old value.
 --
 -- When you do not need the result of the operation, ('</>=') is more flexible.
@@ -126,10 +126,10 @@ l <<</>= b = l %%= \a -> (a, a </> b)
 -- ("hello.txt","world.txt")
 --
 -- @
--- ('<.>~') :: 'Setter' s a 'FilePath' 'FilePath' -> 'String' -> s -> a
--- ('<.>~') :: 'Iso' s a 'FilePath' 'FilePath' -> 'String' -> s -> a
--- ('<.>~') :: 'Lens' s a 'FilePath' 'FilePath' -> 'String' -> s -> a
--- ('<.>~') :: 'Traversal' s a 'FilePath' 'FilePath' -> 'String' -> s -> a
+-- ('<.>~') :: t'Setter' s a 'FilePath' 'FilePath' -> 'String' -> s -> a
+-- ('<.>~') :: t'Iso' s a 'FilePath' 'FilePath' -> 'String' -> s -> a
+-- ('<.>~') :: t'Lens' s a 'FilePath' 'FilePath' -> 'String' -> s -> a
+-- ('<.>~') :: t'Traversal' s a 'FilePath' 'FilePath' -> 'String' -> s -> a
 -- @
 (<.>~) :: ASetter s a FilePath FilePath -> String -> s -> a
 l <.>~ n = over l (<.> n)
@@ -150,7 +150,7 @@ l <.>~ n = over l (<.> n)
 l <.>= b = State.modify (l <.>~ b)
 {-# INLINE (<.>=) #-}
 
--- | Add an extension onto the end of the target of a 'Lens' and return the result
+-- | Add an extension onto the end of the target of a t'Lens' and return the result
 --
 -- >>> _1 <<.>~ "txt" $ ("hello","world")
 -- ("hello.txt",("hello.txt","world"))
@@ -161,7 +161,7 @@ l <<.>~ m = l <%~ (<.> m)
 {-# INLINE (<<.>~) #-}
 
 
--- | Add an extension onto the end of the target of a 'Lens' into
+-- | Add an extension onto the end of the target of a t'Lens' into
 -- your monad's state and return the result.
 --
 -- >>> evalState (_1 <<.>= "txt") ("hello","world")
@@ -172,7 +172,7 @@ l <<.>~ m = l <%~ (<.> m)
 l <<.>= r = l <%= (<.> r)
 {-# INLINE (<<.>=) #-}
 
--- | Add an extension onto the end of the target of a 'Lens' but
+-- | Add an extension onto the end of the target of a t'Lens' but
 -- return the old value
 --
 -- >>> _1 <<<.>~ "txt" $ ("hello","world")
@@ -183,7 +183,7 @@ l <<.>= r = l <%= (<.> r)
 l <<<.>~ b = l $ \a -> (a, a <.> b)
 {-# INLINE (<<<.>~) #-}
 
--- | Add an extension onto the end of the target of a 'Lens' into your monad's
+-- | Add an extension onto the end of the target of a t'Lens' into your monad's
 -- state and return the old value.
 --
 -- >>> runState (_1 <<<.>= "txt") ("hello","world")
@@ -194,9 +194,9 @@ l <<<.>~ b = l $ \a -> (a, a <.> b)
 l <<<.>= b = l %%= \a -> (a, a <.> b)
 {-# INLINE (<<<.>=) #-}
 
--- | A 'Lens' for reading and writing to the basename
+-- | A t'Lens' for reading and writing to the basename
 --
--- Note: This is 'not' a legal 'Lens' unless the outer 'FilePath' has both a directory
+-- Note: This is /not/ a legal t'Lens' unless the outer 'FilePath' has both a directory
 -- and filename component and the generated basenames are not null and contain no directory
 -- separators.
 --
@@ -207,9 +207,9 @@ basename f p = (<.> takeExtension p) . (takeDirectory p </>) <$> f (takeBaseName
 {-# INLINE basename #-}
 
 
--- | A 'Lens' for reading and writing to the directory
+-- | A t'Lens' for reading and writing to the directory
 --
--- Note: this is /not/ a legal 'Lens' unless the outer 'FilePath' already has a directory component,
+-- Note: this is /not/ a legal t'Lens' unless the outer 'FilePath' already has a directory component,
 -- and generated directories are not null.
 --
 -- >>> (("long" </> "path" </> "name.txt") ^. directory) == "long" </> "path"
@@ -219,9 +219,9 @@ directory f p = (</> takeFileName p) <$> f (takeDirectory p)
 {-# INLINE directory #-}
 
 
--- | A 'Lens' for reading and writing to the extension
+-- | A t'Lens' for reading and writing to the extension
 --
--- Note: This is /not/ a legal 'Lens', unless you are careful to ensure that generated
+-- Note: This is /not/ a legal t'Lens', unless you are careful to ensure that generated
 -- extension 'FilePath' components are either null or start with 'System.FilePath.extSeparator'
 -- and do not contain any internal 'System.FilePath.extSeparator's.
 --
@@ -234,9 +234,9 @@ extension f p = (n <.>) <$> f e
 {-# INLINE extension #-}
 
 
--- | A 'Lens' for reading and writing to the full filename
+-- | A t'Lens' for reading and writing to the full filename
 --
--- Note: This is /not/ a legal 'Lens', unless you are careful to ensure that generated
+-- Note: This is /not/ a legal t'Lens', unless you are careful to ensure that generated
 -- filename 'FilePath' components are not null and do not contain any
 -- elements of 'System.FilePath.pathSeparators's.
 --

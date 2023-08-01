@@ -6,7 +6,7 @@
 
 # Requirements:
 # cabal-install-1.24 (for --for-hackage)
-# haddock 2.17 (for the hyperlinked source)
+# haddock-2.23 (for the hyperlinked source and identifier namespacing)
 
 set -e
 

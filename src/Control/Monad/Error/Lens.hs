@@ -44,23 +44,23 @@ import Data.Semigroup (Semigroup(..))
 -- Catching
 ------------------------------------------------------------------------------
 
--- | Catch exceptions that match a given 'Prism' (or any 'Getter', really).
+-- | Catch exceptions that match a given t'Prism' (or any t'Getter', really).
 --
 -- @
 -- 'catching' :: 'MonadError' e m => 'Prism'' e a     -> m r -> (a -> m r) -> m r
 -- 'catching' :: 'MonadError' e m => 'Lens'' e a      -> m r -> (a -> m r) -> m r
 -- 'catching' :: 'MonadError' e m => 'Traversal'' e a -> m r -> (a -> m r) -> m r
 -- 'catching' :: 'MonadError' e m => 'Iso'' e a       -> m r -> (a -> m r) -> m r
--- 'catching' :: 'MonadError' e m => 'Getter' e a     -> m r -> (a -> m r) -> m r
--- 'catching' :: 'MonadError' e m => 'Fold' e a       -> m r -> (a -> m r) -> m r
+-- 'catching' :: 'MonadError' e m => t'Getter' e a    -> m r -> (a -> m r) -> m r
+-- 'catching' :: 'MonadError' e m => t'Fold' e a      -> m r -> (a -> m r) -> m r
 -- @
 catching :: MonadError e m => Getting (M.First a) e a -> m r -> (a -> m r) -> m r
 catching l = catchJust (preview l)
 {-# INLINE catching #-}
 
--- | Catch exceptions that match a given 'Prism' (or any 'Getter'), discarding
+-- | Catch exceptions that match a given t'Prism' (or any t'Getter'), discarding
 -- the information about the match. This is particularly useful when you have
--- a @'Prism'' e ()@ where the result of the 'Prism' or 'Fold' isn't
+-- a @'Prism'' e ()@ where the result of the t'Prism' or t'Fold' isn't
 -- particularly valuable, just the fact that it matches.
 --
 -- @
@@ -68,8 +68,8 @@ catching l = catchJust (preview l)
 -- 'catching_' :: 'MonadError' e m => 'Lens'' e a      -> m r -> m r -> m r
 -- 'catching_' :: 'MonadError' e m => 'Traversal'' e a -> m r -> m r -> m r
 -- 'catching_' :: 'MonadError' e m => 'Iso'' e a       -> m r -> m r -> m r
--- 'catching_' :: 'MonadError' e m => 'Getter' e a     -> m r -> m r -> m r
--- 'catching_' :: 'MonadError' e m => 'Fold' e a       -> m r -> m r -> m r
+-- 'catching_' :: 'MonadError' e m => t'Getter' e a    -> m r -> m r -> m r
+-- 'catching_' :: 'MonadError' e m => t'Fold' e a      -> m r -> m r -> m r
 -- @
 catching_ :: MonadError e m => Getting (M.First a) e a -> m r -> m r -> m r
 catching_ l a b = catchJust (preview l) a (const b)
@@ -87,8 +87,8 @@ catching_ l a b = catchJust (preview l) a (const b)
 -- 'handling' :: 'MonadError' e m => 'Lens'' e a      -> (a -> m r) -> m r -> m r
 -- 'handling' :: 'MonadError' e m => 'Traversal'' e a -> (a -> m r) -> m r -> m r
 -- 'handling' :: 'MonadError' e m => 'Iso'' e a       -> (a -> m r) -> m r -> m r
--- 'handling' :: 'MonadError' e m => 'Fold' e a       -> (a -> m r) -> m r -> m r
--- 'handling' :: 'MonadError' e m => 'Getter' e a     -> (a -> m r) -> m r -> m r
+-- 'handling' :: 'MonadError' e m => t'Fold' e a      -> (a -> m r) -> m r -> m r
+-- 'handling' :: 'MonadError' e m => t'Getter' e a    -> (a -> m r) -> m r -> m r
 -- @
 handling :: MonadError e m => Getting (M.First a) e a -> (a -> m r) -> m r -> m r
 handling l = flip (catching l)
@@ -102,8 +102,8 @@ handling l = flip (catching l)
 -- 'handling_' :: 'MonadError' e m => 'Lens'' e a      -> m r -> m r -> m r
 -- 'handling_' :: 'MonadError' e m => 'Traversal'' e a -> m r -> m r -> m r
 -- 'handling_' :: 'MonadError' e m => 'Iso'' e a       -> m r -> m r -> m r
--- 'handling_' :: 'MonadError' e m => 'Getter' e a     -> m r -> m r -> m r
--- 'handling_' :: 'MonadError' e m => 'Fold' e a       -> m r -> m r -> m r
+-- 'handling_' :: 'MonadError' e m => t'Getter' e a    -> m r -> m r -> m r
+-- 'handling_' :: 'MonadError' e m => t'Fold' e a      -> m r -> m r -> m r
 -- @
 handling_ :: MonadError e m => Getting (M.First a) e a -> m r -> m r -> m r
 handling_ l = flip (catching_ l)
@@ -113,16 +113,16 @@ handling_ l = flip (catching_ l)
 -- Trying
 ------------------------------------------------------------------------------
 
--- | 'trying' takes a 'Prism' (or any 'Getter') to select which exceptions are caught
--- If the 'Exception' does not match the predicate, it is re-thrown.
+-- | 'trying' takes a t'Prism' (or any t'Getter') to select which exceptions are caught
+-- If the exception does not match the predicate, it is re-thrown.
 --
 -- @
 -- 'trying' :: 'MonadError' e m => 'Prism'' e a     -> m r -> m ('Either' a r)
 -- 'trying' :: 'MonadError' e m => 'Lens'' e a      -> m r -> m ('Either' a r)
 -- 'trying' :: 'MonadError' e m => 'Traversal'' e a -> m r -> m ('Either' a r)
 -- 'trying' :: 'MonadError' e m => 'Iso'' e a       -> m r -> m ('Either' a r)
--- 'trying' :: 'MonadError' e m => 'Getter' e a     -> m r -> m ('Either' a r)
--- 'trying' :: 'MonadError' e m => 'Fold' e a       -> m r -> m ('Either' a r)
+-- 'trying' :: 'MonadError' e m => t'Getter' e a    -> m r -> m ('Either' a r)
+-- 'trying' :: 'MonadError' e m => t'Fold' e a      -> m r -> m ('Either' a r)
 -- @
 trying :: MonadError e m => Getting (M.First a) e a -> m r -> m (Either a r)
 trying l m = catching l (liftM Right m) (return . Left)
@@ -206,7 +206,7 @@ instance Handleable e m (Handler e m) where
 -- Throwing
 ------------------------------------------------------------------------------
 
--- | Throw an 'Exception' described by a 'Prism'.
+-- | Throw an exception described by a t'Prism'.
 --
 -- @'throwing' l ≡ 'reviews' l 'throwError'@
 --

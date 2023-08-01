@@ -67,7 +67,7 @@ _imagPart :: Lens' (Complex a) a
 _imagPart f (a :+ b) = (a :+) <$> f b
 {-# INLINE _imagPart #-}
 
--- | This isn't /quite/ a legal 'Lens'. Notably the
+-- | This isn't /quite/ a legal t'Lens'. Notably the
 --
 -- @'view' l ('set' l b a) = b@
 --
@@ -76,7 +76,7 @@ _imagPart f (a :+ b) = (a :+) <$> f b
 -- which flips the 'phase' and retains a positive 'magnitude'. So don't do
 -- that!
 --
--- Otherwise, this is a perfectly cromulent 'Lens'.
+-- Otherwise, this is a perfectly cromulent t'Lens'.
 _polar :: RealFloat a => Iso' (Complex a) (a,a)
 _polar = iso polar (uncurry mkPolar)
 {-# INLINE _polar #-}
@@ -96,14 +96,14 @@ pattern Imaginary i = 0 :+ i
 -- >>> (10.0 :+ 20.0) & _magnitude *~ 2
 -- 20.0 :+ 40.0
 --
--- This isn't /quite/ a legal 'Lens'. Notably the
+-- This isn't /quite/ a legal t'Lens'. Notably the
 --
 -- @'view' l ('set' l b a) = b@
 --
 -- law is violated when you set a negative 'magnitude'. This flips the 'phase'
 -- and retains a positive 'magnitude'. So don't do that!
 --
--- Otherwise, this is a perfectly cromulent 'Lens'.
+-- Otherwise, this is a perfectly cromulent t'Lens'.
 --
 -- Setting the 'magnitude' of a zero 'Complex' number assumes the 'phase' is 0.
 _magnitude :: RealFloat a => Lens' (Complex a) a
@@ -118,14 +118,14 @@ _magnitude f c = setMag <$> f r
 -- >>> (mkPolar 10 (2-pi) & _phase +~ pi & view _phase) ≈ 2
 -- True
 --
--- This isn't /quite/ a legal 'Lens'. Notably the
+-- This isn't /quite/ a legal t'Lens'. Notably the
 --
 -- @'view' l ('set' l b a) = b@
 --
 -- law is violated when you set a 'phase' outside the range @(-'pi', 'pi']@.
 -- The phase is always in that range when queried. So don't do that!
 --
--- Otherwise, this is a perfectly cromulent 'Lens'.
+-- Otherwise, this is a perfectly cromulent t'Lens'.
 _phase :: RealFloat a => Lens' (Complex a) a
 _phase f c = setPhase <$> f theta
   where setPhase theta' = c * cis (theta' - theta)

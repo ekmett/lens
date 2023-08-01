@@ -22,7 +22,7 @@ import Data.Data.Lens
 -- >>> import Control.Lens
 -- >>> import Numeric.Lens (hex)
 
--- | Check to see if this 'Prism' matches.
+-- | Check to see if this t'Prism' matches.
 --
 -- >>> is _Left (Right 12)
 -- False
