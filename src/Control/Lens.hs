@@ -14,7 +14,7 @@
 --
 -- @
 -- import Control.Lens
--- 
+--
 -- data FooBar a
 --   = Foo { _x :: ['Int'], _y :: a }
 --   | Bar { _x :: ['Int'] }
@@ -25,7 +25,7 @@
 --
 -- @
 -- x :: 'Lens'' (FooBar a) ['Int']
--- y :: 'Traversal' (FooBar a) (FooBar b) a b
+-- y :: t'Traversal' (FooBar a) (FooBar b) a b
 -- @
 --
 -- You can then access the value of @_x@ with ('^.'), the value of @_y@ –

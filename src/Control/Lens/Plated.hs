@@ -680,7 +680,7 @@ para = paraOf plate
 --
 -- @
 -- 'composOpMonoid' ≡ 'foldMapOf' 'plate'
--- 'composOpMPlus' f ≡ 'msumOf' ('plate' '.' 'to' f)
+-- 'composOpMPlus' f ≡ 'msumOf' ('plate' '.' 'Control.Lens.Getter.to' f)
 -- 'composOp' ≡ 'descend' ≡ 'over' 'plate'
 -- 'composOpM' ≡ 'descendM' ≡ 'mapMOf' 'plate'
 -- 'composOpM_' ≡ 'descendM_' ≡ 'mapMOf_' 'plate'

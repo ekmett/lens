@@ -37,31 +37,31 @@ import Data.Word
 infixr 4 .|.~, .&.~, <.|.~, <.&.~, <<.|.~, <<.&.~
 infix 4 .|.=, .&.=, <.|.=, <.&.=, <<.|.=, <<.&.=
 
--- | Bitwise '.|.' the target(s) of a 'Lens' or 'Setter'.
+-- | Bitwise '.|.' the target(s) of a t'Lens' or t'Setter'.
 --
 -- >>> _2 .|.~ 6 $ ("hello",3)
 -- ("hello",7)
 --
 -- @
--- ('.|.~') :: 'Bits' a             => 'Setter' s t a a    -> a -> s -> t
--- ('.|.~') :: 'Bits' a             => 'Iso' s t a a       -> a -> s -> t
--- ('.|.~') :: 'Bits' a             => 'Lens' s t a a      -> a -> s -> t
--- ('.|.~') :: ('Data.Monoid.Monoid' a, 'Bits' a) => 'Traversal' s t a a -> a -> s -> t
+-- ('.|.~') :: 'Bits' a             => t'Setter' s t a a    -> a -> s -> t
+-- ('.|.~') :: 'Bits' a             => t'Iso' s t a a       -> a -> s -> t
+-- ('.|.~') :: 'Bits' a             => t'Lens' s t a a      -> a -> s -> t
+-- ('.|.~') :: ('Data.Monoid.Monoid' a, 'Bits' a) => t'Traversal' s t a a -> a -> s -> t
 -- @
 (.|.~):: Bits a => ASetter s t a a -> a -> s -> t
 l .|.~ n = over l (.|. n)
 {-# INLINE (.|.~) #-}
 
--- | Bitwise '.&.' the target(s) of a 'Lens' or 'Setter'.
+-- | Bitwise '.&.' the target(s) of a t'Lens' or t'Setter'.
 --
 -- >>> _2 .&.~ 7 $ ("hello",254)
 -- ("hello",6)
 --
 -- @
--- ('.&.~') :: 'Bits' a             => 'Setter' s t a a    -> a -> s -> t
--- ('.&.~') :: 'Bits' a             => 'Iso' s t a a       -> a -> s -> t
--- ('.&.~') :: 'Bits' a             => 'Lens' s t a a      -> a -> s -> t
--- ('.&.~') :: ('Data.Monoid.Monoid' a, 'Bits' a) => 'Traversal' s t a a -> a -> s -> t
+-- ('.&.~') :: 'Bits' a             => t'Setter' s t a a    -> a -> s -> t
+-- ('.&.~') :: 'Bits' a             => t'Iso' s t a a       -> a -> s -> t
+-- ('.&.~') :: 'Bits' a             => t'Lens' s t a a      -> a -> s -> t
+-- ('.&.~') :: ('Data.Monoid.Monoid' a, 'Bits' a) => t'Traversal' s t a a -> a -> s -> t
 -- @
 (.&.~) :: Bits a => ASetter s t a a -> a -> s -> t
 l .&.~ n = over l (.&. n)
@@ -82,7 +82,7 @@ l .&.~ n = over l (.&. n)
 l .&.= a = modify (l .&.~ a)
 {-# INLINE (.&.=) #-}
 
--- | Modify the target(s) of a 'Lens'', 'Setter' or 'Traversal' by computing its bitwise '.|.' with another value.
+-- | Modify the target(s) of a 'Lens'', t'Setter' or t'Traversal' by computing its bitwise '.|.' with another value.
 --
 -- >>> execState (do _1 .|.= 15; _2 .|.= 3) (7,7)
 -- (15,7)
@@ -97,31 +97,31 @@ l .&.= a = modify (l .&.~ a)
 l .|.= a = modify (l .|.~ a)
 {-# INLINE (.|.=) #-}
 
--- | Bitwise '.|.' the target(s) of a 'Lens' (or 'Traversal'), returning the result
+-- | Bitwise '.|.' the target(s) of a t'Lens' (or t'Traversal'), returning the result
 -- (or a monoidal summary of all of the results).
 --
 -- >>> _2 <.|.~ 6 $ ("hello",3)
 -- (7,("hello",7))
 --
 -- @
--- ('<.|.~') :: 'Bits' a             => 'Iso' s t a a       -> a -> s -> (a, t)
--- ('<.|.~') :: 'Bits' a             => 'Lens' s t a a      -> a -> s -> (a, t)
--- ('<.|.~') :: ('Bits' a, 'Data.Monoid.Monoid' a) => 'Traversal' s t a a -> a -> s -> (a, t)
+-- ('<.|.~') :: 'Bits' a             => t'Iso' s t a a       -> a -> s -> (a, t)
+-- ('<.|.~') :: 'Bits' a             => t'Lens' s t a a      -> a -> s -> (a, t)
+-- ('<.|.~') :: ('Bits' a, 'Data.Monoid.Monoid' a) => t'Traversal' s t a a -> a -> s -> (a, t)
 -- @
 (<.|.~):: Bits a => LensLike ((,) a) s t a a -> a -> s -> (a, t)
 l <.|.~ n = l <%~ (.|. n)
 {-# INLINE (<.|.~) #-}
 
--- | Bitwise '.&.' the target(s) of a 'Lens' or 'Traversal', returning the result
+-- | Bitwise '.&.' the target(s) of a t'Lens' or t'Traversal', returning the result
 -- (or a monoidal summary of all of the results).
 --
 -- >>> _2 <.&.~ 7 $ ("hello",254)
 -- (6,("hello",6))
 --
 -- @
--- ('<.&.~') :: 'Bits' a             => 'Iso'       s t a a -> a -> s -> (a, t)
--- ('<.&.~') :: 'Bits' a             => 'Lens'      s t a a -> a -> s -> (a, t)
--- ('<.&.~') :: ('Bits' a, 'Data.Monoid.Monoid' a) => 'Traversal' s t a a -> a -> s -> (a, t)
+-- ('<.&.~') :: 'Bits' a             => t'Iso'       s t a a -> a -> s -> (a, t)
+-- ('<.&.~') :: 'Bits' a             => t'Lens'      s t a a -> a -> s -> (a, t)
+-- ('<.&.~') :: ('Bits' a, 'Data.Monoid.Monoid' a) => t'Traversal' s t a a -> a -> s -> (a, t)
 -- @
 (<.&.~) :: Bits a => LensLike ((,) a) s t a a -> a -> s -> (a, t)
 l <.&.~ n = l <%~ (.&. n)
@@ -141,7 +141,7 @@ l <.&.~ n = l <%~ (.&. n)
 l <.&.= b = l <%= (.&. b)
 {-# INLINE (<.&.=) #-}
 
--- | Modify the target(s) of a 'Lens'', (or 'Traversal') by computing its bitwise '.|.' with another value,
+-- | Modify the target(s) of a 'Lens'', (or t'Traversal') by computing its bitwise '.|.' with another value,
 -- returning the result (or a monoidal summary of all of the results traversed).
 --
 -- >>> runState (_1 <.|.= 7) (28,0)
@@ -155,7 +155,7 @@ l <.&.= b = l <%= (.&. b)
 l <.|.= b = l <%= (.|. b)
 {-# INLINE (<.|.=) #-}
 
--- | Bitwise '.&.' the target(s) of a 'Lens' or 'Traversal', and return the
+-- | Bitwise '.&.' the target(s) of a t'Lens' or t'Traversal', and return the
 -- original value, or a monoidal summary of the original values.
 --
 -- When you do not need the old value, ('.&.~') is more flexible.
@@ -164,15 +164,15 @@ l <.|.= b = l <%= (.|. b)
 -- (254,("hello",6))
 --
 -- @
--- ('<<.&.~') ::  'Bits' a            => 'Iso' s t a a       -> a -> s -> (a, t)
--- ('<<.&.~') ::  'Bits' a            => 'Lens' s t a a      -> a -> s -> (a, t)
--- ('<<.&.~') :: ('Bits' a, 'Data.Monoid.Monoid' a) => 'Traversal' s t a a -> a -> s -> (a, t)
+-- ('<<.&.~') ::  'Bits' a            => t'Iso' s t a a       -> a -> s -> (a, t)
+-- ('<<.&.~') ::  'Bits' a            => t'Lens' s t a a      -> a -> s -> (a, t)
+-- ('<<.&.~') :: ('Bits' a, 'Data.Monoid.Monoid' a) => t'Traversal' s t a a -> a -> s -> (a, t)
 -- @
 (<<.&.~) :: Bits a => Optical' (->) q ((,)a) s a -> a -> q s (a, s)
 l <<.&.~ b = l $ \a -> (a, a .&. b)
 {-# INLINE (<<.&.~) #-}
 
--- | Bitwise '.|.' the target(s) of a 'Lens' or 'Traversal', and return the
+-- | Bitwise '.|.' the target(s) of a t'Lens' or t'Traversal', and return the
 -- original value, or a monoidal summary of the original values.
 --
 -- When you do not need the old value, ('.|.~') is more flexible.
@@ -181,9 +181,9 @@ l <<.&.~ b = l $ \a -> (a, a .&. b)
 -- (3,("hello",7))
 --
 -- @
--- ('<<.|.~') ::  'Bits' a            => 'Iso' s t a a       -> a -> s -> (a, t)
--- ('<<.|.~') ::  'Bits' a            => 'Lens' s t a a      -> a -> s -> (a, t)
--- ('<<.|.~') :: ('Bits' a, 'Data.Monoid.Monoid' a) => 'Traversal' s t a a -> a -> s -> (a, t)
+-- ('<<.|.~') ::  'Bits' a            => t'Iso' s t a a       -> a -> s -> (a, t)
+-- ('<<.|.~') ::  'Bits' a            => t'Lens' s t a a      -> a -> s -> (a, t)
+-- ('<<.|.~') :: ('Bits' a, 'Data.Monoid.Monoid' a) => t'Traversal' s t a a -> a -> s -> (a, t)
 -- @
 (<<.|.~) :: Bits a => Optical' (->) q ((,)a) s a -> a -> q s (a, s)
 l <<.|.~ b = l $ \a -> (a, a .|. b)
@@ -223,9 +223,9 @@ l <<.&.= b = l %%= \a -> (a, a .&. b)
 l <<.|.= b = l %%= \a -> (a, a .|. b)
 {-# INLINE (<<.|.=) #-}
 
--- | This 'Lens' can be used to access the value of the nth bit in a number.
+-- | This t'Lens' can be used to access the value of the nth bit in a number.
 --
--- @'bitAt' n@ is only a legal 'Lens' into @b@ if @0 '<=' n '<' 'bitSize' ('undefined' :: b)@.
+-- @'bitAt' n@ is only a legal t'Lens' into @b@ if @0 '<=' n '<' 'bitSize' ('undefined' :: b)@.
 --
 -- >>> 16^.bitAt 4
 -- True
@@ -244,7 +244,7 @@ bitAt n f b = indexed f n (testBit b n) <&> \x -> if x then setBit b n else clea
 
 -- | Get the nth byte, counting from the low end.
 --
--- @'byteAt' n@ is a legal 'Lens' into @b@ iff @0 '<=' n '<' 'div' ('bitSize' ('undefined' :: b)) 8@
+-- @'byteAt' n@ is a legal t'Lens' into @b@ iff @0 '<=' n '<' 'div' ('bitSize' ('undefined' :: b)) 8@
 --
 -- >>> (0xff00 :: Word16)^.byteAt 0
 -- 0
@@ -271,7 +271,7 @@ byteAt i f b = back <$> indexed f i (forward b) where
 -- >>> toListOf bits (5 :: Word8)
 -- [True,False,True,False,False,False,False,False]
 --
--- If you supply this an 'Integer', the result will be an infinite 'Traversal', which
+-- If you supply this an 'Integer', the result will be an infinite t'Traversal', which
 -- can be productively consumed, but not reassembled.
 bits :: (Num b, Bits b) => IndexedTraversal' Int b Bool
 bits f b = foldr step 0 <$> traverse g bs where
@@ -289,7 +289,7 @@ bits f b = foldr step 0 <$> traverse g bs where
 -- >>> toListOf bytewise (1312301580 :: Word32)
 -- [12,34,56,78]
 --
--- If you supply this an 'Integer', the result will be an infinite 'Traversal',
+-- If you supply this an 'Integer', the result will be an infinite t'Traversal',
 -- which can be productively consumed, but not reassembled.
 --
 -- Why isn't this function called @bytes@ to match 'bits'? Alas, there

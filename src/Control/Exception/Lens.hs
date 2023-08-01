@@ -29,7 +29,7 @@
 -- be found in "System.IO.Error.Lens".
 --
 -- The combinators in this module have been generalized to work with
--- 'MonadCatch' instead of just 'IO'. This enables them to be used
+-- 'MonadCatch' instead of just 'Prelude.IO'. This enables them to be used
 -- more easily in 'Monad' transformer stacks.
 ----------------------------------------------------------------------------
 module Control.Exception.Lens
@@ -176,11 +176,11 @@ import Prelude
 -- Exceptions as Prisms
 ------------------------------------------------------------------------------
 
--- | Traverse the strongly typed 'Exception' contained in 'SomeException' where the type of your function matches
--- the desired 'Exception'.
+-- | Traverse the strongly typed t'Exception' contained in 'SomeException' where the type of your function matches
+-- the desired t'Exception'.
 --
 -- @
--- 'exception' :: ('Applicative' f, 'Exception' a)
+-- 'exception' :: ('Applicative' f, t'Exception' a)
 --           => (a -> f a) -> 'SomeException' -> f 'SomeException'
 -- @
 exception :: Exception a => Prism' SomeException a
@@ -195,7 +195,7 @@ pattern Exception e <- (preview exception -> Just e) where
 -- Catching
 ------------------------------------------------------------------------------
 
--- | Catch exceptions that match a given 'Prism' (or any 'Fold', really).
+-- | Catch exceptions that match a given t'Prism' (or any t'Fold', really).
 --
 -- >>> catching _AssertionFailed (assert False (return "uncaught")) $ \ _ -> return "caught"
 -- "caught"
@@ -205,16 +205,16 @@ pattern Exception e <- (preview exception -> Just e) where
 -- 'catching' :: 'MonadCatch' m => 'Lens'' 'SomeException' a      -> m r -> (a -> m r) -> m r
 -- 'catching' :: 'MonadCatch' m => 'Traversal'' 'SomeException' a -> m r -> (a -> m r) -> m r
 -- 'catching' :: 'MonadCatch' m => 'Iso'' 'SomeException' a       -> m r -> (a -> m r) -> m r
--- 'catching' :: 'MonadCatch' m => 'Getter' 'SomeException' a     -> m r -> (a -> m r) -> m r
--- 'catching' :: 'MonadCatch' m => 'Fold' 'SomeException' a       -> m r -> (a -> m r) -> m r
+-- 'catching' :: 'MonadCatch' m => t'Getter' 'SomeException' a    -> m r -> (a -> m r) -> m r
+-- 'catching' :: 'MonadCatch' m => t'Fold' 'SomeException' a      -> m r -> (a -> m r) -> m r
 -- @
 catching :: MonadCatch m => Getting (First a) SomeException a -> m r -> (a -> m r) -> m r
 catching l = catchJust (preview l)
 {-# INLINE catching #-}
 
--- | Catch exceptions that match a given 'Prism' (or any 'Getter'), discarding
+-- | Catch exceptions that match a given t'Prism' (or any t'Getter'), discarding
 -- the information about the match. This is particularly useful when you have
--- a @'Prism'' e ()@ where the result of the 'Prism' or 'Fold' isn't
+-- a @'Prism'' e ()@ where the result of the t'Prism' or t'Fold' isn't
 -- particularly valuable, just the fact that it matches.
 --
 -- >>> catching_ _AssertionFailed (assert False (return "uncaught")) $ return "caught"
@@ -225,8 +225,8 @@ catching l = catchJust (preview l)
 -- 'catching_' :: 'MonadCatch' m => 'Lens'' 'SomeException' a      -> m r -> m r -> m r
 -- 'catching_' :: 'MonadCatch' m => 'Traversal'' 'SomeException' a -> m r -> m r -> m r
 -- 'catching_' :: 'MonadCatch' m => 'Iso'' 'SomeException' a       -> m r -> m r -> m r
--- 'catching_' :: 'MonadCatch' m => 'Getter' 'SomeException' a     -> m r -> m r -> m r
--- 'catching_' :: 'MonadCatch' m => 'Fold' 'SomeException' a       -> m r -> m r -> m r
+-- 'catching_' :: 'MonadCatch' m => t'Getter' 'SomeException' a    -> m r -> m r -> m r
+-- 'catching_' :: 'MonadCatch' m => t'Fold' 'SomeException' a      -> m r -> m r -> m r
 -- @
 catching_ :: MonadCatch m => Getting (First a) SomeException a -> m r -> m r -> m r
 catching_ l a b = catchJust (preview l) a (const b)
@@ -247,8 +247,8 @@ catching_ l a b = catchJust (preview l) a (const b)
 -- 'handling' :: 'MonadCatch' m => 'Lens'' 'SomeException' a      -> (a -> m r) -> m r -> m r
 -- 'handling' :: 'MonadCatch' m => 'Traversal'' 'SomeException' a -> (a -> m r) -> m r -> m r
 -- 'handling' :: 'MonadCatch' m => 'Iso'' 'SomeException' a       -> (a -> m r) -> m r -> m r
--- 'handling' :: 'MonadCatch' m => 'Fold' 'SomeException' a       -> (a -> m r) -> m r -> m r
--- 'handling' :: 'MonadCatch' m => 'Getter' 'SomeException' a     -> (a -> m r) -> m r -> m r
+-- 'handling' :: 'MonadCatch' m => t'Fold' 'SomeException' a      -> (a -> m r) -> m r -> m r
+-- 'handling' :: 'MonadCatch' m => t'Getter' 'SomeException' a    -> (a -> m r) -> m r -> m r
 -- @
 handling :: MonadCatch m => Getting (First a) SomeException a -> (a -> m r) -> m r -> m r
 handling l = flip (catching l)
@@ -265,8 +265,8 @@ handling l = flip (catching l)
 -- 'handling_' :: 'MonadCatch' m => 'Lens'' 'SomeException' a      -> m r -> m r -> m r
 -- 'handling_' :: 'MonadCatch' m => 'Traversal'' 'SomeException' a -> m r -> m r -> m r
 -- 'handling_' :: 'MonadCatch' m => 'Iso'' 'SomeException' a       -> m r -> m r -> m r
--- 'handling_' :: 'MonadCatch' m => 'Getter' 'SomeException' a     -> m r -> m r -> m r
--- 'handling_' :: 'MonadCatch' m => 'Fold' 'SomeException' a       -> m r -> m r -> m r
+-- 'handling_' :: 'MonadCatch' m => t'Getter' 'SomeException' a    -> m r -> m r -> m r
+-- 'handling_' :: 'MonadCatch' m => t'Fold' 'SomeException' a      -> m r -> m r -> m r
 -- @
 handling_ :: MonadCatch m => Getting (First a) SomeException a -> m r -> m r -> m r
 handling_ l = flip (catching_ l)
@@ -276,17 +276,17 @@ handling_ l = flip (catching_ l)
 -- Trying
 ------------------------------------------------------------------------------
 
--- | A variant of 'Control.Exception.try' that takes a 'Prism' (or any 'Fold') to select which
+-- | A variant of 'Control.Exception.try' that takes a t'Prism' (or any t'Fold') to select which
 -- exceptions are caught (c.f. 'Control.Exception.tryJust', 'Control.Exception.catchJust'). If the
--- 'Exception' does not match the predicate, it is re-thrown.
+-- t'Exception' does not match the predicate, it is re-thrown.
 --
 -- @
 -- 'trying' :: 'MonadCatch' m => 'Prism''     'SomeException' a -> m r -> m ('Either' a r)
 -- 'trying' :: 'MonadCatch' m => 'Lens''      'SomeException' a -> m r -> m ('Either' a r)
 -- 'trying' :: 'MonadCatch' m => 'Traversal'' 'SomeException' a -> m r -> m ('Either' a r)
 -- 'trying' :: 'MonadCatch' m => 'Iso''       'SomeException' a -> m r -> m ('Either' a r)
--- 'trying' :: 'MonadCatch' m => 'Getter'     'SomeException' a -> m r -> m ('Either' a r)
--- 'trying' :: 'MonadCatch' m => 'Fold'       'SomeException' a -> m r -> m ('Either' a r)
+-- 'trying' :: 'MonadCatch' m => t'Getter'    'SomeException' a -> m r -> m ('Either' a r)
+-- 'trying' :: 'MonadCatch' m => t'Fold'      'SomeException' a -> m r -> m ('Either' a r)
 -- @
 trying :: MonadCatch m => Getting (First a) SomeException a -> m r -> m (Either a r)
 trying l = tryJust (preview l)
@@ -299,8 +299,8 @@ trying l = tryJust (preview l)
 -- 'trying_' :: 'MonadCatch' m => 'Lens''      'SomeException' a -> m r -> m (Maybe r)
 -- 'trying_' :: 'MonadCatch' m => 'Traversal'' 'SomeException' a -> m r -> m (Maybe r)
 -- 'trying_' :: 'MonadCatch' m => 'Iso''       'SomeException' a -> m r -> m (Maybe r)
--- 'trying_' :: 'MonadCatch' m => 'Getter'     'SomeException' a -> m r -> m (Maybe r)
--- 'trying_' :: 'MonadCatch' m => 'Fold'       'SomeException' a -> m r -> m (Maybe r)
+-- 'trying_' :: 'MonadCatch' m => t'Getter'    'SomeException' a -> m r -> m (Maybe r)
+-- 'trying_' :: 'MonadCatch' m => t'Fold'      'SomeException' a -> m r -> m (Maybe r)
 -- @
 trying_ :: MonadCatch m => Getting (First a) SomeException a -> m r -> m (Maybe r)
 trying_ l m = preview _Right `liftM` trying l m
@@ -310,8 +310,8 @@ trying_ l m = preview _Right `liftM` trying l m
 -- Throwing
 ------------------------------------------------------------------------------
 
--- | Throw an 'Exception' described by a 'Prism'. Exceptions may be thrown from
--- purely functional code, but may only be caught within the 'IO' 'Monad'.
+-- | Throw an t'Exception' described by a t'Prism'. Exceptions may be thrown from
+-- purely functional code, but may only be caught within the 'Prelude.IO' 'Monad'.
 --
 -- @
 -- 'throwing' l ≡ 'reviews' l 'throw'
@@ -331,15 +331,15 @@ throwing l = reviews l Exception.throw
 -- @
 -- data MyError = Foo | Bar
 -- makePrisms ''MyError
--- 'throwing_' _Foo :: 'MonadError' MyError m => m a
+-- 'throwing_' _Foo :: 'Control.Monad.Error.Class.MonadError' MyError m => m a
 -- @
 throwing_ :: AReview SomeException () -> m x
 throwing_ l = throwing l ()
 {-# INLINE throwing_ #-}
 
--- | A variant of 'throwing' that can only be used within the 'IO' 'Monad'
--- (or any other 'MonadCatch' instance) to throw an 'Exception' described
--- by a 'Prism'.
+-- | A variant of 'throwing' that can only be used within the 'Prelude.IO' 'Monad'
+-- (or any other 'MonadCatch' instance) to throw an t'Exception' described
+-- by a t'Prism'.
 --
 -- Although 'throwingM' has a type that is a specialization of the type of
 -- 'throwing', the two functions are subtly different:
@@ -349,10 +349,10 @@ throwing_ l = throwing l ()
 -- 'throwingM' l e \`seq\` x ≡ x
 -- @
 --
--- The first example will cause the 'Exception' @e@ to be raised, whereas the
--- second one won't. In fact, 'throwingM' will only cause an 'Exception' to
+-- The first example will cause the t'Exception' @e@ to be raised, whereas the
+-- second one won't. In fact, 'throwingM' will only cause an t'Exception' to
 -- be raised when it is used within the 'MonadCatch' instance. The 'throwingM'
--- variant should be used in preference to 'throwing' to raise an 'Exception'
+-- variant should be used in preference to 'throwing' to raise an t'Exception'
 -- within the 'Monad' because it guarantees ordering with respect to other
 -- monadic operations, whereas 'throwing' does not.
 --
@@ -368,7 +368,7 @@ throwingM :: MonadThrow m => AReview SomeException b -> b -> m r
 throwingM l = reviews l throwM
 {-# INLINE throwingM #-}
 
--- | 'throwingTo' raises an 'Exception' specified by a 'Prism' in the target thread.
+-- | 'throwingTo' raises an t'Exception' specified by a t'Prism' in the target thread.
 --
 -- @
 -- 'throwingTo' thread l ≡ 'reviews' l ('throwTo' thread)
@@ -386,14 +386,14 @@ throwingTo tid l = reviews l (liftIO . throwTo tid)
 -- Mapping
 ----------------------------------------------------------------------------
 
--- | This 'Setter' can be used to purely map over the 'Exception's an
+-- | This t'Setter' can be used to purely map over the t'Exception's an
 -- arbitrary expression might throw; it is a variant of 'mapException' in
 -- the same way that 'mapped' is a variant of 'fmap'.
 --
 -- > 'mapException' ≡ 'over' 'mappedException'
 --
 -- This view that every Haskell expression can be regarded as carrying a bag
--- of 'Exception's is detailed in “A Semantics for Imprecise Exceptions” by
+-- of t'Exception's is detailed in “A Semantics for Imprecise Exceptions” by
 -- Peyton Jones & al. at PLDI ’99.
 --
 -- The following maps failed assertions to arithmetic overflow:
@@ -405,7 +405,7 @@ mappedException = sets mapException
 {-# INLINE mappedException #-}
 
 -- | This is a type restricted version of 'mappedException', which avoids
--- the type ambiguity in the input 'Exception' when using 'set'.
+-- the type ambiguity in the input t'Exception' when using 'set'.
 --
 -- The following maps any exception to arithmetic overflow:
 --
@@ -419,14 +419,14 @@ mappedException' = mappedException
 -- IOException
 ----------------------------------------------------------------------------
 
--- | Exceptions that occur in the 'IO' 'Monad'. An 'IOException' records a
+-- | Exceptions that occur in the 'Prelude.IO' 'Monad'. An 'IOException' records a
 -- more specific error type, a descriptive string and maybe the handle that was
 -- used when the error was flagged.
 --
 -- Due to their richer structure relative to other exceptions, these have
 -- a more carefully overloaded signature.
 class AsIOException t where
-  -- | Unfortunately the name 'ioException' is taken by @base@ for
+  -- | Unfortunately the name 'GHC.IO.Exception.ioException' is taken by @base@ for
   -- throwing IOExceptions.
   --
   -- @
@@ -674,7 +674,7 @@ class AsAssertionFailed t where
   -- @
   __AssertionFailed :: Prism' t AssertionFailed
 
-  -- | This 'Exception' contains provides information about what assertion failed in the 'String'.
+  -- | This t'Exception' contains provides information about what assertion failed in the 'String'.
   --
   -- >>> handling _AssertionFailed (\ xs -> "caught" <$ guard ("<interactive>" `isInfixOf` xs) ) $ assert False (return "uncaught")
   -- "caught"
@@ -732,7 +732,7 @@ pattern AsyncException_ :: AsAsyncException s => AsyncException -> s
 pattern AsyncException_ e <- (preview _AsyncException -> Just e) where
   AsyncException_ e = review _AsyncException e
 
--- | The current thread's stack exceeded its limit. Since an 'Exception' has
+-- | The current thread's stack exceeded its limit. Since an t'Exception' has
 -- been raised, the thread's stack will certainly be below its limit again,
 -- but the programmer should take remedial action immediately.
 --
@@ -755,7 +755,7 @@ pattern StackOverflow_ <- (has _StackOverflow -> True) where
 --
 -- Notes:
 --
--- * It is undefined which thread receives this 'Exception'.
+-- * It is undefined which thread receives this t'Exception'.
 --
 -- * GHC currently does not throw 'HeapOverflow' exceptions.
 --
@@ -773,7 +773,7 @@ pattern HeapOverflow_ :: AsAsyncException s => s
 pattern HeapOverflow_ <- (has _HeapOverflow -> True) where
   HeapOverflow_ = review _HeapOverflow ()
 
--- | This 'Exception' is raised by another thread calling
+-- | This t'Exception' is raised by another thread calling
 -- 'Control.Concurrent.killThread', or by the system if it needs to terminate
 -- the thread for some reason.
 --
@@ -791,7 +791,7 @@ pattern ThreadKilled_ :: AsAsyncException s => s
 pattern ThreadKilled_ <- (has _ThreadKilled -> True) where
   ThreadKilled_ = review _ThreadKilled ()
 
--- | This 'Exception' is raised by default in the main thread of the program when
+-- | This t'Exception' is raised by default in the main thread of the program when
 -- the user requests to terminate the program via the usual mechanism(s)
 -- (/e.g./ Control-C in the console).
 --
@@ -824,7 +824,7 @@ class AsNonTermination t where
   -- @
   __NonTermination :: Prism' t NonTermination
 
-  -- | There is no additional information carried in a 'NonTermination' 'Exception'.
+  -- | There is no additional information carried in a 'NonTermination' t'Exception'.
   --
   -- @
   -- '_NonTermination' :: 'Prism'' 'NonTermination' ()
@@ -867,7 +867,7 @@ class AsNestedAtomically t where
   -- @
   __NestedAtomically :: Prism' t NestedAtomically
 
-  -- | There is no additional information carried in a 'NestedAtomically' 'Exception'.
+  -- | There is no additional information carried in a 'NestedAtomically' t'Exception'.
   --
   -- @
   -- '_NestedAtomically' :: 'Prism'' 'NestedAtomically' ()
@@ -911,7 +911,7 @@ class AsBlockedIndefinitelyOnMVar t where
   -- @
   __BlockedIndefinitelyOnMVar :: Prism' t BlockedIndefinitelyOnMVar
 
-  -- | There is no additional information carried in a 'BlockedIndefinitelyOnMVar' 'Exception'.
+  -- | There is no additional information carried in a 'BlockedIndefinitelyOnMVar' t'Exception'.
   --
   -- @
   -- '_BlockedIndefinitelyOnMVar' :: 'Prism'' 'BlockedIndefinitelyOnMVar' ()
@@ -955,7 +955,7 @@ class AsBlockedIndefinitelyOnSTM t where
   -- @
   __BlockedIndefinitelyOnSTM :: Prism' t BlockedIndefinitelyOnSTM
 
-  -- | There is no additional information carried in a 'BlockedIndefinitelyOnSTM' 'Exception'.
+  -- | There is no additional information carried in a 'BlockedIndefinitelyOnSTM' t'Exception'.
   --
   -- @
   -- '_BlockedIndefinitelyOnSTM' :: 'Prism'' 'BlockedIndefinitelyOnSTM' ()
@@ -989,7 +989,7 @@ pattern BlockedIndefinitelyOnSTM_ <- (has _BlockedIndefinitelyOnSTM -> True) whe
 ----------------------------------------------------------------------------
 
 -- | There are no runnable threads, so the program is deadlocked. The
--- 'Deadlock' 'Exception' is raised in the main thread only.
+-- 'Deadlock' t'Exception' is raised in the main thread only.
 class AsDeadlock t where
   -- |
   -- @
@@ -998,7 +998,7 @@ class AsDeadlock t where
   -- @
   __Deadlock :: Prism' t Deadlock
 
-  -- | There is no information carried in a 'Deadlock' 'Exception'.
+  -- | There is no information carried in a 'Deadlock' t'Exception'.
   --
   -- @
   -- '_Deadlock' :: 'Prism'' 'Deadlock'      ()
@@ -1304,7 +1304,7 @@ class AsAllocationLimitExceeded t where
   __AllocationLimitExceeded :: Prism' t AllocationLimitExceeded
 
   -- | There is no additional information carried in an
-  -- 'AllocationLimitExceeded' 'Exception'.
+  -- 'AllocationLimitExceeded' t'Exception'.
   --
   -- @
   -- '_AllocationLimitExceeded' :: 'Prism'' 'AllocationLimitExceeded' ()
@@ -1425,7 +1425,7 @@ pattern CompactionFailed_ e <- (preview _CompactionFailed -> Just e) where
 -- HandlingException
 ------------------------------------------------------------------------------
 
--- | This 'Exception' is thrown by @lens@ when the user somehow manages to rethrow
+-- | This t'Exception' is thrown by @lens@ when the user somehow manages to rethrow
 -- an internal 'HandlingException'.
 class AsHandlingException t where
   -- |
@@ -1470,4 +1470,3 @@ pattern HandlingException_ <- (has _HandlingException -> True) where
 
 trivial :: t -> Iso' t ()
 trivial t = const () `iso` const t
-

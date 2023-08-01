@@ -53,7 +53,7 @@ class IsByteString t where
   -- | Traverse each 'Word8' in a strict or lazy 'ByteString'
   --
   --
-  -- This 'Traversal' walks each strict 'ByteString' chunk in a tree-like fashion
+  -- This t'Traversal' walks each strict 'ByteString' chunk in a tree-like fashion
   -- enable zippers to seek to locations more quickly and accelerate
   -- many monoidal queries, but up to associativity (and constant factors) it is
   -- equivalent to the much slower:
@@ -74,7 +74,7 @@ class IsByteString t where
   -- When writing back to the 'ByteString' it is assumed that every 'Char'
   -- lies between @'\x00'@ and @'\xff'@.
   --
-  -- This 'Traversal' walks each strict 'ByteString' chunk in a tree-like fashion
+  -- This t'Traversal' walks each strict 'ByteString' chunk in a tree-like fashion
   -- enable zippers to seek to locations more quickly and accelerate
   -- many monoidal queries, but up to associativity (and constant factors) it is
   -- equivalent to the much slower:

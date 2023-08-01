@@ -30,7 +30,7 @@
 -- Stability   :  experimental
 -- Portability :  Rank2, MPTCs, fundeps
 --
--- The 'Wrapped' class provides similar functionality as @Control.Newtype@,
+-- The t'Wrapped' class provides similar functionality as @Control.Newtype@,
 -- from the @newtype@ package, but in a more convenient and efficient form.
 --
 -- There are a few functions from @newtype@ that are not provided here, because
@@ -169,7 +169,7 @@ import           Data.Ord (Down(Down))
 -- >>> import Data.Foldable (foldMap)
 -- >>> import Data.Monoid (Sum (..), Product (..), All (..), Any (..))
 
--- | 'Wrapped' provides isomorphisms to wrap and unwrap newtypes or
+-- | t'Wrapped' provides isomorphisms to wrap and unwrap newtypes or
 -- data types with one constructor.
 class Wrapped s where
   type Unwrapped s :: Type
@@ -568,14 +568,14 @@ instance Wrapped (IterT m a) where
 
 -- * unordered-containers
 
--- | Use @'wrapping' 'HashMap.fromList'@. Unwrapping returns some permutation of the list.
+-- | Use @'_Wrapping' 'HashMap.fromList'@. Unwrapping returns some permutation of the list.
 instance (t ~ HashMap k' a', Hashable k, Eq k) => Rewrapped (HashMap k a) t
 instance (Hashable k, Eq k) => Wrapped (HashMap k a) where
   type Unwrapped (HashMap k a) = [(k, a)]
   _Wrapped' = iso HashMap.toList HashMap.fromList
   {-# INLINE _Wrapped' #-}
 
--- | Use @'wrapping' 'HashSet.fromList'@. Unwrapping returns some permutation of the list.
+-- | Use @'_Wrapping' 'HashSet.fromList'@. Unwrapping returns some permutation of the list.
 instance (t ~ HashSet a', Hashable a, Eq a) => Rewrapped (HashSet a) t
 instance (Hashable a, Eq a) => Wrapped (HashSet a) where
   type Unwrapped (HashSet a) = [a]
@@ -584,28 +584,28 @@ instance (Hashable a, Eq a) => Wrapped (HashSet a) where
 
 -- * containers
 
--- | Use @'wrapping' 'IntMap.fromList'@. unwrapping returns a /sorted/ list.
+-- | Use @'_Wrapping' 'IntMap.fromList'@. unwrapping returns a /sorted/ list.
 instance (t ~ IntMap a') => Rewrapped (IntMap a) t
 instance Wrapped (IntMap a) where
   type Unwrapped (IntMap a) = [(Int, a)]
   _Wrapped' = iso IntMap.toAscList IntMap.fromList
   {-# INLINE _Wrapped' #-}
 
--- | Use @'wrapping' 'IntSet.fromList'@. unwrapping returns a /sorted/ list.
+-- | Use @'_Wrapping' 'IntSet.fromList'@. unwrapping returns a /sorted/ list.
 instance (t ~ IntSet) => Rewrapped IntSet t
 instance Wrapped IntSet where
   type Unwrapped IntSet = [Int]
   _Wrapped' = iso IntSet.toAscList IntSet.fromList
   {-# INLINE _Wrapped' #-}
 
--- | Use @'wrapping' 'Map.fromList'@. unwrapping returns a /sorted/ list.
+-- | Use @'_Wrapping' 'Map.fromList'@. unwrapping returns a /sorted/ list.
 instance (t ~ Map k' a', Ord k) => Rewrapped (Map k a) t
 instance Ord k => Wrapped (Map k a) where
   type Unwrapped (Map k a) = [(k, a)]
   _Wrapped' = iso Map.toAscList Map.fromList
   {-# INLINE _Wrapped' #-}
 
--- | Use @'wrapping' 'Set.fromList'@. unwrapping returns a /sorted/ list.
+-- | Use @'_Wrapping' 'Set.fromList'@. unwrapping returns a /sorted/ list.
 instance (t ~ Set a', Ord a) => Rewrapped (Set a) t
 instance Ord a => Wrapped (Set a) where
   type Unwrapped (Set a) = [a]
@@ -1273,10 +1273,10 @@ instance Wrapped CTimer where
 # endif
 #endif
 
--- | Given the constructor for a 'Wrapped' type, return a
+-- | Given the constructor for a t'Wrapped' type, return a
 -- deconstructor that is its inverse.
 --
--- Assuming the 'Wrapped' instance is legal, these laws hold:
+-- Assuming the t'Wrapped' instance is legal, these laws hold:
 --
 -- @
 -- 'op' f '.' f ≡ 'id'

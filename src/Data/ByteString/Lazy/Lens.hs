@@ -65,7 +65,7 @@ unpackedBytes = from packedBytes
 
 -- | Traverse the individual bytes in a 'ByteString'.
 --
--- This 'Traversal' walks each strict 'ByteString' chunk in a tree-like fashion
+-- This t'Traversal' walks each strict 'ByteString' chunk in a tree-like fashion
 -- enable zippers to seek to locations more quickly and accelerate
 -- many monoidal queries, but up to associativity (and constant factors) it is
 -- equivalent to the much slower:
@@ -77,7 +77,7 @@ unpackedBytes = from packedBytes
 -- >>> anyOf bytes (== 0x80) (Char8.pack "hello")
 -- False
 --
--- Note that when just using this as a 'Setter', @'setting' 'Data.ByteString.Lazy.map'@
+-- Note that when just using this as a t'Setter', @'setting' 'Data.ByteString.Lazy.map'@
 -- can be more efficient.
 bytes :: IndexedTraversal' Int64 ByteString Word8
 bytes = traversedLazy
@@ -122,7 +122,7 @@ unpackedChars = from packedChars
 -- When writing back to the 'ByteString' it is assumed that every 'Char'
 -- lies between @'\x00'@ and @'\xff'@.
 --
--- This 'Traversal' walks each strict 'ByteString' chunk in a tree-like fashion
+-- This t'Traversal' walks each strict 'ByteString' chunk in a tree-like fashion
 -- enable zippers to seek to locations more quickly and accelerate
 -- many monoidal queries, but up to associativity (and constant factors) it is
 -- equivalent to:

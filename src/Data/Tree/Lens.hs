@@ -27,7 +27,7 @@ import Data.Tree
 -- >>> import Control.Lens
 -- >>> import Data.Tree
 
--- | A 'Lens' that focuses on the root of a 'Tree'.
+-- | A t'Lens' that focuses on the root of a 'Tree'.
 --
 -- >>> view root $ Node 42 []
 -- 42
@@ -35,7 +35,7 @@ root :: Lens' (Tree a) a
 root f (Node a as) = (`Node` as) <$> f a
 {-# INLINE root #-}
 
--- | A 'Lens' returning the direct descendants of the root of a 'Tree'
+-- | A t'Lens' returning the direct descendants of the root of a 'Tree'
 --
 -- @'view' 'branches' ≡ 'subForest'@
 branches :: Lens' (Tree a) [Tree a]

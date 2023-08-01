@@ -42,10 +42,10 @@ import Numeric (readInt, showIntAtBase)
 -- >>> import Control.Lens
 -- >>> import Data.Monoid (Sum(..))
 
--- | This 'Prism' can be used to model the fact that every 'Integral'
+-- | This t'Prism' can be used to model the fact that every t'Integral'
 -- type is a subset of 'Integer'.
 --
--- Embedding through the 'Prism' only succeeds if the 'Integer' would pass
+-- Embedding through the t'Prism' only succeeds if the 'Integer' would pass
 -- through unmodified when re-extracted.
 integral :: (Integral a, Integral b) => Prism Integer Integer a b
 integral = prism toInteger $ \ i -> let a = fromInteger i in

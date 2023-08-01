@@ -122,7 +122,7 @@ sliced i j f s = case Seq.splitAt i s of
      (m, r) -> itraverse (indexed f . (+i)) m <&> \n -> l >< n >< r
 {-# INLINE sliced #-}
 
--- | Construct a 'Seq' from a 'Getter', 'Control.Lens.Fold.Fold', 'Control.Lens.Traversal.Traversal', 'Control.Lens.Lens.Lens' or 'Control.Lens.Iso.Iso'.
+-- | Construct a 'Seq' from a t'Getter', 'Control.Lens.Fold.Fold', 'Control.Lens.Traversal.Traversal', 'Control.Lens.Lens.Lens' or 'Control.Lens.Iso.Iso'.
 --
 -- >>> seqOf folded ["hello","world"]
 -- fromList ["hello","world"]
@@ -131,8 +131,8 @@ sliced i j f s = case Seq.splitAt i s of
 -- fromList [1,2,3]
 --
 -- @
--- 'seqOf' :: 'Getter' s a     -> s -> 'Seq' a
--- 'seqOf' :: 'Fold' s a       -> s -> 'Seq' a
+-- 'seqOf' :: t'Getter' s a    -> s -> 'Seq' a
+-- 'seqOf' :: t'Fold' s a      -> s -> 'Seq' a
 -- 'seqOf' :: 'Iso'' s a       -> s -> 'Seq' a
 -- 'seqOf' :: 'Lens'' s a      -> s -> 'Seq' a
 -- 'seqOf' :: 'Traversal'' s a -> s -> 'Seq' a
