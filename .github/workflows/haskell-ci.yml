@@ -273,7 +273,7 @@ jobs:
           ${CABAL} -vnormal check
       - name: haddock
         run: |
-          if [ $((HCNUMVER < 80200 || HCNUMVER >= 80400)) -ne 0 ] ; then $CABAL v2-haddock --disable-documentation --haddock-all $ARG_COMPILER --with-haddock $HADDOCK $ARG_TESTS $ARG_BENCH all ; fi
+          if [ $((HCNUMVER >= 80800)) -ne 0 ] ; then $CABAL v2-haddock --disable-documentation --haddock-all $ARG_COMPILER --with-haddock $HADDOCK $ARG_TESTS $ARG_BENCH all ; fi
       - name: save cache
         uses: actions/cache/save@v3
         if: always()
