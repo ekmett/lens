@@ -7,5 +7,9 @@ apt:                    freeglut3-dev
 -- irc-channels:           irc.freenode.org#haskell-lens
 irc-if-in-origin-repo:  True
 docspec:                True
--- Work around https://github.com/haskell/haddock/issues/679
-haddock:                <8.2 || >=8.4
+-- We make heavy use of type namespace markers in the Haddocks (e.g., t'Lens')
+-- to work around https://github.com/haskell/haddock/issues/1608. These markers
+-- were first introduced in Haddock 2.23, bundled with GHC 8.8. Because old
+-- versions of Haddock do not gracefully handle these markers, we simply do not
+-- build the Haddocks on CI unless we are using GHC 8.8 or later.
+haddock:                >=8.8
