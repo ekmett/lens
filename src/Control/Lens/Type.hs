@@ -235,7 +235,7 @@ type IndexedTraversal' i s a = IndexedTraversal i s s a a
 type IndexedTraversal1 i s t a b = forall p f. (Indexable i p, Apply f) => p a (f b) -> s -> f t
 type IndexedTraversal1' i s a = IndexedTraversal1 i s s a a
 
--- | An 'IndexPreservingLens' leaves any index it is composed with alone.
+-- | An 'IndexPreservingTraversal' leaves any index it is composed with alone.
 type IndexPreservingTraversal s t a b = forall p f. (Conjoined p, Applicative f) => p a (f b) -> p s (f t)
 
 -- | @
