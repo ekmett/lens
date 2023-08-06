@@ -193,7 +193,9 @@ instance Cons (Deque a) (Deque b) a b where
     if lf + lr == 0
     then Left empty
     else Right $ case f of
-      []     -> (head r, empty)
+      []     -> case r of
+                  y:_ -> (y, empty)
+                  []  -> error "Control.Lens.Internal.Deque._Cons: Internal check failed"
       (x:xs) -> (x, check (lf - 1) xs lr r)
   {-# INLINE _Cons #-}
 
@@ -202,6 +204,8 @@ instance Snoc (Deque a) (Deque b) a b where
     if lf + lr == 0
     then Left empty
     else Right $ case r of
-      []     -> (empty, head f)
+      []     -> case f of
+                  y:_ -> (empty, y)
+                  []  -> error "Control.Lens.Internal.Deque._Snoc: Internal check failed"
       (x:xs) -> (check lf f (lr - 1) xs, x)
   {-# INLINE _Snoc #-}
