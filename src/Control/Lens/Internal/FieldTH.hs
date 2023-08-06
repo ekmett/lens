@@ -506,16 +506,20 @@ makeGetterClause conName fieldCount []     = makePureClause conName fieldCount
 makeGetterClause conName fieldCount fields =
   do f  <- newName "f"
      xs <- newNames "x" (length fields)
+     xs' <-
+       case xs of
+         (x:xs') -> pure (x :| xs')
+         []      -> fail "makeGetterClause: Internal check failed"
 
      let pats (i:is) (y:ys)
            | i `elem` fields = varP y : pats is ys
            | otherwise = wildP : pats is (y:ys)
          pats is     _  = map (const wildP) is
 
-         fxs   = [ appE (varE f) (varE x) | x <- xs ]
+         (fx :| fxs) = fmap (appE (varE f) . varE) xs'
          body  = foldl (\a b -> appsE [varE apValName, a, b])
-                       (appE (varE phantomValName) (head fxs))
-                       (tail fxs)
+                       (appE (varE phantomValName) fx)
+                       fxs
 
      -- clause f (Con x1..xn) = coerce (f x1) <*> ... <*> f xn
      clause [varP f, conP conName (pats [0..fieldCount - 1] xs)]

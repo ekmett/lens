@@ -430,9 +430,17 @@ instance HasName Con where
   name f (InfixC l n r)        = (\n' -> InfixC l n' r) <$> f n
   name f (ForallC bds ctx con) = ForallC bds ctx <$> name f con
   name f (GadtC ns argTys retTy) =
-    (\n -> GadtC [n] argTys retTy) <$> f (head ns)
+    (\n -> GadtC [n] argTys retTy) <$> f (headGadtConName ns)
   name f (RecGadtC ns argTys retTy) =
-    (\n -> RecGadtC [n] argTys retTy) <$> f (head ns)
+    (\n -> RecGadtC [n] argTys retTy) <$> f (headGadtConName ns)
+
+-- @template-haskell@ maintains the invariant that the list of constructor
+-- @Name@s in a 'GadtC' or 'RecGadtC' will always be non-empty.
+headGadtConName :: [Name] -> Name
+headGadtConName conNames =
+  case conNames of
+    conName:_ -> conName
+    [] -> error "headGadtConName: Unexpected empty list of GADT constructor names"
 
 instance HasName Foreign where
   name f (ImportF cc saf str n ty) =
