@@ -1,5 +1,8 @@
 next [????.??.??]
 -----------------
+* Add a `generateRecordSyntax` option to `Control.Lens.TH`, which controls
+  whether to generate lenses using record update syntax or not. By default, this
+  option is disabled.
 * Fix a bug in which the `declare*` Template Haskell functions would fail if a
   data type's field has a type that is defined in the same Template Haskell
   quotation.
