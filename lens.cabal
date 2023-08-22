@@ -22,6 +22,7 @@ tested-with:   GHC == 8.0.2
              , GHC == 9.2.8
              , GHC == 9.4.5
              , GHC == 9.6.2
+             , GHC == 9.8.1
 synopsis:      Lenses, Folds and Traversals
 description:
   This package comes \"Batteries Included\" with many useful lenses for the types
