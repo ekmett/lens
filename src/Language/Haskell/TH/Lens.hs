@@ -258,8 +258,16 @@ module Language.Haskell.TH.Lens
   , _MDoE
   , _ImplicitParamVarE
 #endif
+#if MIN_VERSION_template_haskell(2,18,0)
+  , _GetFieldE
+  , _ProjectionE
+#endif
 #if MIN_VERSION_template_haskell(2,19,0)
   , _LamCasesE
+#endif
+#if MIN_VERSION_template_haskell(2,21,0)
+  , _TypedBracketE
+  , _TypedSpliceE
 #endif
   -- ** Body Prisms
   , _GuardedB
@@ -358,6 +366,11 @@ module Language.Haskell.TH.Lens
   , _SpecifiedSpec
   , _InferredSpec
 #endif
+#if MIN_VERSION_template_haskell(2,21,0)
+  -- ** BndrVis Prisms
+  , _BndrReq
+  , _BndrInvis
+#endif
   -- ** TyVarBndr Prisms
   , _PlainTV
   , _KindedTV
@@ -408,6 +421,9 @@ import Language.Haskell.TH.Syntax
 import Data.Word
 #if MIN_VERSION_template_haskell(2,15,0)
 import Data.Foldable as F (foldl')
+#endif
+#if MIN_VERSION_template_haskell(2,18,0)
+import Data.List.NonEmpty (NonEmpty)
 #endif
 import Prelude
 
@@ -1998,6 +2014,24 @@ _ImplicitParamVarE
       remitter _ = Nothing
 #endif
 
+#if MIN_VERSION_template_haskell(2,18,0)
+_GetFieldE :: Prism' Exp (Exp, String)
+_GetFieldE
+  = prism' reviewer remitter
+  where
+      reviewer (x, y) = GetFieldE x y
+      remitter (GetFieldE x y) = Just (x, y)
+      remitter _ = Nothing
+
+_ProjectionE :: Prism' Exp (NonEmpty String)
+_ProjectionE
+  = prism' reviewer remitter
+  where
+      reviewer = ProjectionE
+      remitter (ProjectionE x) = Just x
+      remitter _ = Nothing
+#endif
+
 #if MIN_VERSION_template_haskell(2,19,0)
 _LamCasesE :: Prism' Exp [Clause]
 _LamCasesE
@@ -2005,6 +2039,24 @@ _LamCasesE
   where
       reviewer = LamCasesE
       remitter (LamCasesE x) = Just x
+      remitter _ = Nothing
+#endif
+
+#if MIN_VERSION_template_haskell(2,21,0)
+_TypedBracketE :: Prism' Exp Exp
+_TypedBracketE
+  = prism' reviewer remitter
+  where
+      reviewer = TypedBracketE
+      remitter (TypedBracketE x) = Just x
+      remitter _ = Nothing
+
+_TypedSpliceE :: Prism' Exp Exp
+_TypedSpliceE
+  = prism' reviewer remitter
+  where
+      reviewer = TypedSpliceE
+      remitter (TypedSpliceE x) = Just x
       remitter _ = Nothing
 #endif
 
@@ -2606,6 +2658,24 @@ _InferredSpec
   where
       reviewer () = InferredSpec
       remitter InferredSpec = Just ()
+      remitter _ = Nothing
+#endif
+
+#if MIN_VERSION_template_haskell(2,21,0)
+_BndrReq :: Prism' BndrVis ()
+_BndrReq
+  = prism' reviewer remitter
+  where
+      reviewer () = BndrReq
+      remitter BndrReq = Just ()
+      remitter _ = Nothing
+
+_BndrInvis :: Prism' BndrVis ()
+_BndrInvis
+  = prism' reviewer remitter
+  where
+      reviewer () = BndrInvis
+      remitter BndrInvis = Just ()
       remitter _ = Nothing
 #endif
 
