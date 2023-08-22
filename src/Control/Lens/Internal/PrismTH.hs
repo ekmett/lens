@@ -433,7 +433,7 @@ makeClassyPrismClass t className methodName cons =
          ]
 
   cons'         = map (over nconName prismName) cons
-  vs            = D.freeVariablesWellScoped [t]
+  vs            = D.changeTVFlags bndrReq $ D.freeVariablesWellScoped [t]
   vNames        = map D.tvName vs
   fds r
     | null vs   = []

@@ -1,5 +1,6 @@
 next [????.??.??]
 -----------------
+* Allow building with GHC 9.8.
 * Add a `generateRecordSyntax` option to `Control.Lens.TH`, which controls
   whether to generate lenses using record update syntax or not. By default, this
   option is disabled.
