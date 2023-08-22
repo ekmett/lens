@@ -20,7 +20,13 @@
 -- Portability :  non-portable
 --
 ----------------------------------------------------------------------------
-module Control.Lens.Internal.TH where
+module Control.Lens.Internal.TH
+  ( module Control.Lens.Internal.TH
+#if MIN_VERSION_template_haskell(2,21,0) || MIN_VERSION_th_abstraction(0,6,0)
+  , D.TyVarBndrVis
+  , D.bndrReq
+#endif
+  ) where
 
 import Control.Lens.Iso
 import Control.Lens.Prism
@@ -156,6 +162,13 @@ isDataFamily D.DataInstance    = True
 isDataFamily D.NewtypeInstance = True
 #if MIN_VERSION_th_abstraction(0,5,0)
 isDataFamily D.TypeData        = False
+#endif
+
+#if !(MIN_VERSION_template_haskell(2,21,0)) && !(MIN_VERSION_th_abstraction(0,6,0))
+type TyVarBndrVis = D.TyVarBndr_ ()
+
+bndrReq :: ()
+bndrReq = ()
 #endif
 
 ------------------------------------------------------------------------

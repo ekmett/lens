@@ -367,7 +367,7 @@ makeClassyClass className methodName s defs = do
   let ss   = map (stabToS . view (_2 . _2)) defs
   (sub,s') <- unifyTypes (s : ss)
   c <- newName "c"
-  let vars     = D.freeVariablesWellScoped [s']
+  let vars     = D.changeTVFlags bndrReq $ D.freeVariablesWellScoped [s']
       varNames = map D.tvName vars
       fd   | null vars = []
            | otherwise = [FunDep [c] varNames]

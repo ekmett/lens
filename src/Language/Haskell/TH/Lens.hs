@@ -389,6 +389,7 @@ import Control.Lens.At
 import Control.Lens.Getter
 import Control.Lens.Setter
 import Control.Lens.Fold
+import Control.Lens.Internal.TH
 import Control.Lens.Iso (Iso', iso)
 import Control.Lens.Lens
 import Control.Lens.Prism
@@ -406,7 +407,6 @@ import Language.Haskell.TH.Datatype.TyVarBndr
 import Language.Haskell.TH.Syntax
 import Data.Word
 #if MIN_VERSION_template_haskell(2,15,0)
-import Control.Lens.Internal.TH (unfoldType)
 import Data.Foldable as F (foldl')
 #endif
 import Prelude
@@ -767,7 +767,7 @@ typeFamilyHeadName = lens g s where
   g (TypeFamilyHead n _    _  _ )   = n
   s (TypeFamilyHead _ tvbs rs ia) n = TypeFamilyHead n tvbs rs ia
 
-typeFamilyHeadTyVarBndrs :: Lens' TypeFamilyHead [TyVarBndrUnit]
+typeFamilyHeadTyVarBndrs :: Lens' TypeFamilyHead [TyVarBndrVis]
 typeFamilyHeadTyVarBndrs = lens g s where
   g (TypeFamilyHead _ tvbs _  _ )      = tvbs
   s (TypeFamilyHead n _    rs ia) tvbs = TypeFamilyHead n tvbs rs ia
@@ -894,7 +894,7 @@ _ValD
       remitter (ValD x y z) = Just (x, y, z)
       remitter _ = Nothing
 
-_TySynD :: Prism' Dec (Name, [TyVarBndrUnit], Type)
+_TySynD :: Prism' Dec (Name, [TyVarBndrVis], Type)
 _TySynD
   = prism' reviewer remitter
   where
@@ -902,7 +902,7 @@ _TySynD
       remitter (TySynD x y z) = Just (x, y, z)
       remitter _ = Nothing
 
-_ClassD :: Prism' Dec (Cxt, Name, [TyVarBndrUnit], [FunDep], [Dec])
+_ClassD :: Prism' Dec (Cxt, Name, [TyVarBndrVis], [FunDep], [Dec])
 _ClassD
   = prism' reviewer remitter
   where
@@ -1108,7 +1108,7 @@ _ClosedTypeFamilyD
 -- _DataD :: 'Prism'' 'Dec' ('Cxt', 'Name', ['TyVarBndrUnit'], 'Maybe' 'Kind', ['Con'], ['DerivClause']) -- template-haskell-2.12+
 -- _DataD :: 'Prism'' 'Dec' ('Cxt', 'Name', ['Type'],          'Maybe' 'Kind', ['Con'], 'Cxt')           -- Earlier versions
 -- @
-_DataD :: DataPrism' [TyVarBndrUnit] [Con]
+_DataD :: DataPrism' [TyVarBndrVis] [Con]
 _DataD
   = prism' reviewer remitter
   where
@@ -1121,7 +1121,7 @@ _DataD
 -- _NewtypeD :: 'Prism'' 'Dec' ('Cxt', 'Name', ['TyVarBndrUnit'], 'Maybe' 'Kind', 'Con', ['DerivClause']) -- template-haskell-2.12+
 -- _NewtypeD :: 'Prism'' 'Dec' ('Cxt', 'Name', ['Type'],          'Maybe' 'Kind', 'Con', 'Cxt')           -- Earlier versions
 -- @
-_NewtypeD :: DataPrism' [TyVarBndrUnit] Con
+_NewtypeD :: DataPrism' [TyVarBndrVis] Con
 _NewtypeD
   = prism' reviewer remitter
   where
@@ -1129,7 +1129,7 @@ _NewtypeD
       remitter (NewtypeD x y z w u v) = Just (x, y, z, w, u, v)
       remitter _ = Nothing
 
-_DataFamilyD :: Prism' Dec (Name, [TyVarBndrUnit], Maybe Kind)
+_DataFamilyD :: Prism' Dec (Name, [TyVarBndrVis], Maybe Kind)
 _DataFamilyD
   = prism' reviewer remitter
   where
@@ -1184,7 +1184,7 @@ _DefaultD
 #endif
 
 #if MIN_VERSION_template_haskell(2,20,0)
-_TypeDataD :: Prism' Dec (Name, [TyVarBndr ()], Maybe Kind, [Con])
+_TypeDataD :: Prism' Dec (Name, [TyVarBndrVis], Maybe Kind, [Con])
 _TypeDataD
   = prism' reviewer remitter
   where
