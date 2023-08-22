@@ -1,6 +1,16 @@
 next [????.??.??]
 -----------------
 * Allow building with GHC 9.8.
+* Add new `Prism`s to `Language.Haskell.TH.Lens` to reflect recent additions to
+  `template-haskell`:
+  * `_GetFieldE` and `_ProjectionE` `Prism`s for the `Exp` data type, whose
+    corresponding data constructors were introduced in
+    `template-haskell-2.18.*`.
+  * `_TypedBracketE` and `_TypedSpliceE` `Prism`s for the `Exp` data type, whose
+    corresponding data constructors were introduced in
+    `template-haskell-2.21.*`.
+  * `_BndrReq` and `_BndrInvis` `Prism`s for the `BndrVis` data type, which was
+    added in `template-haskell-2.21.*`.
 * Add a `generateRecordSyntax` option to `Control.Lens.TH`, which controls
   whether to generate lenses using record update syntax or not. By default, this
   option is disabled.
