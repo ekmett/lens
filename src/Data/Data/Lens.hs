@@ -77,6 +77,8 @@ import qualified Data.Type.Equality as X
 -- $setup
 -- >>> :set -XNoOverloadedStrings
 -- >>> import Control.Lens
+-- >>> import Control.Lens.Internal.Doctest
+-- >>> import Prelude hiding (head, tail)
 
 -------------------------------------------------------------------------------
 -- Generic Traversal

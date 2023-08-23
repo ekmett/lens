@@ -230,6 +230,7 @@ library
     Control.Lens.Internal.Context
     Control.Lens.Internal.CTypes
     Control.Lens.Internal.Deque
+    Control.Lens.Internal.Doctest
     Control.Lens.Internal.Exception
     Control.Lens.Internal.FieldTH
     Control.Lens.Internal.PrismTH
