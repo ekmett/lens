@@ -197,8 +197,8 @@ infixl 8 ^.., ^?, ^?!, ^@.., ^@?, ^@?!
 --
 -- This can be useful to lift operations from @Data.List@ and elsewhere into a 'Fold'.
 --
--- >>> [1,2,3,4]^..folding tail
--- [2,3,4]
+-- >>> [1,2,3,4]^..folding reverse
+-- [4,3,2,1]
 folding :: Foldable f => (s -> f a) -> Fold s a
 folding sfa agb = phantom . traverse_ agb . sfa
 {-# INLINE folding #-}
