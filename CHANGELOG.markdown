@@ -1,5 +1,5 @@
-next [????.??.??]
------------------
+5.2.3 [2023.08.24]
+------------------
 * Allow building with GHC 9.8.
 * Add new `Prism`s to `Language.Haskell.TH.Lens` to reflect recent additions to
   `template-haskell`:
