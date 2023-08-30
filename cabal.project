@@ -1,7 +1,3 @@
 packages: .
           ./examples
           ./lens-properties
-
--- For GHC-9.6
-allow-newer: vector-th-unbox-0.2.2:base
-allow-newer: vector-th-unbox-0.2.2:template-haskell

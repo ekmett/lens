@@ -248,8 +248,6 @@ jobs:
           if [ $((HCNUMVER >= 80200)) -ne 0 ] ; then echo "package lens-properties" >> cabal.project ; fi
           if [ $((HCNUMVER >= 80200)) -ne 0 ] ; then echo "    ghc-options: -Werror=missing-methods" >> cabal.project ; fi
           cat >> cabal.project <<EOF
-          allow-newer: vector-th-unbox-0.2.2:base
-          allow-newer: vector-th-unbox-0.2.2:template-haskell
           EOF
           if $HEADHACKAGE; then
           echo "allow-newer: $($HCPKG list --simple-output | sed -E 's/([a-zA-Z-]+)-[0-9.]+/*:\1,/g')" >> cabal.project
