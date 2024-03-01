@@ -49,11 +49,11 @@ module Control.Lens.Setter
   , over
   , set
   , (.~), (%~)
-  , (+~), (-~), (*~), (//~), (^~), (^^~), (**~), (||~), (<>~), (&&~), (<.~), (?~), (<?~)
+  , (+~), (-~), (*~), (//~), (^~), (^^~), (**~), (||~), (<>~), (<>:~), (<|~), (|>~), (&&~), (<.~), (?~), (<?~)
   -- * State Combinators
   , assign, modifying
   , (.=), (%=)
-  , (+=), (-=), (*=), (//=), (^=), (^^=), (**=), (||=), (<>=), (&&=), (<.=), (?=), (<?=)
+  , (+=), (-=), (*=), (//=), (^=), (^^=), (**=), (||=), (<>=), (<>:=), (<|=), (|>=), (&&=), (<.=), (?=), (<?=)
   , (<~)
   -- * Writer Combinators
   , scribe
@@ -80,8 +80,9 @@ import Prelude ()
 
 import Control.Arrow
 import Control.Comonad
-import Control.Lens.Internal.Prelude
+import Control.Lens.Cons
 import Control.Lens.Internal.Indexed
+import Control.Lens.Internal.Prelude
 import Control.Lens.Internal.Setter
 import Control.Lens.Type
 import Control.Monad (liftM)
@@ -105,8 +106,8 @@ import Control.Monad.Writer.Class as Writer
 -- >>> let setter :: Expr -> Expr -> Expr; setter = fun "setter"
 -- >>> :set -XNoOverloadedStrings
 
-infixr 4 %@~, .@~, .~, +~, *~, -~, //~, ^~, ^^~, **~, &&~, <>~, ||~, %~, <.~, ?~, <?~
-infix  4 %@=, .@=, .=, +=, *=, -=, //=, ^=, ^^=, **=, &&=, <>=, ||=, %=, <.=, ?=, <?=
+infixr 4 %@~, .@~, .~, +~, *~, -~, //~, ^~, ^^~, **~, &&~, <>~, <>:~, <|~, |>~, ||~, %~, <.~, ?~, <?~
+infix  4 %@=, .@=, .=, +=, *=, -=, //=, ^=, ^^=, **=, &&=, <>=, <>:=, <|=, |>=, ||=, %=, <.=, ?=, <?=
 infixr 2 <~
 
 ------------------------------------------------------------------------------
@@ -1069,6 +1070,50 @@ l <>~ n = over l (<> n)
 (<>=) :: (MonadState s m, Semigroup a) => ASetter' s a -> a -> m ()
 l <>= a = State.modify (l <>~ a)
 {-# INLINE (<>=) #-}
+
+-- | Modify the target of a 'Semigroup' value by using @('<>')@.
+-- However, unlike '<>~', it is prepend to the head side.
+--
+-- >>> ["world"] & id <>:~ ["hello"]
+-- ["hello","world"]
+--
+-- >>> (["world"], ["lens"]) & _1 <>:~ ["hello"]
+-- (["hello","world"],["lens"])
+(<>:~) :: Semigroup b => ASetter s t b b -> b -> s -> t
+l <>:~ n = over l (n <>)
+{-# INLINE (<>:~) #-}
+
+-- | Modify the target(s) of a 'Lens'', 'Iso', 'Setter' or 'Traversal' by using @('<>')@.
+-- However, unlike '<>=', it is prepend to the head side.
+(<>:=) :: (MonadState s m, Semigroup a) => ASetter' s a -> a -> m ()
+l <>:= a = State.modify (l <>:~ a)
+{-# INLINE (<>:=) #-}
+
+-- | Modify the target of a 'Cons' value by using @('<|')@.
+--
+-- >>> (["world"], ["lens"]) & _1 <|~ "hello"
+-- (["hello","world"],["lens"])
+(<|~) :: Cons b b a a => ASetter s t b b -> a -> s -> t
+l <|~ n = over l (n <|)
+{-# INLINE (<|~) #-}
+
+-- | Modify the target(s) of a 'Lens'', 'Iso', 'Setter' or 'Traversal' by using @('<|')@.
+(<|=) :: (MonadState s m, Cons b b a a) => ASetter s s b b -> a -> m ()
+l <|= a = State.modify (l <|~ a)
+{-# INLINE (<|=) #-}
+
+-- | Modify the target of a 'Cons' value by using @('|>')@.
+--
+-- >>> (["world"], ["lens"]) & _1 |>~ "hello"
+-- (["world","hello"],["lens"])
+(|>~) :: Snoc b b a a => ASetter s t b b -> a -> s -> t
+l |>~ n = over l (|> n)
+{-# INLINE (|>~) #-}
+
+-- | Modify the target(s) of a 'Lens'', 'Iso', 'Setter' or 'Traversal' by using @('|>')@.
+(|>=) :: (MonadState s m, Snoc b b a a) => ASetter s s b b -> a -> m ()
+l |>= a = State.modify (l |>~ a)
+{-# INLINE (|>=) #-}
 
 -----------------------------------------------------------------------------
 -- Writer Operations
