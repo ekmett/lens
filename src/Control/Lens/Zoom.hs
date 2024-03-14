@@ -276,9 +276,11 @@ instance (Monad m, Monoid w) => Magnify (Lazy.RWST b w s m) (Lazy.RWST a w s m) 
   magnify l (Lazy.RWST m) = Lazy.RWST $ getEffectRWS #. l (EffectRWS #. m)
   {-# INLINE magnify #-}
 
+#if MIN_VERSION_mtl(2,3,0)
 instance (Monad m, Monoid w, MonadReader b (CPS.RWST b w s m)) => Magnify (CPS.RWST b w s m) (CPS.RWST a w s m) b a where
   magnify l m = CPS.rwsT $ getEffectRWS #. l (EffectRWS #. CPS.runRWST m)
   {-# INLINE magnify #-}
+#endif
 
 instance Magnify m n b a => Magnify (IdentityT m) (IdentityT n) b a where
   magnify l (IdentityT m) = IdentityT (magnify l m)
