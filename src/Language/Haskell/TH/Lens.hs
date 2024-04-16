@@ -148,6 +148,12 @@ module Language.Haskell.TH.Lens
   , _ForallC
   , _GadtC
   , _RecGadtC
+#if MIN_VERSION_template_haskell(2,22,0)
+  -- ** NamespaceSpecifier Prisms
+  , _NoNamespaceSpecifier
+  , _TypeNamespaceSpecifier
+  , _DataNamespaceSpecifier
+#endif
   -- ** Overlap Prisms
   ,_Overlappable
   ,_Overlapping
@@ -190,6 +196,9 @@ module Language.Haskell.TH.Lens
 #endif
 #if MIN_VERSION_template_haskell(2,19,0)
   , _OpaqueP
+#endif
+#if MIN_VERSION_template_haskell(2,22,0)
+  , _SCCP
 #endif
   -- ** Inline Prisms
   , _NoInline
@@ -269,6 +278,9 @@ module Language.Haskell.TH.Lens
   , _TypedBracketE
   , _TypedSpliceE
 #endif
+#if MIN_VERSION_template_haskell(2,22,0)
+  , _TypeE
+#endif
   -- ** Body Prisms
   , _GuardedB
   , _NormalB
@@ -322,6 +334,10 @@ module Language.Haskell.TH.Lens
   , _ListP
   , _SigP
   , _ViewP
+#if MIN_VERSION_template_haskell(2,22,0)
+  , _TypeP
+  , _InvisP
+#endif
   -- ** Type Prisms
   , _ForallT
   , _AppT
@@ -934,6 +950,32 @@ _InstanceD
       remitter (InstanceD x y z w) = Just (x, y, z, w)
       remitter _ = Nothing
 
+#if MIN_VERSION_template_haskell(2,22,0)
+_NoNamespaceSpecifier :: Prism' NamespaceSpecifier ()
+_NoNamespaceSpecifier
+  = prism' reviewer remitter
+  where
+      reviewer () = NoNamespaceSpecifier
+      remitter NoNamespaceSpecifier = Just ()
+      remitter _ = Nothing
+
+_TypeNamespaceSpecifier :: Prism' NamespaceSpecifier ()
+_TypeNamespaceSpecifier
+  = prism' reviewer remitter
+  where
+      reviewer () = TypeNamespaceSpecifier
+      remitter TypeNamespaceSpecifier = Just ()
+      remitter _ = Nothing
+
+_DataNamespaceSpecifier :: Prism' NamespaceSpecifier ()
+_DataNamespaceSpecifier
+  = prism' reviewer remitter
+  where
+      reviewer () = DataNamespaceSpecifier
+      remitter DataNamespaceSpecifier = Just ()
+      remitter _ = Nothing
+#endif
+
 _Overlappable  :: Prism' Overlap  ()
 _Overlappable  = prism' reviewer remitter
   where
@@ -978,6 +1020,20 @@ _ForeignD
       remitter (ForeignD x) = Just x
       remitter _ = Nothing
 
+-- |
+-- @
+-- _InfixD :: 'Prism'' 'Dec' ('Fixity', 'NamespaceSpecifier', 'Name') -- template-haskell-2.22+
+-- _InfixD :: 'Prism'' 'Dec' ('Fixity', 'Name')                     -- Earlier versions
+-- @
+#if MIN_VERSION_template_haskell(2,22,0)
+_InfixD :: Prism' Dec (Fixity, NamespaceSpecifier, Name)
+_InfixD
+  = prism' reviewer remitter
+  where
+      reviewer (x, y, z) = InfixD x y z
+      remitter (InfixD x y z) = Just (x, y, z)
+      remitter _ = Nothing
+#else
 _InfixD :: Prism' Dec (Fixity, Name)
 _InfixD
   = prism' reviewer remitter
@@ -985,6 +1041,7 @@ _InfixD
       reviewer (x, y) = InfixD x y
       remitter (InfixD x y) = Just (x, y)
       remitter _ = Nothing
+#endif
 
 _PragmaD :: Prism' Dec Pragma
 _PragmaD
@@ -1544,6 +1601,16 @@ _OpaqueP
       remitter _ = Nothing
 #endif
 
+#if MIN_VERSION_template_haskell(2,22,0)
+_SCCP :: Prism' Pragma (Name, Maybe String)
+_SCCP
+  = prism' reviewer remitter
+  where
+      reviewer (x, y) = SCCP x y
+      remitter (SCCP x y) = Just (x, y)
+      remitter _ = Nothing
+#endif
+
 _NoInline :: Prism' Inline ()
 _NoInline
   = prism' reviewer remitter
@@ -2060,6 +2127,16 @@ _TypedSpliceE
       remitter _ = Nothing
 #endif
 
+#if MIN_VERSION_template_haskell(2,22,0)
+_TypeE :: Prism' Exp Type
+_TypeE
+  = prism' reviewer remitter
+  where
+      reviewer = TypeE
+      remitter (TypeE x) = Just x
+      remitter _ = Nothing
+#endif
+
 _GuardedB :: Prism' Body [(Guard, Exp)]
 _GuardedB
   = prism' reviewer remitter
@@ -2408,6 +2485,24 @@ _ViewP
       reviewer (x, y) = ViewP x y
       remitter (ViewP x y) = Just (x, y)
       remitter _ = Nothing
+
+#if MIN_VERSION_template_haskell(2,22,0)
+_TypeP :: Prism' Pat Type
+_TypeP
+  = prism' reviewer remitter
+  where
+      reviewer = TypeP
+      remitter (TypeP x) = Just x
+      remitter _ = Nothing
+
+_InvisP :: Prism' Pat Type
+_InvisP
+  = prism' reviewer remitter
+  where
+      reviewer = InvisP
+      remitter (InvisP x) = Just x
+      remitter _ = Nothing
+#endif
 
 _ForallT :: Prism' Type ([TyVarBndrSpec], Cxt, Type)
 _ForallT

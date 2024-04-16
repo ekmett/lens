@@ -1,3 +1,15 @@
+5.3 [????.??.??]
+----------------
+* Allow building with GHC 9.10.
+* Update the `Prism`s in `Language.Haskell.TH.Lens` to reflect additions to
+  `template-haskell-2.22.0.0`:
+  * The `_InfixD` `Prism` now focuses on `(Fixity, NamespaceSpecifier, Name)`
+    when building with `template-haskell-2.22.0.0` or later.
+  * Add `Prism`s for the newly introduced `NamespaceSpecifier` data type.
+  * Add `_TypeP` and `_InvisP` `Prism`s for the `Pat` data type.
+  * Add a `_TypeE` `Prism` for the `Exp` data type.
+  * Add a `_SCCP` `Prism` for the `Pragma` data type.
+
 5.2.3 [2023.08.24]
 ------------------
 * Allow building with GHC 9.8.
