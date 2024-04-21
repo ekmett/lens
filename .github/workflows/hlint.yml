@@ -1,0 +1,43 @@
+name: HLint
+on:
+  - push
+  - pull_request
+jobs:
+  hlint:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: 'Set up HLint'
+      uses: haskell-actions/hlint-setup@v2
+      with:
+        version: '3.8'
+
+    - name: 'Run HLint (lens)'
+      uses: haskell-actions/hlint-run@v2
+      with:
+        path: src/
+        fail-on: suggestion
+
+    # https://github.com/haskell-actions/hlint-run/issues/12
+    - name: 'HLint config (lens-properties)'
+      run: |
+        cp lens-properties/.hlint.yaml .
+
+    - name: 'Run HLint (lens-properties)'
+      uses: haskell-actions/hlint-run@v2
+      with:
+        path: lens-properties/src/
+        fail-on: suggestion
+
+    - name: 'HLint config (examples)'
+      run: |
+        cp examples/.hlint.yaml .
+
+    - name: 'Run HLint (examples)'
+      uses: haskell-actions/hlint-run@v2
+      with:
+        path: examples/
+        fail-on: suggestion
