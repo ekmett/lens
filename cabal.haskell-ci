@@ -1,8 +1,6 @@
 distribution:           jammy
 no-tests-no-benchmarks: False
 unconstrained:          False
-hlint:                  True
-hlint-version:          >=3.8 && <3.9
 apt:                    freeglut3-dev
 -- irc-channels:           irc.freenode.org#haskell-lens
 irc-if-in-origin-repo:  True

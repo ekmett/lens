@@ -8,9 +8,9 @@
 #
 # For more information, see https://github.com/haskell-CI/haskell-ci
 #
-# version: 0.19.20240416
+# version: 0.19.20240420
 #
-# REGENDATA ("0.19.20240416",["--config=cabal.haskell-ci","cabal.project"])
+# REGENDATA ("0.19.20240420",["--config=cabal.haskell-ci","cabal.project"])
 #
 name: Haskell-CI
 on:
@@ -178,11 +178,6 @@ jobs:
       - name: update cabal index
         run: |
           $CABAL v2-update -v
-      - name: cache (tools)
-        uses: actions/cache/restore@v3
-        with:
-          key: ${{ runner.os }}-${{ matrix.compiler }}-tools-d3d4cc06
-          path: ~/.haskell-ci-tools
       - name: install cabal-plan
         run: |
           mkdir -p $HOME/.cabal/bin
@@ -201,20 +196,8 @@ jobs:
           rm -f cabal-docspec.xz
           chmod a+x $HOME/.cabal/bin/cabal-docspec
           cabal-docspec --version
-      - name: install hlint
-        run: |
-          if [ $((HCNUMVER >= 90800 && HCNUMVER < 91000)) -ne 0 ] ; then HLINTVER=$(cd /tmp && (${CABAL} v2-install -v $ARG_COMPILER --dry-run hlint  --constraint='hlint >=3.8 && <3.9' |  perl -ne 'if (/\bhlint-(\d+(\.\d+)*)\b/) { print "$1"; last; }')); echo "HLint version $HLINTVER" ; fi
-          if [ $((HCNUMVER >= 90800 && HCNUMVER < 91000)) -ne 0 ] ; then if [ ! -e $HOME/.haskell-ci-tools/hlint-$HLINTVER/hlint ]; then echo "Downloading HLint version $HLINTVER"; mkdir -p $HOME/.haskell-ci-tools; curl --write-out 'Status Code: %{http_code} Redirects: %{num_redirects} Total time: %{time_total} Total Dsize: %{size_download}\n' --silent --location --output $HOME/.haskell-ci-tools/hlint-$HLINTVER.tar.gz "https://github.com/ndmitchell/hlint/releases/download/v$HLINTVER/hlint-$HLINTVER-x86_64-linux.tar.gz"; tar -xzv -f $HOME/.haskell-ci-tools/hlint-$HLINTVER.tar.gz -C $HOME/.haskell-ci-tools; fi ; fi
-          if [ $((HCNUMVER >= 90800 && HCNUMVER < 91000)) -ne 0 ] ; then mkdir -p $CABAL_DIR/bin && ln -sf "$HOME/.haskell-ci-tools/hlint-$HLINTVER/hlint" $CABAL_DIR/bin/hlint ; fi
-          if [ $((HCNUMVER >= 90800 && HCNUMVER < 91000)) -ne 0 ] ; then hlint --version ; fi
-      - name: save cache (tools)
-        uses: actions/cache/save@v3
-        if: always()
-        with:
-          key: ${{ runner.os }}-${{ matrix.compiler }}-tools-d3d4cc06
-          path: ~/.haskell-ci-tools
       - name: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           path: source
       - name: initial cabal.project for sdist
@@ -265,7 +248,7 @@ jobs:
           $CABAL v2-build $ARG_COMPILER $ARG_TESTS $ARG_BENCH --dry-run all
           cabal-plan
       - name: restore cache
-        uses: actions/cache/restore@v3
+        uses: actions/cache/restore@v4
         with:
           key: ${{ runner.os }}-${{ matrix.compiler }}-${{ github.sha }}
           path: ~/.cabal/store
@@ -284,11 +267,6 @@ jobs:
         run: |
           $CABAL v2-build $ARG_COMPILER $ARG_TESTS $ARG_BENCH all
           cabal-docspec $ARG_COMPILER
-      - name: hlint
-        run: |
-          if [ $((HCNUMVER >= 90800 && HCNUMVER < 91000)) -ne 0 ] ; then (cd ${PKGDIR_lens} && hlint -XHaskell2010 src) ; fi
-          if [ $((HCNUMVER >= 90800 && HCNUMVER < 91000)) -ne 0 ] ; then (cd ${PKGDIR_lens_examples} && hlint -XHaskell2010 .) ; fi
-          if [ $((HCNUMVER >= 90800 && HCNUMVER < 91000)) -ne 0 ] ; then (cd ${PKGDIR_lens_properties} && hlint -XHaskell2010 src) ; fi
       - name: cabal check
         run: |
           cd ${PKGDIR_lens} || false
@@ -301,7 +279,7 @@ jobs:
         run: |
           if [ $((HCNUMVER >= 80800)) -ne 0 ] ; then $CABAL v2-haddock --disable-documentation --haddock-all $ARG_COMPILER --with-haddock $HADDOCK $ARG_TESTS $ARG_BENCH all ; fi
       - name: save cache
-        uses: actions/cache/save@v3
+        uses: actions/cache/save@v4
         if: always()
         with:
           key: ${{ runner.os }}-${{ matrix.compiler }}-${{ github.sha }}
