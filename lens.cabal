@@ -410,7 +410,6 @@ benchmark plated
   default-language: Haskell2010
   build-depends:
     base,
-    base-compat >=0.11.0 && <0.15,
     comonad,
     criterion,
     deepseq,
