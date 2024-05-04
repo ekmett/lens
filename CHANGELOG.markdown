@@ -1,4 +1,4 @@
-5.3 [????.??.??]
+5.3 [2024.05.04]
 ----------------
 * Allow building with GHC 9.10.
 * Update the `Prism`s in `Language.Haskell.TH.Lens` to reflect additions to
