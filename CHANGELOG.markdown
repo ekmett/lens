@@ -16,6 +16,7 @@
   * `(<<|~)`: cons an element to the front via `(<|)` and return the result.
   * `(|>~)`: snoc an element to the back via `(|>)`.
   * `(<|>~)`: snoc an element to the back via `(|>)` and return the result.
+
   Each of these also has a variant that end with `=` instead of `~` (e.g.,
   `(<>:=)`) for working in a `MonadState` setting.
 
