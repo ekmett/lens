@@ -46,6 +46,9 @@ import Control.Monad.Trans.Writer.Lazy as Lazy
 import Control.Monad.Trans.Writer.Strict as Strict
 import Control.Monad.Trans.RWS.Lazy as Lazy
 import Control.Monad.Trans.RWS.Strict as Strict
+#if MIN_VERSION_mtl(2,3,0)
+import Control.Monad.Trans.RWS.CPS as CPS
+#endif
 import Control.Monad.Trans.Except
 import Control.Monad.Trans.Identity
 import Control.Monad.Trans.Maybe
@@ -102,6 +105,9 @@ type instance Magnified (ReaderT b m) = Effect m
 type instance Magnified ((->)b) = Const
 type instance Magnified (Strict.RWST a w s m) = EffectRWS w s m
 type instance Magnified (Lazy.RWST a w s m) = EffectRWS w s m
+#if MIN_VERSION_mtl(2,3,0)
+type instance Magnified (CPS.RWST a w s m) = EffectRWS w s m
+#endif
 type instance Magnified (IdentityT m) = Magnified m
 
 ------------------------------------------------------------------------------
@@ -273,6 +279,12 @@ instance (Monad m, Monoid w) => Magnify (Strict.RWST b w s m) (Strict.RWST a w s
 instance (Monad m, Monoid w) => Magnify (Lazy.RWST b w s m) (Lazy.RWST a w s m) b a where
   magnify l (Lazy.RWST m) = Lazy.RWST $ getEffectRWS #. l (EffectRWS #. m)
   {-# INLINE magnify #-}
+
+#if MIN_VERSION_mtl(2,3,0)
+instance (Monad m, Monoid w, MonadReader b (CPS.RWST b w s m)) => Magnify (CPS.RWST b w s m) (CPS.RWST a w s m) b a where
+  magnify l m = CPS.rwsT $ getEffectRWS #. l (EffectRWS #. CPS.runRWST m)
+  {-# INLINE magnify #-}
+#endif
 
 instance Magnify m n b a => Magnify (IdentityT m) (IdentityT n) b a where
   magnify l (IdentityT m) = IdentityT (magnify l m)
