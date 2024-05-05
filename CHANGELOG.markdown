@@ -1,3 +1,8 @@
+next [????.??.??]
+-----------------
+* Add a `Magnify` instance for the CPS variant of `RWST` when building with
+  `mtl-2.3` or later.
+
 5.3 [2024.05.04]
 ----------------
 * Allow building with GHC 9.10.
