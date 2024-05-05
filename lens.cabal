@@ -185,7 +185,7 @@ library
     contravariant                 >= 1.4      && < 2,
     distributive                  >= 0.5.1    && < 1,
     exceptions                    >= 0.8.2.1  && < 1,
-    filepath                      >= 1.2.0.0  && < 1.6,
+    filepath                      >= 1.2.0.0  && < 1.5,
     free                          >= 5.1.5    && < 6,
     ghc-prim,
     hashable                      >= 1.2.7.0  && < 1.5,
