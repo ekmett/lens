@@ -1,5 +1,5 @@
-next [????.??.??]
------------------
+5.3.1 [2024.05.05]
+------------------
 * Add a `Magnify` instance for the CPS variant of `RWST` when building with
   `mtl-2.3` or later.
 
