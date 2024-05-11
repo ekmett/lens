@@ -1,3 +1,9 @@
+next [????.??.??]
+-----------------
+* Re-export `(<>:~)`, `(<<>:~)`, `(<|~)`, `(<<|~)`, `(|>~)`, and `(<|>~)` (as
+  well as their variants which end with `=` instead of `~`)  from
+  `Control.Lens.Operators`.
+
 5.3.1 [2024.05.05]
 ------------------
 * Add a `Magnify` instance for the CPS variant of `RWST` when building with
