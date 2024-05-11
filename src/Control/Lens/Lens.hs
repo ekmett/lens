@@ -1192,18 +1192,18 @@ l <<>~ m = l <%~ (<> m)
 l <<>= r = l <%= (<> r)
 {-# INLINE (<<>=) #-}
 
--- | ('<>') a 'Semigroup' value onto the end of the target of a 'Lens' and
+-- | ('<>') a 'Semigroup' value onto the front of the target of a 'Lens' and
 -- return the result.
--- However, unlike '<<>~', it is prepend to the head side.
+-- However, unlike ('<<>~'), it is prepended to the head side.
 --
 -- When you do not need the result of the operation, ('Control.Lens.Setter.<>:~') is more flexible.
 (<<>:~) :: Semigroup m => LensLike ((,)m) s t m m -> m -> s -> (m, t)
 l <<>:~ m = l <%~ (m <>)
 {-# INLINE (<<>:~) #-}
 
--- | ('<>') a 'Semigroup' value onto the end of the target of a 'Lens' into
+-- | ('<>') a 'Semigroup' value onto the front of the target of a 'Lens' into
 -- your 'Monad''s state and return the result.
--- However, unlike '<<>=', it is prepend to the head side.
+-- However, unlike ('<<>='), it is prepended to the head side.
 --
 -- When you do not need the result of the operation, ('Control.Lens.Setter.<>:=') is more flexible.
 (<<>:=) :: (MonadState s m, Semigroup r) => LensLike' ((,)r) s r -> r -> m r

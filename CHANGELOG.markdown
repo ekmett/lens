@@ -16,7 +16,7 @@
   * Add a `_SCCP` `Prism` for the `Pragma` data type.
 * Add the following `Setter`s for prepending and appending elements:
   * `(<>:~)`: prepend an element to the front via `(<>)`.
-  * `(<<>:~)`: append an element to the back via `(<>)`.
+  * `(<<>:~)`: prepend an element to the front via `(<>)` and return the result.
   * `(<|~)`: cons an element to the front via `(<|)`.
   * `(<<|~)`: cons an element to the front via `(<|)` and return the result.
   * `(|>~)`: snoc an element to the back via `(|>)`.
