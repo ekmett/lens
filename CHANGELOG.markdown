@@ -1,5 +1,5 @@
-next [????.??.??]
------------------
+5.3.2 [2024.05.12]
+------------------
 * Define the following lenses that perform an operation and result the old
   result:
   * `(<<<>:~)` (prepend to the front via `(<>)` and return the old result)
