@@ -1,8 +1,16 @@
 next [????.??.??]
 -----------------
+* Define the following lenses that perform an operation and result the old
+  result:
+  * `(<<<>:~)` (prepend to the front via `(<>)` and return the old result)
+  * `(<<<|~)` (prepend to the front via `(<|)` and return the old result)
+  * `(<<|>~)` (append to the back via `(|>)` and return the old result)
+
+  Each of these also has a variant that end with `=` instead of `~` (e.g.,
+  `(<<<>:=)`) for working in a `MonadState` setting.
 * Re-export `(<>:~)`, `(<<>:~)`, `(<|~)`, `(<<|~)`, `(|>~)`, and `(<|>~)` (as
-  well as their variants which end with `=` instead of `~`)  from
-  `Control.Lens.Operators`.
+  well as their variants which end with `=` instead of `~`, and their variants
+  which return the old result) from `Control.Lens.Operators`.
 
 5.3.1 [2024.05.05]
 ------------------

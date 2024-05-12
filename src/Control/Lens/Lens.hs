@@ -90,7 +90,7 @@ module Control.Lens.Lens
   , (<||~), (<&&~), (<<>~), (<<>:~)
   , (<<%~), (<<.~), (<<?~), (<<+~), (<<-~), (<<*~)
   , (<<//~), (<<^~), (<<^^~), (<<**~)
-  , (<<||~), (<<&&~), (<<<>~)
+  , (<<||~), (<<&&~), (<<<>~), (<<<>:~)
 
   -- * Setting State with Passthrough
   , (<%=), (<+=), (<-=), (<*=), (<//=)
@@ -98,7 +98,7 @@ module Control.Lens.Lens
   , (<||=), (<&&=), (<<>=), (<<>:=)
   , (<<%=), (<<.=), (<<?=), (<<+=), (<<-=), (<<*=)
   , (<<//=), (<<^=), (<<^^=), (<<**=)
-  , (<<||=), (<<&&=), (<<<>=)
+  , (<<||=), (<<&&=), (<<<>=), (<<<>:=)
   , (<<~)
 
   -- * Cloning Lenses
@@ -164,9 +164,9 @@ import GHC.Exts (TYPE)
 
 infixl 8 ^#
 infixr 4 %%@~, <%@~, <<%@~, %%~, <+~, <*~, <-~, <//~, <^~, <^^~, <**~, <&&~, <||~, <<>~, <<>:~, <%~, <<%~, <<.~, <<?~, <#~, #~, #%~, <#%~, #%%~
-       , <<+~, <<-~, <<*~, <<//~, <<^~, <<^^~, <<**~, <<||~, <<&&~, <<<>~
+       , <<+~, <<-~, <<*~, <<//~, <<^~, <<^^~, <<**~, <<||~, <<&&~, <<<>~, <<<>:~
 infix  4 %%@=, <%@=, <<%@=, %%=, <+=, <*=, <-=, <//=, <^=, <^^=, <**=, <&&=, <||=, <<>=, <<>:=, <%=, <<%=, <<.=, <<?=, <#=, #=, #%=, <#%=, #%%=
-       , <<+=, <<-=, <<*=, <<//=, <<^=, <<^^=, <<**=, <<||=, <<&&=, <<<>=
+       , <<+=, <<-=, <<*=, <<//=, <<^=, <<^^=, <<**=, <<||=, <<&&=, <<<>=, <<<>:=
 infixr 2 <<~
 infixl 1 ??, &~
 
@@ -1201,6 +1201,15 @@ l <<>= r = l <%= (<> r)
 l <<>:~ m = l <%~ (m <>)
 {-# INLINE (<<>:~) #-}
 
+-- | ('<>') a 'Semigroup' value onto the front of the target of a 'Lens' and
+-- return the /old/ result.
+-- However, unlike ('<<>~'), it is prepended to the head side.
+--
+-- When you do not need the result of the operation, ('Control.Lens.Setter.<>:~') is more flexible.
+(<<<>:~) :: Semigroup m => LensLike' ((,)m) s m -> m -> s -> (m, s)
+l <<<>:~ m = l <<%~ (m <>)
+{-# INLINE (<<<>:~) #-}
+
 -- | ('<>') a 'Semigroup' value onto the front of the target of a 'Lens' into
 -- your 'Monad''s state and return the result.
 -- However, unlike ('<<>='), it is prepended to the head side.
@@ -1209,6 +1218,15 @@ l <<>:~ m = l <%~ (m <>)
 (<<>:=) :: (MonadState s m, Semigroup r) => LensLike' ((,)r) s r -> r -> m r
 l <<>:= r = l <%= (r <>)
 {-# INLINE (<<>:=) #-}
+
+-- | ('<>') a 'Semigroup' value onto the front of the target of a 'Lens' into
+-- your 'Monad''s state and return the /old/ result.
+-- However, unlike ('<<<>='), it is prepended to the head side.
+--
+-- When you do not need the result of the operation, ('Control.Lens.Setter.<>:=') is more flexible.
+(<<<>:=) :: (MonadState s m, Semigroup r) => LensLike' ((,)r) s r -> r -> m r
+l <<<>:= r = l <<%= (r <>)
+{-# INLINE (<<<>:=) #-}
 
 ------------------------------------------------------------------------------
 -- Arrow operators

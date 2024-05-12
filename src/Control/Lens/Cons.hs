@@ -27,7 +27,7 @@ module Control.Lens.Cons
   , cons
   , uncons
   , _head, _tail
-  , (<|~), (<|=), (<<|~), (<<|=)
+  , (<|~), (<|=), (<<|~), (<<|=), (<<<|~), (<<<|=)
   , pattern (:<)
   -- * Snoc
   , Snoc(..)
@@ -35,7 +35,7 @@ module Control.Lens.Cons
   , snoc
   , unsnoc
   , _init, _last
-  , (|>~), (|>=), (<|>~), (<|>=)
+  , (|>~), (|>=), (<|>~), (<|>=), (<<|>~), (<<|>=)
   , pattern (:>)
 
   ) where
@@ -82,8 +82,8 @@ import           Prelude
 
 infixr 5 <|, `cons`
 infixl 5 |>, `snoc`
-infixr 4 <|~, |>~, <<|~, <|>~
-infix  4 <|=, |>=, <<|=, <|>=
+infixr 4 <|~, |>~, <<|~, <|>~, <<<|~, <<|>~
+infix  4 <|=, |>=, <<|=, <|>=, <<<|=, <<|>=
 
 pattern (:<) :: Cons b b a a => a -> b -> b
 pattern (:<) a s <- (preview _Cons -> Just (a,s)) where
@@ -351,6 +351,14 @@ l <|= a = State.modify (l <|~ a)
 l <<|~ m = l <%~ (m <|)
 {-# INLINE (<<|~) #-}
 
+-- | ('<|') a 'Cons' value onto the end of the target of a 'Lens' and
+-- return the /old/ result.
+--
+-- When you do not need the result of the operation, ('Control.Lens.Cons.<|~') is more flexible.
+(<<<|~) :: Cons b b a a => LensLike' ((,) b) s b -> a -> s -> (b, s)
+l <<<|~ m = l <<%~ (m <|)
+{-# INLINE (<<<|~) #-}
+
 -- | ('<|') a 'Semigroup' value onto the end of the target of a 'Lens' into
 -- your 'Monad''s state and return the result.
 --
@@ -358,6 +366,14 @@ l <<|~ m = l <%~ (m <|)
 (<<|=) :: (MonadState s m, Cons b b a a) => LensLike ((,) b) s s b b -> a -> m b
 l <<|= r = l <%= (r <|)
 {-# INLINE (<<|=) #-}
+
+-- | ('<|') a 'Semigroup' value onto the end of the target of a 'Lens' into
+-- your 'Monad''s state and return the /old/ result.
+--
+-- When you do not need the result of the operation, ('Control.Lens.Cons.<|=') is more flexible.
+(<<<|=) :: (MonadState s m, Cons b b a a) => LensLike ((,) b) s s b b -> a -> m b
+l <<<|= r = l <<%= (r <|)
+{-# INLINE (<<<|=) #-}
 
 ------------------------------------------------------------------------------
 -- Snoc
@@ -596,6 +612,14 @@ l |>= a = State.modify (l |>~ a)
 l <|>~ m = l <%~ (|> m)
 {-# INLINE (<|>~) #-}
 
+-- | ('|>') a 'Cons' value onto the end of the target of a 'Lens' and
+-- return the /old/ result.
+--
+-- When you do not need the result of the operation, ('Control.Lens.Cons.|>~') is more flexible.
+(<<|>~) :: Snoc b b p p => LensLike' ((,) b) s b -> p -> s -> (b, s)
+l <<|>~ m = l <<%~ (|> m)
+{-# INLINE (<<|>~) #-}
+
 -- | ('|>') a 'Semigroup' value onto the end of the target of a 'Lens' into
 -- your 'Monad''s state and return the result.
 --
@@ -603,3 +627,11 @@ l <|>~ m = l <%~ (|> m)
 (<|>=) :: (MonadState s m, Snoc b b p p) => LensLike ((,) b) s s b b -> p -> m b
 l <|>= r = l <%= (|> r)
 {-# INLINE (<|>=) #-}
+
+-- | ('|>') a 'Semigroup' value onto the end of the target of a 'Lens' into
+-- your 'Monad''s state and return the result.
+--
+-- When you do not need the result of the operation, ('Control.Lens.Cons.|>=') is more flexible.
+(<<|>=) :: (MonadState s m, Snoc b b p p) => LensLike ((,) b) s s b b -> p -> m b
+l <<|>= r = l <<%= (|> r)
+{-# INLINE (<<|>=) #-}
