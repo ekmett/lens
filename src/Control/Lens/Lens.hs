@@ -1197,7 +1197,7 @@ l <<>= r = l <%= (<> r)
 -- However, unlike ('<<>~'), it is prepended to the head side.
 --
 -- When you do not need the result of the operation, ('Control.Lens.Setter.<>:~') is more flexible.
-(<<>:~) :: Semigroup m => LensLike ((,)m) s t m m -> m -> s -> (m, t)
+(<<>:~) :: Semigroup m => LensLike ((,) m) s t m m -> m -> s -> (m, t)
 l <<>:~ m = l <%~ (m <>)
 {-# INLINE (<<>:~) #-}
 
@@ -1206,7 +1206,7 @@ l <<>:~ m = l <%~ (m <>)
 -- However, unlike ('<<>~'), it is prepended to the head side.
 --
 -- When you do not need the result of the operation, ('Control.Lens.Setter.<>:~') is more flexible.
-(<<<>:~) :: Semigroup m => LensLike' ((,)m) s m -> m -> s -> (m, s)
+(<<<>:~) :: Semigroup m => LensLike' ((,) m) s m -> m -> s -> (m, s)
 l <<<>:~ m = l <<%~ (m <>)
 {-# INLINE (<<<>:~) #-}
 
@@ -1215,7 +1215,7 @@ l <<<>:~ m = l <<%~ (m <>)
 -- However, unlike ('<<>='), it is prepended to the head side.
 --
 -- When you do not need the result of the operation, ('Control.Lens.Setter.<>:=') is more flexible.
-(<<>:=) :: (MonadState s m, Semigroup r) => LensLike' ((,)r) s r -> r -> m r
+(<<>:=) :: (MonadState s m, Semigroup r) => LensLike' ((,) r) s r -> r -> m r
 l <<>:= r = l <%= (r <>)
 {-# INLINE (<<>:=) #-}
 
@@ -1224,7 +1224,7 @@ l <<>:= r = l <%= (r <>)
 -- However, unlike ('<<<>='), it is prepended to the head side.
 --
 -- When you do not need the result of the operation, ('Control.Lens.Setter.<>:=') is more flexible.
-(<<<>:=) :: (MonadState s m, Semigroup r) => LensLike' ((,)r) s r -> r -> m r
+(<<<>:=) :: (MonadState s m, Semigroup r) => LensLike' ((,) r) s r -> r -> m r
 l <<<>:= r = l <<%= (r <>)
 {-# INLINE (<<<>:=) #-}
 
