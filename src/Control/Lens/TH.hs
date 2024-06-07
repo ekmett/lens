@@ -28,6 +28,7 @@ module Control.Lens.TH
   , makeClassy, makeClassyFor, makeClassy_
   , makeFields
   , makeFieldsNoPrefix
+  , makeFieldsId
   -- ** Prisms
   , makePrisms
   , makeClassyPrisms
@@ -58,6 +59,7 @@ module Control.Lens.TH
   , classUnderscoreNoPrefixFields
   , underscoreFields
   , abbreviatedFields
+  , classIdFields
   -- ** LensRules configuration accessors
   , lensField
   , FieldNamer
@@ -78,6 +80,7 @@ module Control.Lens.TH
   , classUnderscoreNoPrefixNamer
   , underscoreNamer
   , abbreviatedNamer
+  , classIdNamer
   ) where
 
 import Prelude ()
@@ -634,6 +637,19 @@ classUnderscoreNoPrefixNamer _ _ field = maybeToList $ do
       methodName = fieldUnprefixed
   return (MethodName (mkName className) (mkName methodName))
 
+-- | Field rules for fields whose names are to be used verbatim, with no
+-- prefixes, no underscores, no transformations of any kind.
+classIdFields :: LensRules
+classIdFields =
+  defaultFieldRules & lensField .~ classIdNamer
+
+-- | A 'FieldNamer' for 'classIdFields'.
+classIdNamer :: FieldNamer
+classIdNamer _ _ field = [MethodName (mkName className) (mkName fieldName)]
+  where
+  fieldName = nameBase field
+  className = "Has" ++ overHead toUpper fieldName
+
 -- | Field rules fields in the form @ prefixFieldname or _prefixFieldname @
 -- If you want all fields to be lensed, then there is no reason to use an @_@ before the prefix.
 -- If any of the record fields leads with an @_@ then it is assume a field without an @_@ should not have a lens created.
@@ -743,6 +759,42 @@ makeFields = makeFieldOptics camelCaseFields
 -- @
 makeFieldsNoPrefix :: Name -> DecsQ
 makeFieldsNoPrefix = makeFieldOptics classUnderscoreNoPrefixFields
+
+-- | Generate overloaded field accessors, using exactly the same names as the
+-- underlying fields. Intended for use with the @NoFieldSelectors@ and
+-- @DuplicateRecordFields@ language extensions.
+--
+-- As an example:
+--
+-- @
+-- data Foo a  = Foo { x :: 'Int', y :: a }
+-- newtype Bar = Bar { x :: 'Char' }
+-- makeFieldsId ''Foo
+-- makeFieldsId ''Bar
+-- @
+--
+-- will create classes
+--
+-- @
+-- class HasX s a | s -> a where
+--   x :: Lens' s a
+-- class HasY s a | s -> a where
+--   y :: Lens' s a
+-- @
+--
+-- together with instances
+--
+-- @
+-- instance HasX (Foo a) Int
+-- instance HasY (Foo a) a where
+-- instance HasX Bar Char where
+-- @
+--
+-- @
+-- makeFieldsId = 'makeLensesWith' 'classIdFields'
+-- @
+makeFieldsId :: Name -> DecsQ
+makeFieldsId = makeFieldOptics classIdFields
 
 defaultFieldRules :: LensRules
 defaultFieldRules = LensRules
