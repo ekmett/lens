@@ -333,6 +333,9 @@ test-suite templates
     T799
     T917
     T972
+  if impl(ghc >= 9.2)
+    other-modules:
+      T1024
   ghc-options: -Wall -threaded
   hs-source-dirs: tests
   default-language: Haskell2010
