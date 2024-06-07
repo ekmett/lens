@@ -1,3 +1,12 @@
+next [????.??.??]
+-----------------
+* Add `makeFieldsId`, which generates overloaded field accessors using the
+  same names as the underlying fields. This is intended for use with the
+  `NoFieldSelectors` and `DuplicateRecordFields` language extensions.
+
+  Also add `classIdFields :: LensRules` and `classIdNamer :: FieldNamer`, both
+  of which use the same naming rules as `makeFieldsId`.
+
 5.3.2 [2024.05.12]
 ------------------
 * Define the following lenses that perform an operation and result the old
