@@ -1,3 +1,12 @@
 packages: .
           ./examples
           ./lens-properties
+
+-- TODO: remove this when dependencies catch up
+allow-newer: aeson-2.2.3.0:hashable
+allow-newer: semialign-1.3.1:hashable
+allow-newer: strict-0.5.1:hashable
+allow-newer: these-1.2.1:hashable
+allow-newer: unordered-containers-0.2.20:hashable
+allow-newer: witherable-0.5:hashable
+allow-newer: cassava-0.5.3.1:hashable
