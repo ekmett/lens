@@ -189,7 +189,7 @@ library
     filepath                      >= 1.2.0.0  && < 1.6,
     free                          >= 5.1.5    && < 6,
     ghc-prim,
-    hashable                      >= 1.2.7.0  && < 1.5,
+    hashable                      >= 1.2.7.0  && < 1.6,
     indexed-traversable           >= 0.1      && < 0.2,
     indexed-traversable-instances >= 0.1      && < 0.2,
     kan-extensions                >= 5        && < 6,
