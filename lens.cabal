@@ -402,7 +402,7 @@ test-suite doctests
   hs-source-dirs:    tests
   default-language:  Haskell2010
 
-  build-depends: base, deepseq, simple-reflect >= 0.3.1
+  build-depends: base <5, deepseq, simple-reflect >= 0.3.1
 
 -- Basic benchmarks for the uniplate-style combinators
 benchmark plated
