@@ -9,7 +9,7 @@ If you are looking for where to get started, [a crash course video](http://youtu
 
 The [FAQ](https://github.com/ekmett/lens/wiki/FAQ), which provides links to a large number of different resources for learning about lenses and an overview of the [derivation](https://github.com/ekmett/lens/wiki/Derivation) of these types can be found on the [Lens Wiki](https://github.com/ekmett/lens/wiki) along with a brief [overview](https://github.com/ekmett/lens/wiki/Overview) and some [examples](https://github.com/ekmett/lens/wiki/Examples).
 
-Documentation is available through [github](http://ekmett.github.com/lens/frames.html) (for HEAD) or [hackage](http://hackage.haskell.org/package/lens) for the current and preceding releases.
+Documentation is available through [github](https://ekmett.github.io/lens/frames.html) (for HEAD) or [hackage](http://hackage.haskell.org/package/lens) for the current and preceding releases.
 
 Field Guide
 -----------
