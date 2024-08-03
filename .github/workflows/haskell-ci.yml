@@ -223,7 +223,7 @@ jobs:
           if [ $((HCNUMVER >= 80200)) -ne 0 ] ; then echo "package lens-properties" >> cabal.project ; fi
           if [ $((HCNUMVER >= 80200)) -ne 0 ] ; then echo "    ghc-options: -Werror=missing-methods" >> cabal.project ; fi
           cat >> cabal.project <<EOF
-          allow-newer: cassava-0.5.3.1:hashable
+          allow-newer: async-2.2.5:hashable
           EOF
           $HCPKG list --simple-output --names-only | perl -ne 'for (split /\s+/) { print "constraints: any.$_ installed\n" unless /^(lens|lens-examples|lens-properties)$/; }' >> cabal.project.local
           cat cabal.project
