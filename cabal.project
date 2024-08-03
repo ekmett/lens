@@ -3,4 +3,6 @@ packages: .
           ./lens-properties
 
 -- TODO: remove this when dependencies catch up
-allow-newer: cassava-0.5.3.1:hashable
+-- https://github.com/simonmar/async/issues/157
+-- otherwise an old async-1.4 is picked
+allow-newer: async-2.2.5:hashable
