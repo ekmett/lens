@@ -36,7 +36,7 @@ description:
   .
   An overview, with a large number of examples can be found in the <https://github.com/ekmett/lens#lens-lenses-folds-and-traversals README>.
   .
-  An introductory video on the style of code used in this library by Simon Peyton Jones is available from <http://skillsmatter.com/podcast/scala/lenses-compositional-data-access-and-manipulation Skills Matter>.
+  An introductory video on the style of code used in this library by Simon Peyton Jones is available from <https://archive.org/details/lenses-compositional-data-access-and-manipulation-simon-peyton-jones-at-haskell- Internet Archive>.
   .
   A video on how to use lenses and how they are constructed is available on <http://youtu.be/cefnmjtAolY?hd=1 youtube>.
   .
