@@ -6,6 +6,11 @@ next [????.??.??]
 
   Also add `classIdFields :: LensRules` and `classIdNamer :: FieldNamer`, both
   of which use the same naming rules as `makeFieldsId`.
+* Update the `Prism`s in `Language.Haskell.TH.Lens` to reflect additions to
+  `template-haskell-2.23.0.0`:
+  * Add an `_OrP` `Prism` for the `Pat` data type.
+  * Add `_ForallE`, `_ForallVisE`, and `_ConstrainedE` `Prism`s for the `Exp`
+    data type.
 
 5.3.2 [2024.05.12]
 ------------------

@@ -281,6 +281,11 @@ module Language.Haskell.TH.Lens
 #if MIN_VERSION_template_haskell(2,22,0)
   , _TypeE
 #endif
+#if MIN_VERSION_template_haskell(2,23,0)
+  , _ForallE
+  , _ForallVisE
+  , _ConstrainedE
+#endif
   -- ** Body Prisms
   , _GuardedB
   , _NormalB
@@ -337,6 +342,9 @@ module Language.Haskell.TH.Lens
 #if MIN_VERSION_template_haskell(2,22,0)
   , _TypeP
   , _InvisP
+#endif
+#if MIN_VERSION_template_haskell(2,23,0)
+  , _OrP
 #endif
   -- ** Type Prisms
   , _ForallT
@@ -2137,6 +2145,32 @@ _TypeE
       remitter _ = Nothing
 #endif
 
+#if MIN_VERSION_template_haskell(2,23,0)
+_ForallE :: Prism' Exp ([TyVarBndr Specificity], Exp)
+_ForallE
+  = prism' reviewer remitter
+  where
+      reviewer (x, y) = ForallE x y
+      remitter (ForallE x y) = Just (x, y)
+      remitter _ = Nothing
+
+_ForallVisE :: Prism' Exp ([TyVarBndr ()], Exp)
+_ForallVisE
+  = prism' reviewer remitter
+  where
+      reviewer (x, y) = ForallVisE x y
+      remitter (ForallVisE x y) = Just (x, y)
+      remitter _ = Nothing
+
+_ConstrainedE :: Prism' Exp ([Exp], Exp)
+_ConstrainedE
+  = prism' reviewer remitter
+  where
+      reviewer (x, y) = ConstrainedE x y
+      remitter (ConstrainedE x y) = Just (x, y)
+      remitter _ = Nothing
+#endif
+
 _GuardedB :: Prism' Body [(Guard, Exp)]
 _GuardedB
   = prism' reviewer remitter
@@ -2501,6 +2535,16 @@ _InvisP
   where
       reviewer = InvisP
       remitter (InvisP x) = Just x
+      remitter _ = Nothing
+#endif
+
+#if MIN_VERSION_template_haskell(2,23,0)
+_OrP :: Prism' Pat (NonEmpty Pat)
+_OrP
+  = prism' reviewer remitter
+  where
+      reviewer = OrP
+      remitter (OrP x) = Just x
       remitter _ = Nothing
 #endif
 
