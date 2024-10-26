@@ -38,9 +38,9 @@ jobs:
             compilerVersion: 9.8.2
             setup-method: ghcup
             allow-failure: false
-          - compiler: ghc-9.6.4
+          - compiler: ghc-9.6.6
             compilerKind: ghc
-            compilerVersion: 9.6.4
+            compilerVersion: 9.6.6
             setup-method: ghcup
             allow-failure: false
           - compiler: ghc-9.4.8
@@ -223,7 +223,6 @@ jobs:
           if [ $((HCNUMVER >= 80200)) -ne 0 ] ; then echo "package lens-properties" >> cabal.project ; fi
           if [ $((HCNUMVER >= 80200)) -ne 0 ] ; then echo "    ghc-options: -Werror=missing-methods" >> cabal.project ; fi
           cat >> cabal.project <<EOF
-          allow-newer: async-2.2.5:hashable
           EOF
           $HCPKG list --simple-output --names-only | perl -ne 'for (split /\s+/) { print "constraints: any.$_ installed\n" unless /^(lens|lens-examples|lens-properties)$/; }' >> cabal.project.local
           cat cabal.project
