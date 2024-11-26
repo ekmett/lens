@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE FlexibleContexts #-}
@@ -6,6 +7,7 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE Trustworthy #-}
+{-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE ConstraintKinds #-}
 
 #include "lens-common.h"
@@ -113,6 +115,19 @@ module Control.Lens.Traversal
   , imapAccumROf
   , imapAccumLOf
 
+  -- ** Strict traversals
+  , over'
+  , (%!~)
+  , iover'
+  , (%!@~)
+  , modifying'
+  , (%!=)
+  , imodifying'
+  , (%!@=)
+  , strictly
+  , strictlyM
+  , strictlyT
+
   -- * Reflection
   , traverseBy
   , traverseByOf
@@ -137,6 +152,7 @@ import Control.Comonad
 import Control.Lens.Fold
 import Control.Lens.Getter (Getting, IndexedGetting, getting)
 import Control.Lens.Internal.Bazaar
+import Control.Lens.Internal.BoxT
 import Control.Lens.Internal.Context
 import Control.Lens.Internal.Fold
 import Control.Lens.Internal.Indexed
@@ -145,6 +161,8 @@ import Control.Lens.Lens
 import Control.Lens.Setter (ASetter, AnIndexedSetter, isets, sets)
 import Control.Lens.Type
 import Control.Monad.Trans.State.Lazy
+import Control.Monad.State.Class (MonadState)
+import qualified Control.Monad.State.Class as MonadState
 import Data.Bitraversable
 import Data.CallStack
 import Data.Functor.Apply
@@ -162,10 +180,11 @@ import Data.Reflection
 import Data.Semigroup.Traversable
 import Data.Semigroup.Bitraversable
 import Data.Tuple (swap)
+import Data.Tuple.Solo (Solo (..), getSolo)
 import GHC.Magic (inline)
 
 -- $setup
--- >>> :set -XNoOverloadedStrings -XFlexibleContexts
+-- >>> :set -XNoOverloadedStrings -XFlexibleContexts -XRankNTypes
 -- >>> import Data.Char (toUpper)
 -- >>> import Control.Applicative
 -- >>> import Control.Lens
@@ -182,6 +201,9 @@ import GHC.Magic (inline)
 -- >>> let timingOut :: NFData a => a -> IO a; timingOut = fmap (fromMaybe (error "timeout")) . timeout (5*10^6) . evaluate . force
 -- >>> let firstAndThird :: Traversal (a, x, a) (b, x, b) a b; firstAndThird = traversal go where { go :: Applicative f => (a -> f b) -> (a, x, a) -> f (b, x, b); go focus (a, x, a') = liftA3 (,,) (focus a) (pure x) (focus a') }
 -- >>> let selectNested :: Traversal (x, [a]) (x, [b]) a b; selectNested = traversal go where { go :: Applicative f => (a -> f b) -> (x, [a]) -> f (x, [b]); go focus (x, as) = liftA2 (,) (pure x) (traverse focus as) }
+
+infixr 4 %!~, %!@~
+infix  4 %!=, %!@=
 
 ------------------------------------------------------------------------------
 -- Traversals
@@ -1466,3 +1488,192 @@ traverseByOf l pur app f = reifyApplicative pur app (l (ReflectedApplicative #. 
 -- @
 sequenceByOf :: Traversal s t (f b) b -> (forall x. x -> f x) -> (forall x y. f (x -> y) -> f x -> f y) -> s -> f t
 sequenceByOf l pur app = reifyApplicative pur app (l ReflectedApplicative)
+
+-- Note: Solo wrapping
+--
+-- We use Solo for strict application of (indexed) setters.
+--
+-- Credit for this idea goes to Eric Mertens; see
+-- <https://github.com/glguy/irc-core/commit/2d5fc45b05f1>. It was reinvented
+-- independently by David Feuer, who realized that an applicative transformer
+-- version could be used to implement `strictly`.
+--
+-- Using Solo rather than Identity allows us, when applying a traversal to a
+-- structure, to evaluate only the parts that we modify. If an optic focuses on
+-- multiple targets, the Applicative instance of Solo (combined with applying
+-- the Solo data constructor strictly) makes sure that we force evaluation of
+-- all of them, but we leave anything else alone.
+
+-- | A version of 'Control.Lens.Setter.over' that forces the result(s) of
+-- applying the function. This can prevent space leaks when modifying lazy
+-- fields. See also 'strictly'.
+--
+-- @
+-- over' :: 'Lens' s t a b -> (a -> b) -> s -> t
+-- over' :: 'Traversal' s t a b -> (a -> b) -> s -> t
+-- @
+--
+-- >>> length $ over traverse id [undefined, undefined]
+-- 2
+--
+-- >>> over' traverse id [1, undefined :: Int]
+-- *** Exception: Prelude.undefined
+-- ...
+over' :: LensLike Solo s t a b -> (a -> b) -> s -> t
+-- See [Note: Solo wrapping]
+over' l f = getSolo . l (\old -> Solo $! f old)
+{-# INLINE over' #-}
+
+-- | Traverse targets strictly. This is the operator version of 'over''.
+(%!~) :: LensLike Solo s t a b -> (a -> b) -> s -> t
+(%!~) = over'
+{-# INLINE (%!~) #-}
+
+-- $
+-- >>> :{
+-- let lover' :: Lens s t a b -> (a -> b) -> s -> t
+--     lover' l = over' l
+--     tover' :: Traversal s t a b -> (a -> b) -> s -> t
+--     tover' l = over' l
+-- :}
+--
+-- >>> :{
+-- let sover' :: Setter s t a b -> (a -> b) -> s -> t
+--     sover' l = over' l
+-- :}
+-- ...
+-- ...error...
+-- ...
+
+-- | A version of 'Control.Lens.Setter.iover' that forces the result(s) of
+-- applying the function. Alternatively, an indexed version of `over'`.
+-- See also 'strictly'.
+--
+-- @
+-- iover' :: IndexedLens i s t a b -> (i -> a -> b) -> s -> t
+-- iover' :: IndexedTraversal i s t a b -> (i -> a -> b) -> s -> t
+-- @
+iover' :: Over (Indexed i) Solo s t a b -> (i -> a -> b) -> s -> t
+-- See [Note: Solo wrapping]
+iover' l f = getSolo . l (Indexed $ \i a -> Solo $! f i a)
+{-# INLINE iover' #-}
+
+-- | Traverse targets strictly with indices. This is the operator version of
+-- 'iover''.
+(%!@~) :: Over (Indexed i) Solo s t a b -> (i -> a -> b) -> s -> t
+(%!@~) = iover'
+{-# INLINE (%!@~) #-}
+
+-- | Modify the state strictly. This is stricter than
+-- @Control.Lens.Setter.modifying@ in two ways: it forces the new value of the
+-- state, and it forces the new value of the target within the state.
+modifying' :: MonadState s m => LensLike Solo s s a b -> (a -> b) -> m ()
+-- See [Note: Solo wrapping]
+modifying' l f = do
+  s <- MonadState.get
+  let !(Solo !t) = l (\old -> Solo $! f old) s
+  MonadState.put t
+{-# INLINE modifying' #-}
+
+-- | Modify the state strictly. This is an operator version of
+-- 'modifying''.
+(%!=) :: MonadState s m => LensLike Solo s s a b -> (a -> b) -> m ()
+(%!=) = modifying'
+{-# INLINE (%!=) #-}
+
+-- | Modify the state strictly with an index. This is stricter than
+-- @Control.Lens.Setter.imodifying@ in two ways: it forces the new value of the
+-- state, and it forces the new value of the target within the state.
+imodifying' :: MonadState s m => Over (Indexed i) Solo s s a b -> (i -> a -> b) -> m ()
+-- See [Note: Solo wrapping]
+imodifying' l f = do
+  s <- MonadState.get
+  let !(Solo !t) = l (Indexed $ \i old -> Solo $! f i old) s
+  MonadState.put t
+{-# INLINE imodifying' #-}
+
+-- | Modify the state strictly. This is an operator version of
+-- 'imodifying''.
+(%!@=) :: MonadState s m => Over (Indexed i) Solo s s a b -> (i -> a -> b) -> m ()
+(%!@=) = imodifying'
+{-# INLINE (%!@=) #-}
+
+-- $
+-- >>> :{
+-- let liover' :: IndexedLens i s t a b -> (i -> a -> b) -> s -> t
+--     liover' l = iover' l
+--     tiover' :: IndexedTraversal i s t a b -> (i -> a -> b) -> s -> t
+--     tiover' l = iover' l
+-- :}
+
+-- | Use an optic /strictly/. @strictly l f s@ will force the results of /all/
+-- the targets of @l@ when a new outer value is forced.
+--
+-- @
+-- strictly ('itraverse' \@(Map _)) = "Data.Map.Strict".'Data.Map.Strict.traverseWithKey' . 'Indexed'
+-- @
+--
+-- @strictly@ does not affect folds or getters in any way, as they don't produce
+-- new outer values.
+--
+-- Note that producing an optic using 'strictly' will not necessarily produce
+-- one as efficient as what could be written by hand, although it will do so in
+-- simple enough situations. Efficiency issues are most likely when working
+-- over a large structure in a functor other than the usual 'Identity'.
+--
+-- @
+-- 'over'' l = 'Control.Lens.Setter.over' (strictly l)
+-- 'iover'' l = 'Control.Lens.Setter.iover' (strictly l)
+-- @
+--
+-- @
+-- strictly :: 'Traversal' s t a b -> 'Traversal' s t a b
+-- strictly :: 'IndexedTraversal' i s t a b -> 'IndexedTraversal' i s t a b
+-- @
+strictly :: (Functor f, Profunctor p, Profunctor q) => Optical p q (BoxT f) s t a b -> Optical p q f s t a b
+-- See [Note: Solo wrapping]
+strictly l f = rmap (fmap getSolo .# runBoxT) $ l (rmap (BoxT #. fmap (Solo $!)) f)
+{-# INLINE strictly #-}
+
+-- | A version of 'strictly' for use in /strict monads/ such as 'IO',
+-- "Control.Monad.Trans.State.Strict".'Control.Monad.Trans.State.Strict.StateT',
+-- or @[]@.  In these contexts, all the targets will be forced by the time a
+-- new outer value is /produced/, even if it is not /forced/.
+--
+-- Caution: @strictlyM@ will not work properly with /lazy monads/ such as
+-- @Identity@ or
+-- "Control.Monad.Trans.State.Lazy".'Control.Monad.Trans.State.Lazy.StateT',
+-- and /should not be used/ in those contexts. A monad is considered lazy if
+-- @() <$ ⊥ ≠ ⊥@.
+strictlyM :: (Monad f, Profunctor p, Profunctor q) => Optical p q f s t a b -> Optical p q f s t a b
+strictlyM l f = l (rmap (>>= (pure $!)) f)
+{-# INLINE strictlyM #-}
+
+-- | A version of 'strictly' for use in 'Traversable' functors. The container
+-- is not produced until all the targets in /all/ of the values have been
+-- forced.
+strictlyT :: (Traversable f, Profunctor p, Profunctor q) => Optical p q (BoxT f) s t a b -> Optical p q f s t a b
+strictlyT l f = rmap (getSolo . sequenceA . runBoxT) $ l (rmap (BoxT #. fmap (Solo $!)) f)
+{-# INLINE strictlyT #-}
+
+-- $
+-- >>> :{
+-- let tstrictly :: Traversal s t a b -> Traversal s t a b
+--     tstrictly l = strictly l
+--     itstrictly :: AnIndexedTraversal i s t a b -> IndexedTraversal i s t a b
+--     itstrictly l = strictly (cloneIndexedTraversal l)
+--     lstrictly :: Lens s t a b -> Lens s t a b
+--     lstrictly l = strictly l
+--     ilstrictly :: AnIndexedLens i s t a b -> IndexedLens i s t a b
+--     ilstrictly l = strictly (cloneIndexedLens l)
+--     fstrictly :: Fold s a -> Fold s a
+--     fstrictly l = strictly l
+-- :}
+--
+-- >>> :{
+-- let sstrictly :: Setter s t a b -> Setter s t a b
+--     sstrictly l = strictly l
+-- :}
+-- ...
+-- ...Settable ...BoxT...
+-- ...
