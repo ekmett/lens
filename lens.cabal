@@ -200,7 +200,7 @@ library
     semigroupoids                 >= 5.0.1    && < 7,
     strict                        >= 0.4      && < 0.6,
     tagged                        >= 0.8.6    && < 1,
-    template-haskell              >= 2.11.1.0 && < 2.23,
+    template-haskell              >= 2.11.1.0 && < 2.24,
     text                          >= 1.2.3.0  && < 2.2,
     th-abstraction                >= 0.4.1    && < 0.8,
     these                         >= 1.1.1.1  && < 1.3,

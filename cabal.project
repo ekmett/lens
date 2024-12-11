@@ -1,3 +1,33 @@
 packages: .
           ./examples
           ./lens-properties
+
+tests: True
+test-show-details: direct
+
+if impl (ghc >= 9.12)
+  allow-newer:
+    , aeson:ghc-prim
+    , aeson:template-haskell
+    , assoc:base
+    , data-fix:base
+    , hashable:base
+    , indexed-traversable:base
+    , indexed-traversable-instances:base
+    , integer-conversion:base
+    , integer-logarithms:base
+    , integer-logarithms:ghc-prim
+    , OneTuple:base
+    , scientific:base
+    , scientific:template-haskell
+    , semialign:base
+    , splitmix:base
+    , stm:base
+    , text:template-haskell
+    , text-short:base
+    , text-short:ghc-prim
+    , text-short:template-haskell
+    , these:base
+    , time-compat:base
+    , unordered-containers:template-haskell
+    , uuid-types:template-haskell
