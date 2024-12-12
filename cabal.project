@@ -6,7 +6,11 @@ tests: True
 test-show-details: direct
 
 if impl (ghc >= 9.12)
+  constraints:
+    , aeson >= 2
+
   allow-newer:
+    , aeson:base
     , aeson:ghc-prim
     , aeson:template-haskell
     , assoc:base
