@@ -31,7 +31,7 @@ tested-with:   GHC == 8.0.2
 
 source-repository head
   type: git
-  location: git://github.com/ekmett/lens.git
+  location: https://github.com/ekmett/lens.git
 
 flag pong
   default: True
