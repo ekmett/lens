@@ -676,13 +676,18 @@ class AsAssertionFailed t where
 
   -- | This t'Exception' contains provides information about what assertion failed in the 'String'.
   --
-  -- >>> handling _AssertionFailed (\ xs -> "caught" <$ guard ("<interactive>" `isInfixOf` xs) ) $ assert False (return "uncaught")
-  -- "caught"
-  --
   -- @
   -- '_AssertionFailed' :: 'Prism'' 'AssertionFailed' 'String'
   -- '_AssertionFailed' :: 'Prism'' 'SomeException'   'String'
   -- @
+
+  {-
+  TODO: This doctest is temporarily disabled, as it does not work properly on
+  GHC 9.12. See https://gitlab.haskell.org/ghc/ghc/-/issues/25610.
+
+  -- >>> handling _AssertionFailed (\ xs -> "caught" <$ guard ("<interactive>" `isInfixOf` xs) ) $ assert False (return "uncaught")
+  -- "caught"
+  -}
   _AssertionFailed :: Prism' t String
   _AssertionFailed = __AssertionFailed._AssertionFailed
   {-# INLINE _AssertionFailed #-}
