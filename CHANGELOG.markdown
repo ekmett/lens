@@ -1,5 +1,5 @@
-next [????.??.??]
------------------
+5.3.3 [2024.12.28]
+------------------
 * Add `makeFieldsId`, which generates overloaded field accessors using the
   same names as the underlying fields. This is intended for use with the
   `NoFieldSelectors` and `DuplicateRecordFields` language extensions.
