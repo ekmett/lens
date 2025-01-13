@@ -62,7 +62,7 @@ executable lens-pong
     gloss      >= 1.12  && < 1.14,
     lens,
     mtl        >= 2.0.1 && < 2.4,
-    random     >= 1.0   && < 1.3,
+    random     >= 1.0   && < 1.4,
     streams    >= 3.3   && < 4
   main-is: Pong.hs
   default-language: Haskell2010
