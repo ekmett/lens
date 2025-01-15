@@ -8,9 +8,9 @@
 #
 # For more information, see https://github.com/haskell-CI/haskell-ci
 #
-# version: 0.19.20241223
+# version: 0.19.20250115
 #
-# REGENDATA ("0.19.20241223",["github","--config=cabal.haskell-ci","cabal.project"])
+# REGENDATA ("0.19.20250115",["github","--config=cabal.haskell-ci","cabal.project"])
 #
 name: Haskell-CI
 on:
@@ -107,8 +107,8 @@ jobs:
           chmod a+x "$HOME/.ghcup/bin/ghcup"
       - name: Install cabal-install
         run: |
-          "$HOME/.ghcup/bin/ghcup" install cabal 3.14.1.0 || (cat "$HOME"/.ghcup/logs/*.* && false)
-          echo "CABAL=$HOME/.ghcup/bin/cabal-3.14.1.0 -vnormal+nowrap" >> "$GITHUB_ENV"
+          "$HOME/.ghcup/bin/ghcup" install cabal 3.12.1.0 || (cat "$HOME"/.ghcup/logs/*.* && false)
+          echo "CABAL=$HOME/.ghcup/bin/cabal-3.12.1.0 -vnormal+nowrap" >> "$GITHUB_ENV"
       - name: Install GHC (GHCup)
         if: matrix.setup-method == 'ghcup'
         run: |
@@ -232,17 +232,6 @@ jobs:
           if [ $((HCNUMVER >= 80200)) -ne 0 ] ; then echo "package lens-properties" >> cabal.project ; fi
           if [ $((HCNUMVER >= 80200)) -ne 0 ] ; then echo "    ghc-options: -Werror=missing-methods" >> cabal.project ; fi
           cat >> cabal.project <<EOF
-          allow-newer: aeson:ghc-prim
-          allow-newer: aeson:template-haskell
-          allow-newer: binary-orphans:base
-          allow-newer: boring:base
-          allow-newer: indexed-traversable:base
-          allow-newer: indexed-traversable-instances:base
-          allow-newer: integer-conversion:base
-          allow-newer: microstache:base
-          allow-newer: semialign:base
-          allow-newer: these:base
-          allow-newer: uuid-types:template-haskell
           EOF
           $HCPKG list --simple-output --names-only | perl -ne 'for (split /\s+/) { print "constraints: any.$_ installed\n" unless /^(lens|lens-examples|lens-properties)$/; }' >> cabal.project.local
           cat cabal.project
