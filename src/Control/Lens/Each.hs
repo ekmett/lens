@@ -54,6 +54,9 @@ import Data.Vector.Primitive (Prim)
 import qualified Data.Vector.Storable as Storable
 import Data.Vector.Storable (Storable)
 import qualified Data.Vector.Unboxed as Unboxed
+#if MIN_VERSION_vector(0,13,2)
+import qualified Data.Vector.Strict as VectorStrict
+#endif
 import Data.Vector.Unboxed (Unbox)
 import Data.Word
 import qualified Data.Strict as S
@@ -194,6 +197,13 @@ instance (Storable a, Storable b) => Each (Storable.Vector a) (Storable.Vector b
 instance (Unbox a, Unbox b) => Each (Unboxed.Vector a) (Unboxed.Vector b) a b where
   each = vectorTraverse
   {-# INLINE each #-}
+
+#if MIN_VERSION_vector(0,13,2)
+-- | @'each' :: 'Traversal' ('Vector.Vector' a) ('Vector.Vector' b) a b@
+instance Each (VectorStrict.Vector a) (VectorStrict.Vector b) a b where
+  each = vectorTraverse
+  {-# INLINE each #-}
+#endif
 
 -- | @'each' :: 'Traversal' 'StrictT.Text' 'StrictT.Text' 'Char' 'Char'@
 instance (a ~ Char, b ~ Char) => Each StrictT.Text StrictT.Text a b where

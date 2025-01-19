@@ -64,6 +64,9 @@ import           Data.Vector.Primitive (Prim)
 import qualified Data.Vector.Primitive as Prim
 import           Data.Vector.Unboxed (Unbox)
 import qualified Data.Vector.Unboxed as Unbox
+#if MIN_VERSION_vector(0,13,2)
+import qualified Data.Vector.Strict as VectorStrict
+#endif
 import           Data.Word
 import           Control.Applicative (ZipList(..))
 import           Control.Monad.State.Class as State
@@ -179,6 +182,15 @@ instance (Unbox a, Unbox b) => Cons (Unbox.Vector a) (Unbox.Vector b) a b where
     then Left Unbox.empty
     else Right (Unbox.unsafeHead v, Unbox.unsafeTail v)
   {-# INLINE _Cons #-}
+
+#if MIN_VERSION_vector(0,13,2)
+instance Cons (VectorStrict.Vector a) (VectorStrict.Vector b) a b where
+  _Cons = prism (uncurry VectorStrict.cons) $ \v ->
+    if VectorStrict.null v
+    then Left VectorStrict.empty
+    else Right (VectorStrict.unsafeHead v, VectorStrict.unsafeTail v)
+  {-# INLINE _Cons #-}
+#endif
 
 -- | 'cons' an element onto a container.
 --

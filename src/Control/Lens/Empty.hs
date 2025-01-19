@@ -53,6 +53,10 @@ import qualified Data.Vector as Vector
 import qualified Data.Vector.Unboxed as Unboxed
 import Data.Vector.Unboxed (Unbox)
 import qualified Data.Vector.Storable as Storable
+import qualified Data.Vector.Primitive as Prim
+#if MIN_VERSION_vector(0,13,2)
+import qualified Data.Vector.Strict as VectorStrict
+#endif
 import Foreign.Storable (Storable)
 
 #if !defined(mingw32_HOST_OS) && !defined(ghcjs_HOST_OS)
@@ -161,9 +165,19 @@ instance Unbox a => AsEmpty (Unboxed.Vector a) where
   _Empty = nearly Unboxed.empty Unboxed.null
   {-# INLINE _Empty #-}
 
+instance Prim.Prim a => AsEmpty (Prim.Vector a) where
+  _Empty = nearly Prim.empty Prim.null
+  {-# INLINE _Empty #-}
+
 instance Storable a => AsEmpty (Storable.Vector a) where
   _Empty = nearly Storable.empty Storable.null
   {-# INLINE _Empty #-}
+
+#if MIN_VERSION_vector(0,13,2)
+instance AsEmpty (VectorStrict.Vector a) where
+  _Empty = nearly VectorStrict.empty VectorStrict.null
+  {-# INLINE _Empty #-}
+#endif
 
 instance AsEmpty (Seq.Seq a) where
   _Empty = nearly Seq.empty Seq.null

@@ -1,3 +1,9 @@
+NEXT VERSION
+------------------
+* `Ixed`, `Cons`, `Each`, `AsEmpty`, `Reversing`, `Rewrapped` instances are
+  added for strict boxed vectors (`vector>=0.13.2`)
+* `AsEmpty` instance added for primitive vector.
+
 5.3.3 [2024.12.28]
 ------------------
 * Add `makeFieldsId`, which generates overloaded field accessors using the
