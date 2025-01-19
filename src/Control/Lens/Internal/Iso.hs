@@ -33,6 +33,9 @@ import Data.Vector.Primitive (Prim)
 import qualified Data.Vector.Storable  as Storable
 import qualified Data.Vector.Unboxed   as Unbox
 import Data.Vector.Unboxed (Unbox)
+#if MIN_VERSION_vector(0,13,2)
+import qualified Data.Vector.Strict as VectorStrict
+#endif
 import qualified Data.Sequence         as Seq
 import Data.Sequence (Seq)
 import Foreign.Storable (Storable)
@@ -100,3 +103,8 @@ instance Unbox a => Reversing (Unbox.Vector a) where
 
 instance Storable a => Reversing (Storable.Vector a) where
   reversing = Storable.reverse
+
+#if MIN_VERSION_vector(0,13,2)
+instance Reversing (VectorStrict.Vector a) where
+  reversing = VectorStrict.reverse
+#endif

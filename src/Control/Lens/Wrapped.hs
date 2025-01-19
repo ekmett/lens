@@ -150,6 +150,9 @@ import qualified Data.Set as Set
 import           Data.Set (Set)
 import           Data.Tagged
 import qualified Data.Vector as Vector
+#if MIN_VERSION_vector(0,13,2)
+import qualified Data.Vector.Strict as VectorStrict
+#endif
 import qualified Data.Vector.Primitive as Prim
 import           Data.Vector.Primitive (Prim)
 import qualified Data.Vector.Unboxed as Unboxed
@@ -675,6 +678,14 @@ instance Storable a => Wrapped (Storable.Vector a) where
   type Unwrapped (Storable.Vector a) = [a]
   _Wrapped' = iso Storable.toList Storable.fromList
   {-# INLINE _Wrapped' #-}
+
+#if MIN_VERSION_vector(0,13,2)
+instance (t ~ Vector.Vector a') => Rewrapped (VectorStrict.Vector a) t
+instance Wrapped (VectorStrict.Vector a) where
+  type Unwrapped (VectorStrict.Vector a) = [a]
+  _Wrapped' = iso VectorStrict.toList VectorStrict.fromList
+  {-# INLINE _Wrapped' #-}
+#endif
 
 -- * semigroupoids
 

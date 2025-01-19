@@ -85,6 +85,9 @@ import Data.Vector.Primitive (Prim)
 import qualified Data.Vector.Storable as Storable
 import qualified Data.Vector.Unboxed as Unboxed
 import Data.Vector.Unboxed (Unbox)
+#if MIN_VERSION_vector(0,13,2)
+import qualified Data.Vector.Strict as VectorStrict
+#endif
 import Data.Word
 import Foreign.Storable (Storable)
 
@@ -113,6 +116,9 @@ type instance Index (Vector.Vector a) = Int
 type instance Index (Prim.Vector a) = Int
 type instance Index (Storable.Vector a) = Int
 type instance Index (Unboxed.Vector a) = Int
+#if MIN_VERSION_vector(0,13,2)
+type instance Index (VectorStrict.Vector a) = Int
+#endif
 type instance Index (Complex a) = Int
 type instance Index (Identity a) = ()
 type instance Index (Maybe a) = ()
@@ -395,6 +401,15 @@ instance Unbox a => Ixed (Unboxed.Vector a) where
     | 0 <= i && i < Unboxed.length v = f (v Unboxed.! i) <&> \a -> v Unboxed.// [(i, a)]
     | otherwise                      = pure v
   {-# INLINE ix #-}
+
+#if MIN_VERSION_vector(0,13,2)
+type instance IxValue (VectorStrict.Vector a) = a
+instance Ixed (VectorStrict.Vector a) where
+  ix i f v
+    | 0 <= i && i < VectorStrict.length v = f (v VectorStrict.! i) <&> \a -> v VectorStrict.// [(i, a)]
+    | otherwise                           = pure v
+  {-# INLINE ix #-}
+#endif
 
 type instance IxValue StrictT.Text = Char
 instance Ixed StrictT.Text where
