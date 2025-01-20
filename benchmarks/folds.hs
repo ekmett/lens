@@ -31,6 +31,10 @@ main = defaultMainWith config
       [ bench "native"     $ nf (V.toList . V.indexed) v
       , bench "itraversed" $ nf (itoListOf itraversed) v
       ]
+    , bgroup "sum"
+      [ bench "native" $ whnf V.sum v
+      , bench "each"   $ whnf (sumOf each) v
+      ]
     ]
   , bgroup "unboxed-vector"
     [ bgroup "toList"
@@ -40,6 +44,10 @@ main = defaultMainWith config
     , bgroup "itoList"
       [ bench "native"     $ nf (U.toList . U.indexed) u
       , bench "vTraverse" $ nf (itoListOf vectorTraverse) u
+      ]
+    , bgroup "sum"
+      [ bench "native" $ whnf U.sum u
+      , bench "each"   $ whnf (sumOf each) u
       ]
     ]
   , bgroup "sequence"
@@ -71,6 +79,10 @@ main = defaultMainWith config
     , bgroup "itoList"
       [ bench "native"     $ nf (zip [(0::Int)..]) l
       , bench "itraversed" $ nf (itoListOf itraversed) l
+      ]
+    , bgroup "sum"
+      [ bench "native" $ whnf sum l
+      , bench "each"   $ whnf (sumOf each) l
       ]
     ]
   , bgroup "map"
