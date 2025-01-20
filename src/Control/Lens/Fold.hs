@@ -1754,8 +1754,9 @@ lookupOf l k = foldrOf l (\(k',v) next -> if k == k' then Just v else next) Noth
 -- 'foldr1Of' :: 'Traversal'' s a -> (a -> a -> a) -> s -> a
 -- @
 foldr1Of :: HasCallStack => Getting (Endo (Maybe a)) s a -> (a -> a -> a) -> s -> a
-foldr1Of l f xs = fromMaybe (error "foldr1Of: empty structure")
-                            (foldrOf l mf Nothing xs) where
+-- See: NOTE: [Inlining and arity]
+foldr1Of l f = fromMaybe (error "foldr1Of: empty structure")
+             . foldrOf l mf Nothing where
   mf x my = Just $ case my of
     Nothing -> x
     Just y -> f x y
@@ -1780,7 +1781,8 @@ foldr1Of l f xs = fromMaybe (error "foldr1Of: empty structure")
 -- 'foldl1Of' :: 'Traversal'' s a -> (a -> a -> a) -> s -> a
 -- @
 foldl1Of :: HasCallStack => Getting (Dual (Endo (Maybe a))) s a -> (a -> a -> a) -> s -> a
-foldl1Of l f xs = fromMaybe (error "foldl1Of: empty structure") (foldlOf l mf Nothing xs) where
+-- See: NOTE: [Inlining and arity]
+foldl1Of l f = fromMaybe (error "foldl1Of: empty structure") . foldlOf l mf Nothing where
   mf mx y = Just $ case mx of
     Nothing -> y
     Just x  -> f x y
@@ -1800,7 +1802,8 @@ foldl1Of l f xs = fromMaybe (error "foldl1Of: empty structure") (foldlOf l mf No
 -- 'foldrOf'' :: 'Traversal'' s a -> (a -> r -> r) -> r -> s -> r
 -- @
 foldrOf' :: Getting (Dual (Endo (Endo r))) s a -> (a -> r -> r) -> r -> s -> r
-foldrOf' l f z0 xs = foldlOf l f' (Endo id) xs `appEndo` z0
+-- See: NOTE: [Inlining and arity]
+foldrOf' l f z0 = \xs -> foldlOf l f' (Endo id) xs `appEndo` z0
   where f' (Endo k) x = Endo $ \ z -> k $! f x z
 {-# INLINE foldrOf' #-}
 
@@ -1818,7 +1821,8 @@ foldrOf' l f z0 xs = foldlOf l f' (Endo id) xs `appEndo` z0
 -- 'foldlOf'' :: 'Traversal'' s a -> (r -> a -> r) -> r -> s -> r
 -- @
 foldlOf' :: Getting (Endo (Endo r)) s a -> (r -> a -> r) -> r -> s -> r
-foldlOf' l f z0 xs = foldrOf l f' (Endo id) xs `appEndo` z0
+-- See: NOTE: [Inlining and arity]
+foldlOf' l f z0 = \xs -> foldrOf l f' (Endo id) xs `appEndo` z0
   where f' x (Endo k) = Endo $ \z -> k $! f z x
 {-# INLINE foldlOf' #-}
 
@@ -1838,7 +1842,8 @@ foldlOf' l f z0 xs = foldrOf l f' (Endo id) xs `appEndo` z0
 -- 'foldr1Of'' :: 'Traversal'' s a -> (a -> a -> a) -> s -> a
 -- @
 foldr1Of' :: HasCallStack => Getting (Dual (Endo (Endo (Maybe a)))) s a -> (a -> a -> a) -> s -> a
-foldr1Of' l f xs = fromMaybe (error "foldr1Of': empty structure") (foldrOf' l mf Nothing xs) where
+-- See: NOTE: [Inlining and arity]
+foldr1Of' l f = fromMaybe (error "foldr1Of': empty structure") . foldrOf' l mf Nothing where
   mf x Nothing = Just $! x
   mf x (Just y) = Just $! f x y
 {-# INLINE foldr1Of' #-}
@@ -1859,7 +1864,8 @@ foldr1Of' l f xs = fromMaybe (error "foldr1Of': empty structure") (foldrOf' l mf
 -- 'foldl1Of'' :: 'Traversal'' s a -> (a -> a -> a) -> s -> a
 -- @
 foldl1Of' :: HasCallStack => Getting (Endo (Endo (Maybe a))) s a -> (a -> a -> a) -> s -> a
-foldl1Of' l f xs = fromMaybe (error "foldl1Of': empty structure") (foldlOf' l mf Nothing xs) where
+-- See: NOTE: [Inlining and arity]
+foldl1Of' l f = fromMaybe (error "foldl1Of': empty structure") . foldlOf' l mf Nothing where
   mf Nothing y = Just $! y
   mf (Just x) y = Just $! f x y
 {-# INLINE foldl1Of' #-}
@@ -1881,7 +1887,8 @@ foldl1Of' l f xs = fromMaybe (error "foldl1Of': empty structure") (foldlOf' l mf
 foldrMOf :: Monad m
          => Getting (Dual (Endo (r -> m r))) s a
          -> (a -> r -> m r) -> r -> s -> m r
-foldrMOf l f z0 xs = foldlOf l f' return xs z0
+-- See: NOTE: [Inlining and arity]
+foldrMOf l f z0 = \xs -> foldlOf l f' return xs z0
   where f' k x z = f x z >>= k
 {-# INLINE foldrMOf #-}
 
@@ -1902,9 +1909,25 @@ foldrMOf l f z0 xs = foldlOf l f' return xs z0
 foldlMOf :: Monad m
          => Getting (Endo (r -> m r)) s a
          -> (r -> a -> m r) -> r -> s -> m r
-foldlMOf l f z0 xs = foldrOf l f' return xs z0
+-- See: NOTE: [Inlining and arity]
+foldlMOf l f z0 = \xs -> foldrOf l f' return xs z0
   where f' x k z = f z x >>= k
 {-# INLINE foldlMOf #-}
+
+-- NOTE: [Inlining and arity]
+-- ~~~~~~~~~~~~~~~~~~~~~~~~~~
+--
+-- GHC uses the following inlining heuristic: a function body is inlined if
+-- all its arguments on the LHS are applied. So the following two definitions
+-- are not equivalent from the inliner's PoV:
+--
+-- > foldlOf' l f z0 xs = ...
+-- > foldlOf' l f z0 = \xs -> ...
+--
+-- GHC will be less eager to inline the first one and this results in
+-- worse code. For example, a simple list summation using `sumOf` will be 8x slower
+-- with the first version.
+
 
 -- | Check to see if this 'Fold' or 'Traversal' matches 1 or more entries.
 --
