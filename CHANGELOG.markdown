@@ -1,5 +1,9 @@
 next [????.??.??]
 -----------------
+* Reduce the arity of `foldr1Of`, `foldl1Of`, `foldrOf'`, `foldlOf'`,
+  `foldr1Of'`, `foldl1Of'`, `foldrMOf`, and `foldlMOf` so that GHC is more
+  eager to inline them. On a simple benchmark involving `sumOf` (defined in
+  terms of `foldlOf'`), this improves performance by 8x.
 * Add `Ixed`, `Cons`, `Each`, `AsEmpty`, `Reversing`, and `Rewrapped` instances
   for strict boxed vectors when building with `vector-0.13.2` or later.
 * Add an `AsEmpty` instance for primitive `Vector`s.
