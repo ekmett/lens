@@ -166,11 +166,17 @@ import Prelude
   , Bool(..)
   )
 
--- $setup
--- >>> :set -XNoOverloadedStrings
--- >>> import Control.Lens
--- >>> import Control.Applicative
--- >>> :m + Control.Exception Control.Monad Data.List Prelude
+{-
+$setup
+>>> :set -XNoOverloadedStrings
+>>> :set -XScopedTypeVariables
+>>> import Control.Lens
+>>> import Control.Applicative
+>>> :m + Control.Exception Control.Monad Data.List Prelude
+#if MIN_VERSION_base(4,20,0)
+>>> :m + Control.Exception.Context
+#endif
+-}
 
 ------------------------------------------------------------------------------
 -- Exceptions as Prisms
@@ -674,19 +680,20 @@ class AsAssertionFailed t where
   -- @
   __AssertionFailed :: Prism' t AssertionFailed
 
-  -- | This t'Exception' contains provides information about what assertion failed in the 'String'.
-  --
-  -- @
-  -- '_AssertionFailed' :: 'Prism'' 'AssertionFailed' 'String'
-  -- '_AssertionFailed' :: 'Prism'' 'SomeException'   'String'
-  -- @
+  {- | This t'Exception' contains provides information about what assertion failed in the 'String'.
 
-  {-
-  TODO: This doctest is temporarily disabled, as it does not work properly on
-  GHC 9.12. See https://gitlab.haskell.org/ghc/ghc/-/issues/25610.
+  @
+  '_AssertionFailed' :: 'Prism'' 'AssertionFailed' 'String'
+  '_AssertionFailed' :: 'Prism'' 'SomeException'   'String'
+  @
 
+#if MIN_VERSION_base(4,20,0)
+  >>> handling exception (\ (ExceptionWithContext ctxt (_ :: AssertionFailed)) -> "caught" <$ guard ("<interactive>" `isInfixOf` displayExceptionContext ctxt) ) $ assert False (return "uncaught")
+  "caught"
+#else
   -- >>> handling _AssertionFailed (\ xs -> "caught" <$ guard ("<interactive>" `isInfixOf` xs) ) $ assert False (return "uncaught")
   -- "caught"
+#endif
   -}
   _AssertionFailed :: Prism' t String
   _AssertionFailed = __AssertionFailed._AssertionFailed
