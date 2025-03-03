@@ -1,5 +1,5 @@
-next [????.??.??]
------------------
+5.3.4 [2025.03.03]
+------------------
 * Reduce the arity of `foldr1Of`, `foldl1Of`, `foldrOf'`, `foldlOf'`,
   `foldr1Of'`, `foldl1Of'`, `foldrMOf`, and `foldlMOf` so that GHC is more
   eager to inline them. On a simple benchmark involving `sumOf` (defined in
