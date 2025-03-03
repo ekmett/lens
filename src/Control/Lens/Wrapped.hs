@@ -884,7 +884,11 @@ getCompactionFailed (CompactionFailed x) = x
 #endif
 
 getErrorCall :: ErrorCall -> String
+#if MIN_VERSION_base(4,21,0)
+getErrorCall (ErrorCall x) = x
+#else
 getErrorCall (ErrorCallWithLocation x _) = x
+#endif
 {-# INLINE getErrorCall #-}
 
 getRecUpdError :: RecUpdError -> String
