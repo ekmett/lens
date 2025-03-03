@@ -183,7 +183,7 @@ library
     bytestring                    >= 0.10.4.0 && < 0.13,
     call-stack                    >= 0.1      && < 0.5,
     comonad                       >= 5.0.7    && < 6,
-    containers                    >= 0.5.5.1  && < 0.8,
+    containers                    >= 0.5.5.1  && < 0.9,
     contravariant                 >= 1.4      && < 2,
     distributive                  >= 0.5.1    && < 1,
     exceptions                    >= 0.8.2.1  && < 1,

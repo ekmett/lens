@@ -58,7 +58,7 @@ executable lens-pong
 
   build-depends:
     base       >= 4.5   && < 5,
-    containers >= 0.4   && < 0.8,
+    containers >= 0.4   && < 0.9,
     gloss      >= 1.12  && < 1.14,
     lens,
     mtl        >= 2.0.1 && < 2.4,
