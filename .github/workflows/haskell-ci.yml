@@ -8,9 +8,9 @@
 #
 # For more information, see https://github.com/haskell-CI/haskell-ci
 #
-# version: 0.19.20250115
+# version: 0.19.20250216
 #
-# REGENDATA ("0.19.20250115",["github","--config=cabal.haskell-ci","cabal.project"])
+# REGENDATA ("0.19.20250216",["github","--config=cabal.haskell-ci","cabal.project"])
 #
 name: Haskell-CI
 on:
@@ -19,7 +19,7 @@ on:
 jobs:
   linux:
     name: Haskell-CI - Linux - ${{ matrix.compiler }}
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     timeout-minutes:
       60
     container:
@@ -38,9 +38,9 @@ jobs:
             compilerVersion: 9.10.1
             setup-method: ghcup
             allow-failure: false
-          - compiler: ghc-9.8.2
+          - compiler: ghc-9.8.4
             compilerKind: ghc
-            compilerVersion: 9.8.2
+            compilerVersion: 9.8.4
             setup-method: ghcup
             allow-failure: false
           - compiler: ghc-9.6.6
