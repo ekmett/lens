@@ -1,3 +1,7 @@
+next [????.??.??]
+-----------------
+* Replace `test-framework` with `tasty` in the test suite.
+
 5.3.4 [2025.03.03]
 ------------------
 * Reduce the arity of `foldr1Of`, `foldl1Of`, `foldrOf'`, `foldlOf'`,

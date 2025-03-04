@@ -33,9 +33,8 @@ import Data.Map (Map)
 #if !(MIN_VERSION_base(4,11,0))
 import Data.Monoid
 #endif
-import Test.Framework.Providers.HUnit
-import Test.Framework
-import Test.HUnit hiding (test)
+import Test.Tasty (defaultMain, testGroup)
+import Test.Tasty.HUnit ((@?=), testCase)
 
 
 data Point =
@@ -380,62 +379,61 @@ case_correct_indexing_lazy_bytestring =
     @?= [Nothing, Just 1, Just 2, Nothing]
 
 main :: IO ()
-main = defaultMain
-  [ testGroup "Main"
-    [ testCase "read record field" case_read_record_field
-    , testCase "read state record field" case_read_state_record_field
-    , testCase "read record field and apply function" case_read_record_field_and_apply_function
-    , testCase "read state record field and apply function" case_read_state_record_field_and_apply_function
-    , testCase "write record field" case_write_record_field
-    , testCase "write state record field" case_write_state_record_field
-    , testCase "write record field and access new value" case_write_record_field_and_access_new_value
-    , testCase "write state record field and access new value" case_write_state_record_field_and_access_new_value
-    , testCase "write record field and access old value" case_write_record_field_and_access_old_value
-    , testCase "write state record field and access old value" case_write_state_record_field_and_access_old_value
-    , testCase "modify record field" case_modify_record_field
-    , testCase "modify state record field" case_modify_state_record_field
-    , testCase "modify record field and access new value" case_modify_record_field_and_access_new_value
-    , testCase "modify state record field and access new value" case_modify_state_record_field_and_access_new_value
-    , testCase "modify record field and access old value" case_modify_record_field_and_access_old_value
-    , testCase "modify state record field and access old value" case_modify_state_record_field_and_access_old_value
-    , testCase "modify record field and access side result" case_modify_record_field_and_access_side_result
-    , testCase "increment record field" case_increment_record_field
-    , testCase "increment state record field" case_increment_state_record_field
-    , testCase "append to record field" case_append_to_record_field
-    , testCase "append to state record field" case_append_to_state_record_field
-    , testCase "prepend to record field" case_prepend_to_record_field
-    , testCase "prepend to state record field" case_prepend_to_state_record_field
-    , testCase "cons to record field" case_cons_to_record_field
-    , testCase "cons to state record field" case_cons_to_state_record_field
-    , testCase "snoc to record field" case_snoc_to_record_field
-    , testCase "snoc to state record field" case_snoc_to_state_record_field
-    , testCase "append to record field and access new value" case_append_to_record_field_and_access_new_value
-    , testCase "append to state record field and access new value" case_append_to_state_record_field_and_access_new_value
-    , testCase "prepend to record field and access new value" case_prepend_to_record_field_and_access_new_value
-    , testCase "prepend to state record field and access new value" case_prepend_to_state_record_field_and_access_new_value
-    , testCase "cons to record field and access new value" case_cons_to_record_field_and_access_new_value
-    , testCase "cons to state record field and access new value" case_cons_to_state_record_field_and_access_new_value
-    , testCase "snoc to record field and access new value" case_snoc_to_record_field_and_access_new_value
-    , testCase "snoc to state record field and access new value" case_snoc_to_state_record_field_and_access_new_value
-    , testCase "append to record field and access old value" case_append_to_record_field_and_access_old_value
-    , testCase "append to state record field and access old value" case_append_to_state_record_field_and_access_old_value
-    , testCase "cons to record field and access old value" case_cons_to_record_field_and_access_old_value
-    , testCase "cons to state record field and access old value" case_cons_to_state_record_field_and_access_old_value
-    , testCase "snoc to record field and access old value" case_snoc_to_record_field_and_access_old_value
-    , testCase "snoc to state record field and access old value" case_snoc_to_state_record_field_and_access_old_value
-    , testCase "read maybe map entry" case_read_maybe_map_entry
-    , testCase "read maybe state map entry" case_read_maybe_state_map_entry
-    , testCase "read map entry" case_read_map_entry
-    , testCase "read state map entry" case_read_state_map_entry
-    , testCase "modify map entry" case_modify_map_entry
-    , testCase "insert maybe map entry" case_insert_maybe_map_entry
-    , testCase "delete maybe map entry" case_delete_maybe_map_entry
-    , testCase "read list entry" case_read_list_entry
-    , testCase "write list entry" case_write_list_entry
-    , testCase "write through list entry" case_write_through_list_entry
-    , testCase "correct indexing strict text" case_correct_indexing_strict_text
-    , testCase "correct indexing lazy text" case_correct_indexing_lazy_text
-    , testCase "correct indexing strict bytestring" case_correct_indexing_strict_bytestring
-    , testCase "correct indexing lazy bytestring" case_correct_indexing_lazy_bytestring
-    ]
+main = defaultMain $
+  testGroup "Main"
+  [ testCase "read record field" case_read_record_field
+  , testCase "read state record field" case_read_state_record_field
+  , testCase "read record field and apply function" case_read_record_field_and_apply_function
+  , testCase "read state record field and apply function" case_read_state_record_field_and_apply_function
+  , testCase "write record field" case_write_record_field
+  , testCase "write state record field" case_write_state_record_field
+  , testCase "write record field and access new value" case_write_record_field_and_access_new_value
+  , testCase "write state record field and access new value" case_write_state_record_field_and_access_new_value
+  , testCase "write record field and access old value" case_write_record_field_and_access_old_value
+  , testCase "write state record field and access old value" case_write_state_record_field_and_access_old_value
+  , testCase "modify record field" case_modify_record_field
+  , testCase "modify state record field" case_modify_state_record_field
+  , testCase "modify record field and access new value" case_modify_record_field_and_access_new_value
+  , testCase "modify state record field and access new value" case_modify_state_record_field_and_access_new_value
+  , testCase "modify record field and access old value" case_modify_record_field_and_access_old_value
+  , testCase "modify state record field and access old value" case_modify_state_record_field_and_access_old_value
+  , testCase "modify record field and access side result" case_modify_record_field_and_access_side_result
+  , testCase "increment record field" case_increment_record_field
+  , testCase "increment state record field" case_increment_state_record_field
+  , testCase "append to record field" case_append_to_record_field
+  , testCase "append to state record field" case_append_to_state_record_field
+  , testCase "prepend to record field" case_prepend_to_record_field
+  , testCase "prepend to state record field" case_prepend_to_state_record_field
+  , testCase "cons to record field" case_cons_to_record_field
+  , testCase "cons to state record field" case_cons_to_state_record_field
+  , testCase "snoc to record field" case_snoc_to_record_field
+  , testCase "snoc to state record field" case_snoc_to_state_record_field
+  , testCase "append to record field and access new value" case_append_to_record_field_and_access_new_value
+  , testCase "append to state record field and access new value" case_append_to_state_record_field_and_access_new_value
+  , testCase "prepend to record field and access new value" case_prepend_to_record_field_and_access_new_value
+  , testCase "prepend to state record field and access new value" case_prepend_to_state_record_field_and_access_new_value
+  , testCase "cons to record field and access new value" case_cons_to_record_field_and_access_new_value
+  , testCase "cons to state record field and access new value" case_cons_to_state_record_field_and_access_new_value
+  , testCase "snoc to record field and access new value" case_snoc_to_record_field_and_access_new_value
+  , testCase "snoc to state record field and access new value" case_snoc_to_state_record_field_and_access_new_value
+  , testCase "append to record field and access old value" case_append_to_record_field_and_access_old_value
+  , testCase "append to state record field and access old value" case_append_to_state_record_field_and_access_old_value
+  , testCase "cons to record field and access old value" case_cons_to_record_field_and_access_old_value
+  , testCase "cons to state record field and access old value" case_cons_to_state_record_field_and_access_old_value
+  , testCase "snoc to record field and access old value" case_snoc_to_record_field_and_access_old_value
+  , testCase "snoc to state record field and access old value" case_snoc_to_state_record_field_and_access_old_value
+  , testCase "read maybe map entry" case_read_maybe_map_entry
+  , testCase "read maybe state map entry" case_read_maybe_state_map_entry
+  , testCase "read map entry" case_read_map_entry
+  , testCase "read state map entry" case_read_state_map_entry
+  , testCase "modify map entry" case_modify_map_entry
+  , testCase "insert maybe map entry" case_insert_maybe_map_entry
+  , testCase "delete maybe map entry" case_delete_maybe_map_entry
+  , testCase "read list entry" case_read_list_entry
+  , testCase "write list entry" case_write_list_entry
+  , testCase "write through list entry" case_write_through_list_entry
+  , testCase "correct indexing strict text" case_correct_indexing_strict_text
+  , testCase "correct indexing lazy text" case_correct_indexing_lazy_text
+  , testCase "correct indexing strict bytestring" case_correct_indexing_strict_bytestring
+  , testCase "correct indexing lazy bytestring" case_correct_indexing_lazy_bytestring
   ]

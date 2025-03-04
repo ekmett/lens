@@ -367,9 +367,9 @@ test-suite properties
     build-depends:
       base,
       lens,
-      QuickCheck                 >= 2.4,
-      test-framework             >= 0.6,
-      test-framework-quickcheck2 >= 0.2,
+      QuickCheck >= 2.4,
+      tasty >= 1.4 && < 1.6,
+      tasty-quickcheck >= 0.10 && < 0.12,
       transformers
 
 test-suite hunit
@@ -385,13 +385,12 @@ test-suite hunit
     build-depends:
       base,
       containers,
-      HUnit >= 1.2,
       lens,
       mtl,
       text,
       bytestring,
-      test-framework       >= 0.6,
-      test-framework-hunit >= 0.2
+      tasty >= 1.4 && < 1.6,
+      tasty-hunit >= 0.10 && < 0.11
 
 -- We need this dummy test-suite to add simple-reflect to the install plan
 --
