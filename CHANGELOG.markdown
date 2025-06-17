@@ -1,5 +1,5 @@
-next [????.??.??]
------------------
+5.3.5 [2025.06.17]
+------------------
 * Replace `test-framework` with `tasty` in the test suite.
 
 5.3.4 [2025.03.03]
