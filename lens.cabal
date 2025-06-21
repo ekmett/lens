@@ -195,6 +195,7 @@ library
     indexed-traversable-instances >= 0.1      && < 0.2,
     kan-extensions                >= 5        && < 6,
     mtl                           >= 2.2.1    && < 2.4,
+    OneTuple                      >= 0.3      && < 0.4,
     parallel                      >= 3.2.1.0  && < 3.3,
     profunctors                   >= 5.5.2    && < 6,
     reflection                    >= 2.1      && < 3,
@@ -228,6 +229,7 @@ library
     Control.Lens.Indexed
     Control.Lens.Internal
     Control.Lens.Internal.Bazaar
+    Control.Lens.Internal.BoxT
     Control.Lens.Internal.ByteString
     Control.Lens.Internal.Context
     Control.Lens.Internal.CTypes

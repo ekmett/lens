@@ -49,6 +49,15 @@ instance Settable Identity where
   taintedDot = (Identity #.)
   {-# INLINE taintedDot #-}
 
+-- CAUTION: While Data.Tuple.Solo may *look* a lot like Identity, and while we
+-- *could* give it a Settable instance, we probably do not want to do so. In
+-- particular, if we did, then Control.Lens.Traversal.over' would "work" with
+-- Setters. But ... it wouldn't *actually* work; the mapping would end up being
+-- lazy when it's supposed to be strict. Similarly, the BoxT applicative
+-- transformer must not be made Settable, because that would cause a similarly
+-- confusing problem with Control.Lens.Traversal.strictly. There is not, as
+-- yet, any compelling reason to write such an instance, so let's not.
+
 -- | 'Control.Lens.Fold.backwards'
 instance Settable f => Settable (Backwards f) where
   untainted = untaintedDot forwards

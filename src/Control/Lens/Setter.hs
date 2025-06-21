@@ -342,6 +342,13 @@ cloneIndexedSetter l pafb = taintedDot (runIdentity #. l (Indexed $ \i -> Identi
 -- >>> over _1 show (10,20)
 -- ("10",20)
 --
+--
+-- Like 'fmap', @over@ is normally lazy in the result(s) of calling the
+-- function, which can cause space leaks in lazy fields, or when using
+-- 'Control.Lens.At.ix' for value-lazy structures like 'Data.Sequence.Seq',
+-- 'Data.Map.Map', 'Data.IntMap.IntMap', or 'Data.Array.Array'.  For a strict
+-- version, see `Control.Lens.Traversal.iover'`.
+--
 -- @
 -- 'over' :: 'Setter' s t a b -> (a -> b) -> s -> t
 -- 'over' :: 'ASetter' s t a b -> (a -> b) -> s -> t
@@ -1186,6 +1193,13 @@ ilocally l f = Reader.local (iover l f)
 -- 'over' l ≡ 'iover' l '.' 'const'
 -- 'iover' l ≡ 'over' l '.' 'Indexed'
 -- @
+--
+-- Like 'Data.Functor.WithIndex.imap', @iover@ is normally lazy in the
+-- result(s) of calling the function, which can cause space leaks in lazy
+-- fields, or when using 'Control.Lens.At.ix' for value-lazy structures like
+-- 'Data.Sequence.Seq', 'Data.Map.Map', 'Data.IntMap.IntMap', or
+-- 'Data.Array.Array'.  For a strict version, see
+-- `Control.Lens.Traversal.iover'`.
 --
 -- @
 -- 'iover' :: 'IndexedSetter' i s t a b    -> (i -> a -> b) -> s -> t
