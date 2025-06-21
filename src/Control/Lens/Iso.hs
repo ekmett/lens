@@ -46,6 +46,7 @@ module Control.Lens.Iso
   , simple
   , non, non'
   , anon
+  , inon
   , enum
   , curried, uncurried
   , flipped
@@ -344,6 +345,32 @@ anon a p = iso (fromMaybe a) go where
   go b | p b       = Nothing
        | otherwise = Just b
 {-# INLINE anon #-}
+
+-- | Improper 'non' - this is a version of 'non' suitable for caching.
+-- Use 'inon' instead of 'non' to manage a map of values where you don't
+-- want to lose information about which keys were ever present in the map.
+--
+-- The expression @'non' a@ maps @Nothing@ to @a@ and @a@ back to @Nothing@,
+-- so it is a proper 'Iso'.  Instead, @'inon' a@ still maps @Nothing@
+-- to @a@, but in the reverse direction it maps @a@ back to @Just a@.
+-- If you have a map of values such as @Map UserId UserProfile@ which
+-- you are accessing using 'non' with a lens like @at uid . non def
+-- . somefield@, when you set that field to a value that happens to
+-- restore the condition @UserProfile == def@, the record gets deleted
+-- from the map.  You have now lost the information that that user was
+-- ever present in the map:
+--
+-- >>> fromList [("user1", "axc")] & (at "user1" . non "abc" . ix 1) .~ 'b'
+-- fromlist []
+--
+-- Using 'inon' instead of 'non' means that key will not be deleted
+-- from the map:
+--
+-- >>> fromList [("user1", "axc")] & (at "user1" . inon "abc" . ix 1) .~ 'b'
+-- fromlist [("user1", "abc")]
+inon :: a -> Iso' (Maybe a) a
+inon a = anon a (const False)
+{-# INLINE inon #-}
 
 -- | The canonical isomorphism for currying and uncurrying a function.
 --
