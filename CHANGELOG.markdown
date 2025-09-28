@@ -1,3 +1,8 @@
+next [????.??.??]
+-----------------
+* Add `_SpecialiseEP` to `Language.Haskell.TH.Lens` (when building with
+  `template-haskell-2.24.*`/GHC 9.14 or later).
+
 5.3.5 [2025.06.17]
 ------------------
 * Replace `test-framework` with `tasty` in the test suite.
