@@ -200,6 +200,9 @@ module Language.Haskell.TH.Lens
 #if MIN_VERSION_template_haskell(2,22,0)
   , _SCCP
 #endif
+#if MIN_VERSION_template_haskell(2,24,0)
+  , _SpecialiseEP
+#endif
   -- ** Inline Prisms
   , _NoInline
   , _Inline
@@ -1617,6 +1620,16 @@ _SCCP
       reviewer (x, y) = SCCP x y
       remitter (SCCP x y) = Just (x, y)
       remitter _ = Nothing
+#endif
+
+#if MIN_VERSION_template_haskell(2,24,0)
+_SpecialiseEP :: Prism' Pragma (Maybe [TyVarBndr ()], [RuleBndr], Exp, Maybe Inline, Phases)
+_SpecialiseEP
+  = prism' reviewer remitter
+  where
+    reviewer (x, y, z, w, u) = SpecialiseEP x y z w u
+    remitter (SpecialiseEP x y z w u) = Just (x, y, z, w, u)
+    remitter _ = Nothing
 #endif
 
 _NoInline :: Prism' Inline ()
