@@ -11,3 +11,6 @@ docspec:                True
 -- versions of Haddock do not gracefully handle these markers, we simply do not
 -- build the Haddocks on CI unless we are using GHC 8.8 or later.
 haddock:                >=8.8
+-- GHC thinks the deepseq and simple-reflect dependencies in the doctests test
+-- suite are unused, but they actually are needed for cabal-docspec to work.
+error-unused-packages:  False
