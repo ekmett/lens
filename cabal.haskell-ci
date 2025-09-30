@@ -14,3 +14,5 @@ haddock:                >=8.8
 -- GHC thinks the deepseq and simple-reflect dependencies in the doctests test
 -- suite are unused, but they actually are needed for cabal-docspec to work.
 error-unused-packages:  False
+-- Avoid picking a broken build plan with head.hackage.
+head-hackage-override:  False
