@@ -12,12 +12,6 @@
 {-# LANGUAGE Trustworthy #-}
 #endif
 {-# OPTIONS_GHC -fno-full-laziness #-}
-#if __GLASGOW_HASKELL__ >= 810
--- Use -fbyte-code explicitly to ensure that -fobject-code isn't automatically
--- implied on GHCi 8.10+ by the use of UnboxedTuples, as this breaks the
--- doctests. See #874 for more details.
-{-# OPTIONS_GHC -fbyte-code #-}
-#endif
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Data.Lens
