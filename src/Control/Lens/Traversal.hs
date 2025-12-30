@@ -162,7 +162,7 @@ import Data.Reflection
 import Data.Semigroup.Traversable
 import Data.Semigroup.Bitraversable
 import Data.Tuple (swap)
-import GHC.Magic (inline)
+import GHC.Exts (inline)
 
 -- $setup
 -- >>> :set -XNoOverloadedStrings -XFlexibleContexts
