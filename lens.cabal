@@ -54,9 +54,7 @@ description:
   With some signatures simplified, the core of the hierarchy of lens-like constructions looks like:
   .
   .
-  <<http://i.imgur.com/ALlbPRa.png>>
-  .
-  <https://raw.githubusercontent.com/ekmett/lens/master/images/Hierarchy.png (Local Copy)>
+  <<https://raw.githubusercontent.com/ekmett/lens/master/images/Hierarchy.png>>
   .
   You can compose any two elements of the hierarchy above using @(.)@ from the @Prelude@, and you can
   use any element of the hierarchy as any type it linked to above it.
