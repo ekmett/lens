@@ -1,5 +1,5 @@
-next [????.??.??]
------------------
+5.3.6 [2026.01.10]
+------------------
 * Allow building with `template-haskell-2.24.*` (GHC 9.14).
 * Add `_SpecialiseEP` to `Language.Haskell.TH.Lens` (when building with
   `template-haskell-2.24.*`/GHC 9.14 or later).
