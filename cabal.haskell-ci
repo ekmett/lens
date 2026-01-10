@@ -1,4 +1,3 @@
-distribution:           jammy
 no-tests-no-benchmarks: False
 unconstrained:          False
 apt:                    freeglut3-dev
