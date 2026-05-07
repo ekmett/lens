@@ -22,6 +22,7 @@ import Control.Comonad
 import Control.Lens.Fold
 import Control.Lens.Getter
 import Control.Lens.Internal.Indexed
+import Control.Lens.Review
 import Control.Lens.Traversal (ignored)
 import Control.Lens.Type
 import Control.Monad
@@ -30,11 +31,13 @@ import Data.Distributive
 import Data.Foldable
 import Data.Functor.Compose
 import Data.Functor.Contravariant
+import Data.Functor.Contravariant.Divisible
 import Data.Functor.Bind
 import Data.Functor.Extend
 import Data.Functor.Identity
 import Data.Functor.Plus
 import Data.Profunctor.Closed
+import Data.Void
 import Data.Profunctor
 import Data.Profunctor.Rep
 import Data.Profunctor.Sieve
@@ -534,3 +537,38 @@ newtype ReifiedPrism s t a b = Prism { runPrism :: Prism s t a b }
 -- type 'ReifiedPrism'' = 'Simple' 'ReifiedPrism'
 -- @
 type ReifiedPrism' s a = ReifiedPrism s s a a
+
+------------------------------------------------------------------------------
+-- Review
+------------------------------------------------------------------------------
+
+-- | Reify a t'Review' so it can be stored safely in a container.
+newtype ReifiedReview t b = Review { runReview :: Review t b }
+
+instance Contravariant (ReifiedReview t) where
+  contramap f (Review r) = Review (unto (review r . f))
+  {-# INLINE contramap #-}
+
+instance Monoid t => Divisible (ReifiedReview t) where
+  divide f (Review r) (Review s) = Review (unto (\a -> let (b, c) = f a in review r b `mappend` review s c))
+  {-# INLINE divide #-}
+  conquer = Review (unto (const mempty))
+  {-# INLINE conquer #-}
+
+instance Monoid t => Decidable (ReifiedReview t) where
+  lose f = Review (unto (absurd . f))
+  {-# INLINE lose #-}
+  choose f (Review r) (Review s) = Review (unto (either (review r) (review s) . f))
+  {-# INLINE choose #-}
+
+instance Semigroup t => Semigroup (ReifiedReview t b) where
+  Review r <> Review s = Review (unto (\b -> review r b <> review s b))
+  {-# INLINE (<>) #-}
+
+instance Monoid t => Monoid (ReifiedReview t b) where
+  mempty = Review (unto (const mempty))
+  {-# INLINE mempty #-}
+#if !(MIN_VERSION_base(4,11,0))
+  Review r `mappend` Review s = Review (unto (\b -> review r b `mappend` review s b))
+  {-# INLINE mappend #-}
+#endif
