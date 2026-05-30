@@ -209,7 +209,10 @@ au k = withIso k $ \ sa bt f -> fmap sa (f bt)
 -- with the behavior of 'au'. For the old behavior use 'xplatf' or for a version that is compatible
 -- across both old and new versions of @lens@ you can just use 'coerce'!
 auf :: (Functor f, Functor g) => AnIso s t a b -> (f t -> g s) -> f b -> g a
-auf k ftgs fb = withIso k $ \sa bt -> sa <$> ftgs (bt <$> fb)
+-- Pushing the remaining arguments inside 'withIso' (so only @k@ is to the left
+-- of the @=@) matches 'au'/'under' and lets the iso decompose once and inline at
+-- partial applications. See: NOTE: [Inlining and arity] in Control.Lens.Fold
+auf k = withIso k $ \sa bt ftgs fb -> sa <$> ftgs (bt <$> fb)
 {-# INLINE auf #-}
 
 -- | @'xplat' = 'au' . 'from'@ but with a nicer signature.

@@ -517,7 +517,8 @@ mapAccumROf = mapAccumLOf . backwards
 -- @
 --
 mapAccumLOf :: LensLike (State acc) s t a b -> (acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
-mapAccumLOf l f acc0 s = swap (runState (l g s) acc0) where
+-- See: NOTE: [Inlining and arity] in Control.Lens.Fold
+mapAccumLOf l f acc0 = \s -> swap (runState (l g s) acc0) where
    g a = state $ \acc -> swap (f acc a)
 -- This would be much cleaner if the argument order for the function was swapped.
 {-# INLINE mapAccumLOf #-}
@@ -601,7 +602,8 @@ iloci f w = getCompose (runBazaar w (Compose #. Indexed (\i -> fmap (indexed sel
 -- 'partsOf' :: 'Getter' s a     -> 'Getter' s [a]
 -- @
 partsOf :: Functor f => Traversing (->) f s t a a -> LensLike f s t [a] [a]
-partsOf l f s = outs b <$> f (ins b) where b = l sell s
+-- See: NOTE: [Inlining and arity] in Control.Lens.Fold
+partsOf l = \f s -> let b = l sell s in outs b <$> f (ins b)
 {-# INLINE partsOf #-}
 
 -- | An indexed version of 'partsOf' that receives the entire list of indices as its index.
@@ -613,7 +615,8 @@ ipartsOf l = conjoined
 
 -- | A type-restricted version of 'partsOf' that can only be used with a 'Traversal'.
 partsOf' :: ATraversal s t a a -> Lens s t [a] [a]
-partsOf' l f s = outs b <$> f (ins b) where b = l sell s
+-- See: NOTE: [Inlining and arity] in Control.Lens.Fold
+partsOf' l = \f s -> let b = l sell s in outs b <$> f (ins b)
 {-# INLINE partsOf' #-}
 
 -- | A type-restricted version of 'ipartsOf' that can only be used with an 'IndexedTraversal'.
@@ -897,7 +900,8 @@ instance Monoid m => Applicative (Holes t m) where
 -- 'both' :: 'Traversal' ('Either' a a) ('Either' b b) a b
 -- @
 both :: Bitraversable r => Traversal (r a a) (r b b) a b
-both f = bitraverse f f
+-- See: NOTE: [Inlining and arity] in Control.Lens.Fold
+both = \f -> bitraverse f f
 {-# INLINE both #-}
 
 -- | Traverse both parts of a 'Bitraversable1' container with matching types.
@@ -909,7 +913,8 @@ both f = bitraverse f f
 -- 'both1' :: 'Traversal1' ('Either' a a) ('Either' b b) a b
 -- @
 both1 :: Bitraversable1 r => Traversal1 (r a a) (r b b) a b
-both1 f = bitraverse1 f f
+-- See: NOTE: [Inlining and arity] in Control.Lens.Fold
+both1 = \f -> bitraverse1 f f
 {-# INLINE both1 #-}
 
 -- | Apply a different 'Traversal' or 'Fold' to each side of a 'Bitraversable' container.
