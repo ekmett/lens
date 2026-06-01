@@ -61,6 +61,7 @@ import qualified Data.HashSet as S
 import           Data.HashSet (HashSet)
 import           Data.IORef
 import           Data.Monoid
+import           Data.Unique (Unique, newUnique)
 import           GHC.Exts (realWorld#)
 import           Prelude
 
@@ -136,20 +137,35 @@ biplate = biplateData (fromOracle answer) where
 -- Automatic Traversal construction from field accessors
 ------------------------------------------------------------------------------
 
-data FieldException a = FieldException !Int a
+-- | The exception 'lookupon' uses to find which field an accessor reads. The
+-- 'Unique' token identifies the planting 'lookupon', so a nested 'upon' does not
+-- mistake another layer's exception for its own. Existential in the field type
+-- so the handler can catch any field exception and dispatch on the token.
+data FieldException = forall a. Typeable a => FieldException !Unique !Int a
 
-instance Show (FieldException a) where
-  showsPrec d (FieldException i _) = showParen (d > 10) $
+instance Show FieldException where
+  showsPrec d (FieldException _ i _) = showParen (d > 10) $
     showString "<field " . showsPrec 11 i . showChar '>'
 
-instance Typeable a => Exception (FieldException a)
+instance Exception FieldException
 
-lookupon :: Typeable a => LensLike' (Indexing Identity) s a -> (s -> a) -> s -> Maybe (Int, Context a a s)
-lookupon l field s = case unsafePerformIO $ E.try $ evaluate $ field $ s & indexing l %@~ \i (a::a) -> E.throw (FieldException i a) of
+-- | A fresh identity per 'upon' invocation. Keyed on the structure, 'NOINLINE',
+-- and relying on the module's @-fno-full-laziness@ so GHC cannot share one token
+-- across invocations (which would defeat the nesting fix).
+newFieldToken :: s -> Unique
+newFieldToken s = s `seq` unsafePerformIO newUnique
+{-# NOINLINE newFieldToken #-}
+
+lookupon :: Typeable a => Unique -> LensLike' (Indexing Identity) s a -> (s -> a) -> s -> Maybe (Int, Context a a s)
+lookupon u l field s = case unsafePerformIO $ E.try $ evaluate $ field $ s & indexing l %@~ \i (a::a) -> E.throw (FieldException u i a) of
   Right _ -> Nothing
   Left e -> case fromException e of
-    Nothing -> Nothing
-    Just (FieldException i a) -> Just (i, Context (\a' -> set (elementOf l i) a' s) a)
+    Just fe@(FieldException u' i a)
+      | u' == u   -> case cast a of
+          Just a' -> Just (i, Context (\a'' -> set (elementOf l i) a'' s) a')
+          Nothing -> throw fe                 -- our token but wrong type: impossible by construction
+      | otherwise -> throw fe                 -- a foreign token: belongs to an outer 'upon', rethrow
+    Nothing -> Nothing                        -- not a FieldException: genuine partiality, e.g. tail []
 {-# INLINE lookupon #-}
 
 
@@ -182,19 +198,25 @@ lookupon l field s = case unsafePerformIO $ E.try $ evaluate $ field $ s & index
 -- >>> [1,2,3,4] & upon (tail.tail) .~ [10,20]
 -- [1,2,10,20]
 --
+-- Nesting 'upon' through a 'view' terminates, behaving like a plain @'upon' 'tail'@:
+--
+-- >>> [1..10] & (upon.view.upon) tail %~ reverse
+-- [1,10,9,8,7,6,5,4,3,2]
+--
 -- Second, the structure must not contain strict or unboxed fields of the same type that will be visited by 'Data'
 --
 -- @'upon' :: ('Data' s, 'Data' a) => (s -> a) -> 'IndexedTraversal'' [Int] s a@
 upon :: forall p f s a. (Indexable [Int] p, Applicative f, Data s, Data a) => (s -> a) -> p a (f a) -> s -> f s
-upon field f s = case lookupon template field s of
+upon field f s = case lookupon u template field s of
   Nothing -> pure s
   Just (i, Context k0 a0) ->
     let
       go :: [Int] -> Traversal' s a -> (a -> s) -> a -> f s
-      go is l k a = case lookupon (l.uniplate) field s of
+      go is l k a = case lookupon u (l.uniplate) field s of
         Nothing                 -> k <$> indexed f (reverse is) a
         Just (j, Context k' a') -> go (j:is) (l.elementOf uniplate j) k' a'
     in go [i] (elementOf template i) k0 a0
+  where u = newFieldToken s
 {-# INLINE upon #-}
 
 -- | The design of 'onceUpon'' doesn't allow it to search inside of values of type 'a' for other values of type 'a'.
@@ -208,11 +230,12 @@ upon field f s = case lookupon template field s of
 -- [1,2,10,20]
 upon' :: forall s a. (Data s, Data a) => (s -> a) -> IndexedLens' [Int] s a
 upon' field f s = let
-    ~(isn, kn) = case lookupon template field s of
+    u = newFieldToken s
+    ~(isn, kn) = case lookupon u template field s of
       Nothing -> (error "upon': no index, not a member", const s)
       Just (i, Context k0 _) -> go [i] (elementOf template i) k0
     go :: [Int] -> Traversal' s a -> (a -> s) -> ([Int], a -> s)
-    go is l k = case lookupon (l.uniplate) field s of
+    go is l k = case lookupon u (l.uniplate) field s of
       Nothing                -> (reverse is, k)
       Just (j, Context k' _) -> go (j:is) (l.elementOf uniplate j) k'
   in kn <$> indexed f isn (field s)
@@ -234,7 +257,7 @@ upon' field f s = let
 --
 -- When in doubt, use 'upon' instead.
 onceUpon :: forall s a. (Data s, Typeable a) => (s -> a) -> IndexedTraversal' Int s a
-onceUpon field f s = case lookupon template field s of
+onceUpon field f s = case lookupon (newFieldToken s) template field s of
   Nothing               -> pure s
   Just (i, Context k a) -> k <$> indexed f i a
 {-# INLINE onceUpon #-}
@@ -256,7 +279,7 @@ onceUpon field f s = case lookupon template field s of
 -- When in doubt, use 'upon'' instead.
 onceUpon' :: forall s a. (Data s, Typeable a) => (s -> a) -> IndexedLens' Int s a
 onceUpon' field f s = k <$> indexed f i (field s) where
-  ~(i, Context k _) = fromMaybe (error "upon': no index, not a member") (lookupon template field s)
+  ~(i, Context k _) = fromMaybe (error "upon': no index, not a member") (lookupon (newFieldToken s) template field s)
 {-# INLINE onceUpon' #-}
 
 -------------------------------------------------------------------------------

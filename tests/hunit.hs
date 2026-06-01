@@ -21,6 +21,7 @@
 module Main (main) where
 
 import Control.Lens
+import Data.Data.Lens (upon)
 import Control.Monad.State
 import Data.Char
 import qualified Data.Text as StrictT
@@ -33,7 +34,7 @@ import Data.Map (Map)
 #if !(MIN_VERSION_base(4,11,0))
 import Data.Monoid
 #endif
-import Test.Tasty (defaultMain, testGroup)
+import Test.Tasty (defaultMain, testGroup, localOption, mkTimeout)
 import Test.Tasty.HUnit ((@?=), testCase)
 
 
@@ -378,6 +379,15 @@ case_correct_indexing_lazy_bytestring =
   map (\i -> LazyB.pack [1,2] ^? ix i) [-1..2]
     @?= [Nothing, Just 1, Just 2, Nothing]
 
+-- Nested `upon` (`(upon.view.upon) tail`) used to loop forever.
+case_upon_view_upon_matches_upon_tail =
+  ([1..10] & (upon.view.upon) tail %~ reverse)
+    @?= ([1..10] & upon tail %~ reverse :: [Int])
+
+case_upon_view_upon_value =
+  ([1..10] & (upon.view.upon) tail %~ reverse :: [Int])
+    @?= [1,10,9,8,7,6,5,4,3,2]
+
 main :: IO ()
 main = defaultMain $
   testGroup "Main"
@@ -436,4 +446,9 @@ main = defaultMain $
   , testCase "correct indexing lazy text" case_correct_indexing_lazy_text
   , testCase "correct indexing strict bytestring" case_correct_indexing_strict_bytestring
   , testCase "correct indexing lazy bytestring" case_correct_indexing_lazy_bytestring
+    -- timeout so a future non-termination regression fails fast instead of hanging CI
+  , localOption (mkTimeout (10 * 1000000)) $
+      testCase "upon.view.upon matches upon tail" case_upon_view_upon_matches_upon_tail
+  , localOption (mkTimeout (10 * 1000000)) $
+      testCase "upon.view.upon value" case_upon_view_upon_value
   ]
