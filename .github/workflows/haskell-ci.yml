@@ -219,6 +219,7 @@ jobs:
           echo "packages: $GITHUB_WORKSPACE/source/." >> cabal.project
           echo "packages: $GITHUB_WORKSPACE/source/./examples" >> cabal.project
           echo "packages: $GITHUB_WORKSPACE/source/./lens-properties" >> cabal.project
+          echo "packages: $GITHUB_WORKSPACE/source/./lens-build" >> cabal.project
           cat cabal.project
       - name: sdist
         run: |
@@ -236,17 +237,22 @@ jobs:
           echo "PKGDIR_lens_examples=${PKGDIR_lens_examples}" >> "$GITHUB_ENV"
           PKGDIR_lens_properties="$(find "$GITHUB_WORKSPACE/unpacked" -maxdepth 1 -type d -regex '.*/lens-properties-[0-9.]*')"
           echo "PKGDIR_lens_properties=${PKGDIR_lens_properties}" >> "$GITHUB_ENV"
+          PKGDIR_lens_build="$(find "$GITHUB_WORKSPACE/unpacked" -maxdepth 1 -type d -regex '.*/lens-build-[0-9.]*')"
+          echo "PKGDIR_lens_build=${PKGDIR_lens_build}" >> "$GITHUB_ENV"
           rm -f cabal.project cabal.project.local
           touch cabal.project
           touch cabal.project.local
           echo "packages: ${PKGDIR_lens}" >> cabal.project
           echo "packages: ${PKGDIR_lens_examples}" >> cabal.project
           echo "packages: ${PKGDIR_lens_properties}" >> cabal.project
+          echo "packages: ${PKGDIR_lens_build}" >> cabal.project
           if [ $((HCNUMVER >= 80200)) -ne 0 ] ; then echo "package lens" >> cabal.project ; fi
           if [ $((HCNUMVER >= 80200)) -ne 0 ] ; then echo "    ghc-options: -Werror=missing-methods -Werror=missing-fields" >> cabal.project ; fi
           if [ $((HCNUMVER >= 80200)) -ne 0 ] ; then echo "package lens-examples" >> cabal.project ; fi
           if [ $((HCNUMVER >= 80200)) -ne 0 ] ; then echo "    ghc-options: -Werror=missing-methods -Werror=missing-fields" >> cabal.project ; fi
           if [ $((HCNUMVER >= 80200)) -ne 0 ] ; then echo "package lens-properties" >> cabal.project ; fi
+          if [ $((HCNUMVER >= 80200)) -ne 0 ] ; then echo "    ghc-options: -Werror=missing-methods -Werror=missing-fields" >> cabal.project ; fi
+          if [ $((HCNUMVER >= 80200)) -ne 0 ] ; then echo "package lens-build" >> cabal.project ; fi
           if [ $((HCNUMVER >= 80200)) -ne 0 ] ; then echo "    ghc-options: -Werror=missing-methods -Werror=missing-fields" >> cabal.project ; fi
           if [ $((HCNUMVER >= 90000)) -ne 0 ] ; then echo "package lens" >> cabal.project ; fi
           if [ $((HCNUMVER >= 90000)) -ne 0 ] ; then echo "    ghc-options: -Werror=incomplete-patterns -Werror=incomplete-uni-patterns" >> cabal.project ; fi
@@ -254,12 +260,14 @@ jobs:
           if [ $((HCNUMVER >= 90000)) -ne 0 ] ; then echo "    ghc-options: -Werror=incomplete-patterns -Werror=incomplete-uni-patterns" >> cabal.project ; fi
           if [ $((HCNUMVER >= 90000)) -ne 0 ] ; then echo "package lens-properties" >> cabal.project ; fi
           if [ $((HCNUMVER >= 90000)) -ne 0 ] ; then echo "    ghc-options: -Werror=incomplete-patterns -Werror=incomplete-uni-patterns" >> cabal.project ; fi
+          if [ $((HCNUMVER >= 90000)) -ne 0 ] ; then echo "package lens-build" >> cabal.project ; fi
+          if [ $((HCNUMVER >= 90000)) -ne 0 ] ; then echo "    ghc-options: -Werror=incomplete-patterns -Werror=incomplete-uni-patterns" >> cabal.project ; fi
           cat >> cabal.project <<EOF
           EOF
           if $HEADHACKAGE; then
           echo "allow-newer: $($HCPKG list --simple-output | sed -E 's/([a-zA-Z-]+)-[0-9.]+/*:\1,/g')" >> cabal.project
           fi
-          $HCPKG list --simple-output --names-only | perl -ne 'for (split /\s+/) { print "constraints: any.$_ installed\n" unless /^(lens|lens-examples|lens-properties)$/; }' >> cabal.project.local
+          $HCPKG list --simple-output --names-only | perl -ne 'for (split /\s+/) { print "constraints: any.$_ installed\n" unless /^(lens|lens-build|lens-examples|lens-properties)$/; }' >> cabal.project.local
           cat cabal.project
           cat cabal.project.local
       - name: dump install plan
@@ -293,6 +301,8 @@ jobs:
           cd ${PKGDIR_lens_examples} || false
           ${CABAL} -vnormal check
           cd ${PKGDIR_lens_properties} || false
+          ${CABAL} -vnormal check
+          cd ${PKGDIR_lens_build} || false
           ${CABAL} -vnormal check
       - name: haddock
         run: |
