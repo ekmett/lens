@@ -1,6 +1,7 @@
 next [????.??.??]
 -----------------
 * Add `ReifiedReview` to `Control.Lens.Reified`.
+* Document the relationship between `filtered`, `has`/`anyOf`, and `noneOf`.
 
 5.3.6 [2026.01.10]
 ------------------
