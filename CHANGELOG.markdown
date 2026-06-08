@@ -1,6 +1,7 @@
 next [????.??.??]
 -----------------
 * Add `ReifiedReview` to `Control.Lens.Reified`.
+* Document that `ix` focuses at most one element.
 
 5.3.6 [2026.01.10]
 ------------------

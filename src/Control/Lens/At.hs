@@ -213,6 +213,13 @@ type family IxValue (m :: Type) :: Type
 
 -- | Provides a simple 'Traversal' lets you 'traverse' the value at a given
 -- key in a 'Map' or element at an ordinal position in a list or 'Seq'.
+--
+-- An instance of 'Ixed' should provide an 'ix' that focuses /at most one/
+-- element: the value at the given index, when it is present. Equivalently,
+-- 'ix' should use only 'pure' and 'fmap', never '<*>', so that it could in
+-- principle run under any @Pointed@ functor rather than requiring a full
+-- 'Applicative'. For any type that also has an 'At' instance, this already
+-- follows from the law @'ix' k ≡ 'at' k '.' 'traverse'@.
 class Ixed m where
   -- |
   -- /NB:/ Setting the value of this 'Traversal' will only set the value in
