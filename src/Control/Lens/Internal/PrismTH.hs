@@ -20,6 +20,7 @@ module Control.Lens.Internal.PrismTH
   ( makePrisms
   , makeClassyPrisms
   , makeDecPrisms
+  , makePrism
   ) where
 
 import Control.Applicative
@@ -148,6 +149,36 @@ makeDecPrisms normal dec =
              | otherwise = Just (D.datatypeName info)
          cons = D.datatypeCons info
      makeConsPrisms (datatypeTypeKinded info) (map normalizeCon cons) cls
+
+
+-- | Build a single optic for one data constructor, as an /expression/.
+-- This is the one-off counterpart to 'makePrisms': rather than declaring a
+-- @_Ctor@ for every constructor of a type, it splices in just the optic for
+-- the named constructor, with its type inferred at the use site.
+--
+-- The kind of optic produced matches what 'makePrisms' would generate for
+-- that constructor:
+--
+-- * a 'Control.Lens.Iso.Iso' when the constructor is the type's /only/
+--   constructor (and is not existential\/GADT-like);
+-- * a 'Control.Lens.Review.Review' for an existentially quantified or GADT
+--   constructor; and
+-- * a 'Control.Lens.Prism.Prism' otherwise.
+makePrism :: Name {- ^ Data constructor name -} -> ExpQ
+makePrism conName =
+  do info <- D.reifyDatatype conName
+     let t    = datatypeTypeKinded info
+         cons = map normalizeCon (D.datatypeCons info)
+     case cons of
+       -- A type with a single, non-existential constructor yields an Iso,
+       -- exactly as the special case in 'makeConsPrisms' does.
+       [con@(NCon _ [] [] _)] -> makeConIsoExp con
+       _ -> case List.find (\con -> view nconName con == conName) cons of
+              Just con -> do stab <- computeOpticType t cons con
+                             makeConOpticExp stab cons con
+              Nothing  -> fail $ "makePrism: " ++ nameBase conName
+                              ++ " is not a data constructor of "
+                              ++ nameBase (D.datatypeName info)
 
 
 -- | Generate prisms for the given type, normalized constructors, and

@@ -476,5 +476,41 @@ declareFields [d|
     data T1032B = T1032B { t1032BB :: Int }
   |]
 
+-- One-off optic construction as expressions (#710) -------------------------
+-- Both 'makeLens' and 'makePrism' reify their argument, so each focused data
+-- type must already be in the type environment (i.e. defined above an
+-- intervening top-level splice) before the expression splice below reifies it.
+
+-- 'makeLens' agrees with 'makeLenses': a sole single-field constructor is an
+-- 'Iso'...
+oneOffBaz :: Iso (Bar a b c) (Bar a' b' c') (a, b) (a', b')
+oneOffBaz = $(makeLens '_baz)
+
+-- ...an ordinary field is a (type-changing) 'Lens'...
+oneOffQuaffle :: Lens (Quux a b) (Quux a' b') Int Int
+oneOffQuaffle = $(makeLens '_quaffle)
+
+-- ...a field shared by every constructor is a 'Lens''...
+oneOffGaffer :: Lens' (Quark a) a
+oneOffGaffer = $(makeLens '_gaffer)
+
+-- ...and a field absent from some constructors is a 'Traversal''.
+oneOffTape :: Traversal' (Quark a) a
+oneOffTape = $(makeLens '_tape)
+
+-- 'makePrism' agrees with 'makePrisms': type-changing 'Prism's for a sum...
+data Sum710 a b = L710 a | R710 b
+$(pure [])
+
+oneOffL :: Prism (Sum710 a b) (Sum710 c b) a c
+oneOffL = $(makePrism 'L710)
+
+oneOffR :: Prism (Sum710 a b) (Sum710 a c) b c
+oneOffR = $(makePrism 'R710)
+
+-- ...and an 'Iso' for a single-constructor type.
+oneOffWrap :: Iso (T997A a) (T997A b) a b
+oneOffWrap = $(makePrism 'MkT997A)
+
 main :: IO ()
 main = putStrLn "test/templates.hs: ok"
