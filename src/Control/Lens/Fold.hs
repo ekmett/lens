@@ -336,9 +336,9 @@ iterated f g = go where
 -- >>> [1..10]^..folded.filtered even
 -- [2,4,6,8,10]
 --
--- Composing 'filtered' with a 'Fold'-consuming combinator such as 'has' or 'anyOf'
--- turns it into a predicate test: @'has' (l '.' 'filtered' p)@ asks whether /any/
--- target of @l@ satisfies @p@, and 'noneOf' is its negation.
+-- Composing 'filtered' with the 'Fold'-consuming combinator 'has' turns it into a
+-- predicate test: @'has' (l '.' 'filtered' p)@ asks whether /any/ target of @l@
+-- satisfies @p@ (the same as @'anyOf' l p@), and 'noneOf' is its negation.
 --
 -- @
 -- 'has' (l '.' 'filtered' p) ≡ 'anyOf' l p
@@ -771,6 +771,8 @@ orOf l = getAny #. foldMapOf l Any
 -- >>> anyOf biplate (== "world") (((),2::Int),"hello",("world",11::Int))
 -- True
 --
+-- See 'filtered' for a related operation: @'anyOf' l p ≡ 'has' (l '.' 'filtered' p)@.
+--
 -- @
 -- 'Data.Foldable.any' ≡ 'anyOf' 'folded'
 -- @
@@ -825,7 +827,7 @@ allOf l f = getAll #. foldMapOf l (All #. f)
 -- >>> noneOf (folded.folded) (<10) [[13,99,20],[3,71,42]]
 -- False
 --
--- See 'filtered' for the relationship @'noneOf' l p ≡ 'not' '.' 'has' (l '.' 'filtered' p)@.
+-- See 'filtered' for a related operation: @'noneOf' l p ≡ 'not' '.' 'has' (l '.' 'filtered' p)@.
 --
 -- @
 -- 'inoneOf' l = 'noneOf' l '.' 'Indexed'
