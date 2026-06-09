@@ -188,6 +188,8 @@ makePrism conName =
 makeConsPrisms :: Type -> [NCon] -> Maybe Name -> DecsQ
 
 -- special case: single constructor, not classy -> make iso
+-- ('makePrism' has the corresponding single-constructor Iso case; keep the two
+-- in sync.)
 makeConsPrisms t [con@(NCon _ [] [] _)] Nothing = makeConIso t con
 
 -- top-level definitions

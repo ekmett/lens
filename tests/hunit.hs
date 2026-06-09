@@ -378,6 +378,28 @@ case_correct_indexing_lazy_bytestring =
   map (\i -> LazyB.pack [1,2] ^? ix i) [-1..2]
     @?= [Nothing, Just 1, Just 2, Nothing]
 
+-- One-off optic construction (#710): the spliced optics behave as expected.
+case_oneoff_lens_view =
+  view $(makeLens '_x) (Point 3 4) @?= 3
+
+case_oneoff_lens_set =
+  (Point 3 4 & $(makeLens '_x) .~ 9) @?= Point 9 4
+
+case_oneoff_prism_preview_hit =
+  preview $(makePrism 'SCircle) (SCircle (Point 1 2) 5) @?= Just (Point 1 2, 5)
+
+case_oneoff_prism_preview_miss =
+  preview $(makePrism 'SCircle) SVoid @?= (Nothing :: Maybe (Point, Int))
+
+-- review then preview round-trips (Shape itself has no Eq instance).
+case_oneoff_prism_review_roundtrip =
+  preview $(makePrism 'SCircle) (review $(makePrism 'SCircle) (Point 1 2, 5))
+    @?= Just (Point 1 2, 5)
+
+case_oneoff_prism_nullary =
+  (has $(makePrism 'SVoid) SVoid, has $(makePrism 'SVoid) (SCircle origin 1))
+    @?= (True, False)
+
 main :: IO ()
 main = defaultMain $
   testGroup "Main"
@@ -436,4 +458,10 @@ main = defaultMain $
   , testCase "correct indexing lazy text" case_correct_indexing_lazy_text
   , testCase "correct indexing strict bytestring" case_correct_indexing_strict_bytestring
   , testCase "correct indexing lazy bytestring" case_correct_indexing_lazy_bytestring
+  , testCase "one-off lens view" case_oneoff_lens_view
+  , testCase "one-off lens set" case_oneoff_lens_set
+  , testCase "one-off prism preview hit" case_oneoff_prism_preview_hit
+  , testCase "one-off prism preview miss" case_oneoff_prism_preview_miss
+  , testCase "one-off prism review round-trip" case_oneoff_prism_review_roundtrip
+  , testCase "one-off prism nullary" case_oneoff_prism_nullary
   ]

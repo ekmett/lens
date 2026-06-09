@@ -508,9 +508,25 @@ oneOffL = $(makePrism 'L710)
 oneOffR :: Prism (Sum710 a b) (Sum710 a c) b c
 oneOffR = $(makePrism 'R710)
 
--- ...and an 'Iso' for a single-constructor type.
+-- ...a simple (non-type-changing) 'Prism'' for a monomorphic constructor, and a
+-- multi-field constructor focusing a tuple. (The polymorphic 'Poly710' pins
+-- @a@ so the other two constructors stay simple.)
+data Tri710 a = Mono710 Int | Multi710 Char Bool | Poly710 a
+$(pure [])
+
+oneOffMono :: Prism' (Tri710 a) Int
+oneOffMono = $(makePrism 'Mono710)
+
+oneOffMulti :: Prism' (Tri710 a) (Char, Bool)
+oneOffMulti = $(makePrism 'Multi710)
+
+-- ...an 'Iso' for a single-constructor type...
 oneOffWrap :: Iso (T997A a) (T997A b) a b
 oneOffWrap = $(makePrism 'MkT997A)
+
+-- ...and a 'Review' for an existentially quantified constructor.
+oneOffReview :: Review ReviewTest a
+oneOffReview = $(makePrism 'ReviewTest)
 
 main :: IO ()
 main = putStrLn "test/templates.hs: ok"
