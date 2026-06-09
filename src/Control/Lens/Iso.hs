@@ -210,8 +210,12 @@ au k = withIso k $ \ sa bt f -> fmap sa (f bt)
 -- across both old and new versions of @lens@ you can just use 'coerce'!
 auf :: (Functor f, Functor g) => AnIso s t a b -> (f t -> g s) -> f b -> g a
 -- Pushing the remaining arguments inside 'withIso' (so only @k@ is to the left
--- of the @=@) matches 'au'/'under' and lets the iso decompose once and inline at
--- partial applications. See: NOTE: [Inlining and arity] in Control.Lens.Fold
+-- of the @=@) matches 'au'/'under': the iso is decomposed once, when @auf k@ is
+-- forced, and the body inlines at partial applications. Unlike the other arity
+-- reductions in this change this is *not* strictness-neutral -- as with
+-- 'au'/'under', @auf@ is now strict in the iso, so @auf undefined@ diverges
+-- rather than yielding a function. That is an intentional tradeoff for an
+-- 'AnIso' argument. See: NOTE: [Inlining and arity] in Control.Lens.Fold
 auf k = withIso k $ \sa bt ftgs fb -> sa <$> ftgs (bt <$> fb)
 {-# INLINE auf #-}
 
