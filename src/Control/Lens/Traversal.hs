@@ -647,7 +647,8 @@ ipartsOf' l = conjoined
 -- 'unsafePartsOf' :: 'Getter' s a        -> 'Getter' s [a]
 -- @
 unsafePartsOf :: Functor f => Traversing (->) f s t a b -> LensLike f s t [a] [b]
-unsafePartsOf l f s = unsafeOuts b <$> f (ins b) where b = l sell s
+-- See: NOTE: [Inlining and arity] in Control.Lens.Fold
+unsafePartsOf l = \f s -> let b = l sell s in unsafeOuts b <$> f (ins b)
 {-# INLINE unsafePartsOf #-}
 
 -- | An indexed version of 'unsafePartsOf' that receives the entire list of indices as its index.
@@ -658,7 +659,8 @@ iunsafePartsOf l = conjoined
 {-# INLINE iunsafePartsOf #-}
 
 unsafePartsOf' :: ATraversal s t a b -> Lens s t [a] [b]
-unsafePartsOf' l f s = unsafeOuts b <$> f (ins b) where b = l sell s
+-- See: NOTE: [Inlining and arity] in Control.Lens.Fold
+unsafePartsOf' l = \f s -> let b = l sell s in unsafeOuts b <$> f (ins b)
 {-# INLINE unsafePartsOf' #-}
 
 iunsafePartsOf' :: forall i s t a b. Over (Indexed i) (Bazaar (Indexed i) a b) s t a b -> IndexedLens [i] s t [a] [b]
@@ -1174,7 +1176,8 @@ imapAccumROf = imapAccumLOf . backwards
 -- 'imapAccumLOf' :: 'IndexedTraversal' i s t a b -> (i -> acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
 -- @
 imapAccumLOf :: Over (Indexed i) (State acc) s t a b -> (i -> acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
-imapAccumLOf l f acc0 s = swap (runState (l (Indexed g) s) acc0) where
+-- See: NOTE: [Inlining and arity] in Control.Lens.Fold
+imapAccumLOf l f acc0 = \s -> swap (runState (l (Indexed g) s) acc0) where
   g i a = state $ \acc -> swap (f i acc a)
 {-# INLINE imapAccumLOf #-}
 
