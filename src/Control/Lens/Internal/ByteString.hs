@@ -166,7 +166,9 @@ lazyBytesRightmost f = Const #. BL.foldl' (\acc w -> stepRightmost acc (getConst
 -- mempty@ equals the lawful @foldr (<>) mempty@ by associativity, and the 'seq'
 -- only forces, so the rewrite stays sound.
 stepRightmost :: Rightmost a -> Rightmost a -> Rightmost a
-stepRightmost acc r = case acc <> r of s@(RStep x) -> x `seq` s; s -> s
+stepRightmost acc r = case acc <> r of
+                        s@(RStep x) -> x `seq` s
+                        s           -> s
 {-# INLINE stepRightmost #-}
 
 imapBL :: (Int -> Word8 -> Word8) -> BL.ByteString -> BL.ByteString

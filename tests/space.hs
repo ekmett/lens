@@ -7,11 +7,14 @@
 -- apart) and assert that peak residency (from "GHC.Stats") does not grow: a
 -- streaming fold stays flat, a leaking one jumps by megabytes.
 --
--- The peak is transient (it lives only during the fold), so it is only sampled
--- if GCs are frequent enough; we therefore need a small nursery (@-A256k@) plus
--- @-T@ to enable "GHC.Stats". Baking a multi-word @-with-rtsopts@ through cabal
--- is unreliable, so on first entry we set @GHCRTS@ and re-exec ourselves -- the
--- child (built with @-rtsopts@) then picks those options up.
+-- The peak is transient (it only exists during the fold), so it is sampled
+-- reliably only if GCs are frequent: we need a small nursery (@-A256k@) and
+-- @-T@ to enable "GHC.Stats". A program cannot choose its own RTS options after
+-- startup, and baking a multi-word @-with-rtsopts@ through cabal is unreliable,
+-- so on first entry we re-exec ourselves passing those options as @+RTS@
+-- arguments (the executable is built with @-rtsopts@, so it accepts them). We
+-- pass them as arguments rather than via the @GHCRTS@ environment variable so as
+-- not to disturb any @GHCRTS@ the user may have set.
 module Main (main) where
 
 import           Control.Exception (evaluate)
@@ -20,25 +23,26 @@ import           Control.Monad (unless, when)
 import qualified Data.ByteString.Lazy as BL
 import           Data.ByteString.Lazy.Lens (bytes)
 import           GHC.Stats (getRTSStats, getRTSStatsEnabled, max_live_bytes)
-import           System.Environment (getExecutablePath, lookupEnv, setEnv)
+import           System.Environment (getArgs, getExecutablePath)
 import           System.Exit (exitFailure, exitWith)
 import           System.Mem (performMajorGC)
 import           System.Process (rawSystem)
 import           Text.Printf (printf)
 
-reexecVar :: String
-reexecVar = "LENS_SPACE_TEST_REEXEC"
+-- | Sentinel argument identifying the re-exec'd child. The RTS strips the
+-- @+RTS ... -RTS@ block from the child's arguments, so this is what is left to
+-- distinguish it from the initial invocation (and stops it re-exec'ing again).
+childArg :: String
+childArg = "--lens-space-test-child"
 
 main :: IO ()
 main = do
-  reentered <- lookupEnv reexecVar
-  case reentered of
-    Just _  -> runTest
-    Nothing -> do
-      setEnv reexecVar "1"
-      setEnv "GHCRTS" "-T -A256k"
+  args <- getArgs
+  if childArg `elem` args
+    then runTest
+    else do
       exe <- getExecutablePath
-      exitWith =<< rawSystem exe []
+      exitWith =<< rawSystem exe [childArg, "+RTS", "-T", "-A256k", "-RTS"]
 
 -- | Drive 'lastOf' over the whole (lazily generated) ByteString. 'lastOf' must
 -- reach the end, so the entire structure is traversed.
@@ -55,7 +59,7 @@ runTest :: IO ()
 runTest = do
   enabled <- getRTSStatsEnabled
   if not enabled
-    then putStrLn "space: RTS stats unavailable (GHCRTS -T ignored?); skipping."
+    then putStrLn "space: RTS stats unavailable (-T not in effect?); skipping."
     else do
       let small =  50 * 1000 * 1000   --  50 MB
           big   = 800 * 1000 * 1000   -- 800 MB (16x)
