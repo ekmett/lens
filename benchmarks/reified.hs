@@ -1,6 +1,5 @@
 {-# LANGUAGE BangPatterns #-}
-{-# OPTIONS_GHC -O2 #-}
--- Benchmark for ReifiedFoo newtypes be replaced by the monomorphic AFoo aliases.
+-- Benchmark for ReifiedFoo newtypes being replaced by the monomorphic AFoo aliases.
 -- Both can be stored in a container; this measures whether storing an AFoo
 -- (then recovering an optic via clone*, or using a dedicated A* consumer) costs
 -- the same as storing a ReifiedFoo and unwrapping. Each stored optic is NOINLINE
