@@ -1,13 +1,12 @@
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# OPTIONS_GHC -O2 #-}
 -- Benchmark for issue #183: combinators used *under-applied*.
 --
 -- The setter wrappers are NOINLINE so the partially-applied form (`set _1`)
 -- survives as a real binding. With `set` at arity 2 it cannot inline into the
 -- wrapper and each application pays for the `Identity` newtype path; with `set`
 -- at arity 1 the wrapper saturates it, `set` inlines, and worker/wrapper fuses
--- it to a tight unboxed-tuple worker. See NOTE: [Inlining and arity].
+-- it to a tight unboxed-tuple worker. See NOTE: [Inlining and arity] in Control.Lens.Fold.
 module Main (main) where
 
 import Control.Lens
