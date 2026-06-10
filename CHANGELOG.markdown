@@ -1,6 +1,9 @@
 next [????.??.??]
 -----------------
 * Add `ReifiedReview` to `Control.Lens.Reified`.
+* Fix a space leak in `lastOf` over lazy `ByteString`s, which previously
+  retained memory proportional to the number of chunks; it now runs in constant
+  space.
 
 5.3.6 [2026.01.10]
 ------------------

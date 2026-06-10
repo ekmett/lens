@@ -159,12 +159,19 @@ lazyBytesRightmost f = Const #. BL.foldl' (\acc w -> stepRightmost acc (getConst
 {-# INLINE lazyBytesRightmost #-}
 
 -- | One step of a strict 'Rightmost' left fold. @(<>)@ for 'Rightmost' always
--- wraps its result in 'RStep' and is lazy in the left argument, so a plain
--- @foldl' (<>)@ retains an O(n) thunk chain (each thunk closing over the prior
--- accumulator). Forcing the 'RStep' payload one extra level drops that
--- reference, giving constant space. This does not change the value: @foldl' (<>)
--- mempty@ equals the lawful @foldr (<>) mempty@ by associativity, and the 'seq'
--- only forces, so the rewrite stays sound.
+-- wraps its result in 'RStep' and is lazy in the left argument; for the
+-- @'RLeaf' w@ values 'lastOf' feeds in, @acc <> 'RLeaf' w = 'RStep' ('RLeaf' w)@,
+-- so forcing that 'RStep' payload to WHNF drops @acc@ and the fold runs in
+-- constant space (a plain @foldl' (<>)@ would instead retain an O(n) chain of
+-- thunks, each closing over the prior accumulator).
+--
+-- Note this rewrite is sound even though 'Rightmost'\'s @(<>)@ is /not/
+-- value-level associative (left- vs right-nesting insert different numbers of
+-- 'RStep' layers): the only consumer of @'Getting' ('Rightmost' a)@ is 'lastOf',
+-- which observes solely 'getRightmost', and 'getRightmost' is invariant under
+-- both re-association and extra 'RStep' layers. The 'seq' only forces, so the
+-- strict left fold agrees with the lawful traversal on every observation
+-- 'lastOf' can make.
 stepRightmost :: Rightmost a -> Rightmost a -> Rightmost a
 stepRightmost acc r = case acc <> r of
                         s@(RStep x) -> x `seq` s

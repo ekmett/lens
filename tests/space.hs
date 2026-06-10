@@ -3,9 +3,11 @@
 --
 -- 'lastOf' over a lazy 'ByteString' must run in /constant/ space. A leaking
 -- traversal retains roughly one thunk per chunk, so peak residency grows with
--- the input length. We fold a lazily-generated 'ByteString' at two sizes (16x
--- apart) and assert that peak residency (from "GHC.Stats") does not grow: a
--- streaming fold stays flat, a leaking one jumps by megabytes.
+-- the chunk count. We fold a lazy 'ByteString' at two sizes (16x apart) and
+-- assert that peak residency (from "GHC.Stats") does not grow: a streaming fold
+-- stays flat, a leaking one jumps by megabytes. The input is built from a fixed
+-- chunk size so the leak's magnitude is independent of bytestring's internal
+-- chunking heuristics (which have varied across releases).
 --
 -- The peak is transient (it only exists during the fold), so it is sampled
 -- reliably only if GCs are frequent: we need a small nursery (@-A256k@) and
@@ -20,11 +22,13 @@ module Main (main) where
 import           Control.Exception (evaluate)
 import           Control.Lens (lastOf)
 import           Control.Monad (unless, when)
+import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
 import           Data.ByteString.Lazy.Lens (bytes)
 import           GHC.Stats (getRTSStats, getRTSStatsEnabled, max_live_bytes)
 import           System.Environment (getArgs, getExecutablePath)
 import           System.Exit (exitFailure, exitWith)
+import           System.IO (hPutStrLn, stderr)
 import           System.Mem (performMajorGC)
 import           System.Process (rawSystem)
 import           Text.Printf (printf)
@@ -44,11 +48,16 @@ main = do
       exe <- getExecutablePath
       exitWith =<< rawSystem exe [childArg, "+RTS", "-T", "-A256k", "-RTS"]
 
--- | Drive 'lastOf' over the whole (lazily generated) ByteString. 'lastOf' must
--- reach the end, so the entire structure is traversed.
+-- | A lazy 'ByteString' of @n@ fixed-size chunks. 'lastOf' must reach the end,
+-- so the whole spine is traversed; the leak (if present) retains ~one thunk per
+-- chunk, so its size scales with @n@.
+chunked :: Int -> BL.ByteString
+chunked n = BL.fromChunks (replicate n chunk)
+  where chunk = B.replicate 4096 7
+
 forceLast :: Int -> IO ()
 forceLast n = do
-  r <- evaluate (lastOf bytes (BL.replicate (fromIntegral n) 7))
+  r <- evaluate (lastOf bytes (chunked n))
   unless (r == Just 7) (error ("space: unexpected lastOf result " ++ show r))
 
 -- | Peak live bytes observed so far (max over all major GCs).
@@ -59,17 +68,24 @@ runTest :: IO ()
 runTest = do
   enabled <- getRTSStatsEnabled
   if not enabled
-    then putStrLn "space: RTS stats unavailable (-T not in effect?); skipping."
+    -- The child is only ever reached via our own re-exec, which always passes
+    -- -T, so a disabled-stats child means the harness itself is broken. Fail
+    -- loudly rather than skip -- a silent pass would exercise nothing forever.
+    then do
+      hPutStrLn stderr "space: RTS stats not in effect after re-exec; harness broken."
+      exitFailure
     else do
-      let small =  50 * 1000 * 1000   --  50 MB
-          big   = 800 * 1000 * 1000   -- 800 MB (16x)
-          cap   =   2 * 1000 * 1000   --   2 MB slack (a leak grows by ~4 MB here)
+      let small =   8 * 1000   --   8k chunks (~32 MB)
+          big   = 128 * 1000   -- 128k chunks (16x; ~512 MB)
+          -- Streaming grows by a few KB; the leak grows by ~3 MB. 256 KB sits
+          -- well inside that gap, with plenty of margin on both sides.
+          cap   = 256 * 1000
       forceLast small
       p1 <- peakBytes
       forceLast big
       p2 <- peakBytes
       let growth = p2 - p1
-      printf "lastOf bytes peak residency: %d B (50MB) -> %d B (800MB), growth %d B\n"
+      printf "lastOf bytes peak residency: %d B (8k chunks) -> %d B (128k chunks), growth %d B\n"
              p1 p2 growth
       when (growth > cap) $ do
         printf "FAIL: residency grew %d B over a 16x input increase; lastOf over a lazy ByteString is leaking (issue #233).\n"
