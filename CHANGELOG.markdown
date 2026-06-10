@@ -1,6 +1,12 @@
 next [????.??.??]
 -----------------
 * Add `ReifiedReview` to `Control.Lens.Reified`.
+* Add `makeLens` and `makePrism` to `Control.Lens.TH`. These build a single
+  optic, as an expression, for one record field or one data constructor (e.g.
+  `over $(makeLens '_field) f x` or `preview $(makePrism 'Ctor) x`), rather than
+  declaring optics for an entire type as `makeLenses`/`makePrisms` do. The optic
+  produced matches what the corresponding bulk generator would declare for that
+  field or constructor. (#710)
 
 5.3.6 [2026.01.10]
 ------------------

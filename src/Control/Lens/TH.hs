@@ -34,6 +34,9 @@ module Control.Lens.TH
   , makeClassyPrisms
   -- ** Wrapped
   , makeWrapped
+  -- * Constructing a Single Optic as an Expression
+  , makeLens
+  , makePrism
   -- * Constructing Lenses Given a Declaration Quote
   -- ** Lenses for data fields
   , declareLenses, declareLensesFor
@@ -286,6 +289,34 @@ classyRules_
 -- @
 makeLenses :: Name -> DecsQ
 makeLenses = makeFieldOptics lensRules
+
+-- | Build the optic for a single record field, as an /expression/, given that
+-- field's selector name. This is the one-off counterpart to 'makeLenses':
+-- rather than declaring an optic for every field of a type, it splices in just
+-- the one for the named field, with its type inferred at the use site.
+--
+-- The kind of optic produced matches what 'makeLenses' would declare for that
+-- field: an 'Lens' in the usual case, a 'Traversal' for a field that is absent
+-- from some constructors, and an 'Iso' for a type's sole single-field
+-- constructor.
+--
+-- /e.g./ given
+--
+-- @
+-- data Foo = Foo { _bar :: 'Int', _baz :: 'Char' }
+-- @
+--
+-- the splice @$('makeLens' '_bar)@ is a @'Lens'' Foo 'Int'@ and can be used
+-- directly:
+--
+-- @
+-- 'Control.Lens.Setter.over' $('makeLens' '_bar) (+1) (Foo 1 \'x\') == Foo 2 \'x\'
+-- @
+--
+-- The argument must name a record field (not a positional one), since that is
+-- how the focused field is identified.
+makeLens :: Name {- ^ Record field selector name -} -> ExpQ
+makeLens = makeFieldOpticExp lensRules
 
 -- | Make lenses and traversals for a type, and create a class when the
 -- type has no arguments.
