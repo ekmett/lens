@@ -22,6 +22,8 @@ next [????.??.??]
   produced matches what the corresponding bulk generator would declare for that
   field or constructor. (#710)
 * Document the relationship between `filtered`, `has`/`anyOf`, and `noneOf`.
+* Add `ioverA` to `Control.Lens.Lens`, an indexed variant of `overA`. The
+  supplied arrow receives the index together with the old value as a pair.
 
 5.3.6 [2026.01.10]
 ------------------
