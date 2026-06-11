@@ -84,6 +84,9 @@ module Control.Lens.TH
   , underscoreNamer
   , abbreviatedNamer
   , classIdNamer
+  -- ** Avoiding keywords
+  , avoidKeywordsNamer
+  , avoidKeywordsClassyNamer
   ) where
 
 import Prelude ()
@@ -102,6 +105,7 @@ import Control.Lens.Internal.FieldTH
 import Control.Lens.Internal.PrismTH
 import Control.Lens.Wrapped () -- haddocks
 import Control.Lens.Type () -- haddocks
+import Data.Bifunctor (second)
 import Data.Char (toLower, toUpper, isUpper)
 import Data.Foldable hiding (concat, any)
 import qualified Data.List as List
@@ -656,6 +660,12 @@ camelCaseNamer tyName fields field = maybeToList $ do
 -- @classUnderscoreNoPrefixFields@ the field names are not expected to
 -- be prefixed with the type name. This might be the desired behaviour
 -- when the @DuplicateRecordFields@ extension is enabled.
+--
+-- Because the field name is used verbatim (matching can only strip its
+-- underscore), a field like @_type@ would generate a method named @type@,
+-- which is a Haskell keyword; this fails with an error naming the offending
+-- field. Wrap the namer with 'avoidKeywordsNamer' to append an underscore
+-- to such names instead.
 classUnderscoreNoPrefixFields :: LensRules
 classUnderscoreNoPrefixFields =
   defaultFieldRules & lensField .~ classUnderscoreNoPrefixNamer
@@ -680,6 +690,59 @@ classIdNamer _ _ field = [MethodName (mkName className) (mkName fieldName)]
   where
   fieldName = nameBase field
   className = "Has" ++ overHead toUpper fieldName
+
+-- | Modify a 'FieldNamer' so that generated names that would be Haskell
+-- keywords, such as @type@ or @data@, get an underscore appended to them.
+-- All other names are left untouched. Class names are not affected, as they
+-- can never be keywords.
+--
+-- For example, with a field named @_connectionType@, 'makeFields' would
+-- attempt to generate a class method named @type@ and fail. Instead:
+--
+-- @
+-- data Connection = Connection { _connectionType :: 'Int' }
+-- 'makeLensesWith' ('camelCaseFields' & 'lensField' '%~' 'avoidKeywordsNamer') ''Connection
+-- @
+--
+-- will create
+--
+-- @
+-- class HasType s a | s -> a where
+--   type_ :: Lens' s a
+-- instance HasType Connection 'Int' where
+--   type_ = ...
+-- @
+avoidKeywordsNamer :: FieldNamer -> FieldNamer
+avoidKeywordsNamer namer tyName fields field =
+  map avoidDefKeyword (namer tyName fields field)
+  where
+  avoidDefKeyword (TopName n)      = TopName (avoidKeyword n)
+  avoidDefKeyword (MethodName c n) = MethodName c (avoidKeyword n)
+
+-- | Modify a 'ClassyNamer' so that a generated method name that would be a
+-- Haskell keyword gets an underscore appended to it. The class name is not
+-- affected, as it can never be a keyword.
+--
+-- For example, @'makeClassy' ''Where@ would attempt to generate a class
+-- method named @where@ and fail. Instead:
+--
+-- @
+-- data Where = Where { _whereX :: 'Int' }
+-- 'makeLensesWith' ('classyRules' & 'lensClass' '%~' 'avoidKeywordsClassyNamer') ''Where
+-- @
+--
+-- will create
+--
+-- @
+-- class HasWhere c where
+--   where_ :: Lens' c Where
+--   whereX :: Lens' c 'Int'
+-- instance HasWhere Where where
+--   where_ = id
+--   ...
+-- @
+avoidKeywordsClassyNamer :: ClassyNamer -> ClassyNamer
+avoidKeywordsClassyNamer namer tyName = second avoidKeyword <$> namer tyName
 
 -- | Field rules fields in the form @ prefixFieldname or _prefixFieldname @
 -- If you want all fields to be lensed, then there is no reason to use an @_@ before the prefix.
@@ -743,6 +806,12 @@ abbreviatedNamer _ fields field = maybeToList $ do
 --
 -- For details, see 'camelCaseFields'.
 --
+-- Note that a field like @_fooType@ would generate a class method named
+-- @type@, which is a Haskell keyword; this fails with an error naming the
+-- offending field. Wrap the namer with 'avoidKeywordsNamer'
+-- (e.g. @'makeLensesWith' ('camelCaseFields' & 'lensField' '%~'
+-- 'avoidKeywordsNamer')@) to append an underscore to such names instead.
+--
 -- @
 -- makeFields = 'makeLensesWith' 'defaultFieldRules'
 -- @
@@ -784,6 +853,12 @@ makeFields = makeFieldOptics camelCaseFields
 -- @
 --
 -- For details, see 'classUnderscoreNoPrefixFields'.
+--
+-- Note that a field like @_type@ would generate a class method named
+-- @type@, which is a Haskell keyword; this fails with an error naming the
+-- offending field. Wrap the namer with 'avoidKeywordsNamer'
+-- (e.g. @'makeLensesWith' ('classUnderscoreNoPrefixFields' & 'lensField' '%~'
+-- 'avoidKeywordsNamer')@) to append an underscore to such names instead.
 --
 -- @
 -- makeFieldsNoPrefix = 'makeLensesWith' 'classUnderscoreNoPrefixFields'
