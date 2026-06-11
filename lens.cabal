@@ -1,6 +1,6 @@
 name:          lens
 category:      Data, Lenses, Generics
-version:       5.3.6
+version:       5.3.7
 license:       BSD2
 cabal-version: 1.18
 license-file:  LICENSE
@@ -507,3 +507,15 @@ benchmark unsafe
     generic-deriving,
     lens,
     transformers
+
+-- Benchmarking ReifiedFoo vs AFoo
+benchmark reified
+  type:             exitcode-stdio-1.0
+  main-is:          reified.hs
+  ghc-options:      -Wall -O2 -threaded -fdicts-cheap -funbox-strict-fields
+  hs-source-dirs:   benchmarks
+  default-language: Haskell2010
+  build-depends:
+    base,
+    criterion,
+    lens
