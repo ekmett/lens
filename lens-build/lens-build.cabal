@@ -36,6 +36,14 @@ source-repository head
   type: git
   location: https://github.com/ekmett/lens.git
 
+flag build-negative-test
+  description:
+    Build the intentionally ill-typed negative-test executable (tests/negative),
+    which MUST fail to compile. Off by default so it never affects normal builds;
+    the negative-test workflow / tests/negative/run.sh turns it on.
+  default: False
+  manual:  True
+
 library
   -- Requires the template-haskell 2.15+ (GHC 8.8+) tySynEqn / tySynInstD API.
   if impl(ghc < 8.8)
@@ -67,4 +75,67 @@ test-suite builder
     lens       >= 4   && < 6,
     lens-build
   ghc-options: -Wall
+  default-language: Haskell2010
+
+-- The negative half of the test suite: this executable is *expected to fail to
+-- compile*. Each is gated behind the manual build-negative-test flag so normal
+-- builds, the sdist, and `cabal check` ignore them; tests/negative/run.sh
+-- enables the flag and asserts each compile fails with its expected message.
+--
+-- t-missing-field exercises the builder (an incomplete `build`); the t-* below
+-- exercise the makeBuild generator's guards on unsupported input.
+executable t-missing-field
+  main-is: TMissingField.hs
+  hs-source-dirs: tests/negative
+  if !flag(build-negative-test)
+    buildable: False
+  if impl(ghc < 8.8)
+    buildable: False
+
+  build-depends:
+    base       >= 4.9 && < 5,
+    lens       >= 4   && < 6,
+    lens-build
+  default-language: Haskell2010
+
+-- makeBuild on a sum type -> "single-constructor records only"
+executable t-sum-type
+  main-is: TSumType.hs
+  hs-source-dirs: tests/negative
+  if !flag(build-negative-test)
+    buildable: False
+  if impl(ghc < 8.8)
+    buildable: False
+
+  build-depends:
+    base       >= 4.9 && < 5,
+    lens-build
+  default-language: Haskell2010
+
+-- makeBuild on a positional (non-record) constructor -> "named fields is required"
+executable t-positional
+  main-is: TPositional.hs
+  hs-source-dirs: tests/negative
+  if !flag(build-negative-test)
+    buildable: False
+  if impl(ghc < 8.8)
+    buildable: False
+
+  build-depends:
+    base       >= 4.9 && < 5,
+    lens-build
+  default-language: Haskell2010
+
+-- makeBuild on a parameterized type -> "no type parameters"
+executable t-parameterized
+  main-is: TParameterized.hs
+  hs-source-dirs: tests/negative
+  if !flag(build-negative-test)
+    buildable: False
+  if impl(ghc < 8.8)
+    buildable: False
+
+  build-depends:
+    base       >= 4.9 && < 5,
+    lens-build
   default-language: Haskell2010
