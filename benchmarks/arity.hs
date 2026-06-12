@@ -10,7 +10,7 @@
 -- saturates it, the combinator inlines, and worker/wrapper fuses the hot loop.
 -- See NOTE: [Inlining and arity] in Control.Lens.Fold.
 --
--- Coverage mirrors the change set: set/set', partsOf, mapAccumLOf, both/both1,
+-- Coverage includes set/set', partsOf, mapAccumLOf, both/both1,
 -- and auf. (mapAccumLOf is exercised both directly and via scanl1Of.)
 module Main (main) where
 
