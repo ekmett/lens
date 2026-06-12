@@ -149,12 +149,13 @@ instance Show FieldException where
 
 instance Exception FieldException
 
--- | A fresh identity per 'upon' invocation. Keyed on the structure, 'NOINLINE',
--- and relying on the module's @-fno-full-laziness@ so GHC cannot share one token
--- across invocations (which would defeat the nesting fix).
-newFieldToken :: s -> Unique
-newFieldToken s = s `seq` unsafePerformIO newUnique
-{-# NOINLINE newFieldToken #-}
+-- | A fresh identity per 'upon' invocation. Deliberately not referentially
+-- transparent: each evaluation must yield a distinct token. Keyed on the
+-- structure, 'NOINLINE', and relying on the module's @-fno-full-laziness@ so GHC
+-- cannot share one token across invocations (which would defeat the nesting fix).
+unsafeNewFieldToken :: s -> Unique
+unsafeNewFieldToken s = s `seq` unsafePerformIO newUnique
+{-# NOINLINE unsafeNewFieldToken #-}
 
 lookupon :: Typeable a => Unique -> LensLike' (Indexing Identity) s a -> (s -> a) -> s -> Maybe (Int, Context a a s)
 lookupon u l field s = case unsafePerformIO $ E.try $ evaluate $ field $ s & indexing l %@~ \i (a::a) -> E.throw (FieldException u i a) of
@@ -216,7 +217,7 @@ upon field f s = case lookupon u template field s of
         Nothing                 -> k <$> indexed f (reverse is) a
         Just (j, Context k' a') -> go (j:is) (l.elementOf uniplate j) k' a'
     in go [i] (elementOf template i) k0 a0
-  where u = newFieldToken s
+  where u = unsafeNewFieldToken s
 {-# INLINE upon #-}
 
 -- | The design of 'onceUpon'' doesn't allow it to search inside of values of type 'a' for other values of type 'a'.
@@ -230,7 +231,7 @@ upon field f s = case lookupon u template field s of
 -- [1,2,10,20]
 upon' :: forall s a. (Data s, Data a) => (s -> a) -> IndexedLens' [Int] s a
 upon' field f s = let
-    u = newFieldToken s
+    u = unsafeNewFieldToken s
     ~(isn, kn) = case lookupon u template field s of
       Nothing -> (error "upon': no index, not a member", const s)
       Just (i, Context k0 _) -> go [i] (elementOf template i) k0
@@ -257,7 +258,7 @@ upon' field f s = let
 --
 -- When in doubt, use 'upon' instead.
 onceUpon :: forall s a. (Data s, Typeable a) => (s -> a) -> IndexedTraversal' Int s a
-onceUpon field f s = case lookupon (newFieldToken s) template field s of
+onceUpon field f s = case lookupon (unsafeNewFieldToken s) template field s of
   Nothing               -> pure s
   Just (i, Context k a) -> k <$> indexed f i a
 {-# INLINE onceUpon #-}
@@ -279,7 +280,7 @@ onceUpon field f s = case lookupon (newFieldToken s) template field s of
 -- When in doubt, use 'upon'' instead.
 onceUpon' :: forall s a. (Data s, Typeable a) => (s -> a) -> IndexedLens' Int s a
 onceUpon' field f s = k <$> indexed f i (field s) where
-  ~(i, Context k _) = fromMaybe (error "upon': no index, not a member") (lookupon (newFieldToken s) template field s)
+  ~(i, Context k _) = fromMaybe (error "upon': no index, not a member") (lookupon (unsafeNewFieldToken s) template field s)
 {-# INLINE onceUpon' #-}
 
 -------------------------------------------------------------------------------
