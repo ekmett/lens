@@ -3,6 +3,15 @@ next [????.??.??]
 * Add `ReifiedReview` to `Control.Lens.Reified`.
 * Fix `Data.Data.Lens.upon` (and its variants) looping forever when nested,
   e.g. `(upon.view.upon) tail`.
+* Fix a space leak in `lastOf` over lazy `ByteString`s, which previously
+  retained memory proportional to the number of chunks; it now runs in constant
+  space.
+* Add `makeLens` and `makePrism` to `Control.Lens.TH`. These build a single
+  optic, as an expression, for one record field or one data constructor (e.g.
+  `over $(makeLens '_field) f x` or `preview $(makePrism 'Ctor) x`), rather than
+  declaring optics for an entire type as `makeLenses`/`makePrisms` do. The optic
+  produced matches what the corresponding bulk generator would declare for that
+  field or constructor. (#710)
 
 5.3.6 [2026.01.10]
 ------------------
