@@ -7,6 +7,12 @@ next [????.??.??]
   strict folds in 5.3.4 (see the `NOTE: [Inlining and arity]` in
   `Control.Lens.Fold`). On a benchmark applying a partially-applied `set _1` in a
   tight loop, this improves performance by ~19x.
+* Add `makeLens` and `makePrism` to `Control.Lens.TH`. These build a single
+  optic, as an expression, for one record field or one data constructor (e.g.
+  `over $(makeLens '_field) f x` or `preview $(makePrism 'Ctor) x`), rather than
+  declaring optics for an entire type as `makeLenses`/`makePrisms` do. The optic
+  produced matches what the corresponding bulk generator would declare for that
+  field or constructor. (#710)
 
 5.3.6 [2026.01.10]
 ------------------
