@@ -32,6 +32,7 @@ import Prelude ()
 import Control.Lens.Type
 import Control.Lens.Getter
 import Control.Lens.Fold
+import Control.Lens.Internal.Fold (Rightmost(..))
 import Control.Lens.Indexed
 import Control.Lens.Internal.Prelude
 import Control.Lens.Setter
@@ -140,7 +141,42 @@ traversedLazy pafb = \lbs -> BL.foldrChunks go (\_ -> pure BL.empty) lbs 0
     traversedLazy = foldring BL.foldr :: Getting (Endo r) BL.ByteString Word8;
   "igets lazy bytestring"
     traversedLazy = ifoldring ifoldrBL :: IndexedGetting Int (Endo r) BL.ByteString Word8;
+  "lastOf lazy bytestring"
+    traversedLazy = lazyBytesRightmost :: Getting (Rightmost a) BL.ByteString Word8;
  #-}
+
+-- | 'lastOf' and other strict-to-end 'Rightmost' folds are not covered by the
+-- @Endo@ rule above, so without this they fall through to the general
+-- 'traversedLazy', whose @foldrChunks@/@<*>@ builds a lazy thunk chain over the
+-- chunk spine and retains memory proportional to the chunk count.
+--
+-- 'Rightmost' is strict-to-end (unlike the short-circuiting 'Leftmost'/'Any'),
+-- so a strict 'BL.foldl'' is sound: @acc <> 'RLeaf' w@ discards @acc@, so the
+-- fold runs in constant space. We deliberately do /not/ do this for
+-- 'firstOf'/'anyOf', whose laziness is load-bearing.
+lazyBytesRightmost :: Getting (Rightmost a) BL.ByteString Word8
+lazyBytesRightmost f = Const #. BL.foldl' (\acc w -> stepRightmost acc (getConst (f w))) mempty
+{-# INLINE lazyBytesRightmost #-}
+
+-- | One step of a strict 'Rightmost' left fold. @(<>)@ for 'Rightmost' always
+-- wraps its result in 'RStep' and is lazy in the left argument; for the
+-- @'RLeaf' w@ values 'lastOf' feeds in, @acc <> 'RLeaf' w = 'RStep' ('RLeaf' w)@,
+-- so forcing that 'RStep' payload to WHNF drops @acc@ and the fold runs in
+-- constant space (a plain @foldl' (<>)@ would instead retain an O(n) chain of
+-- thunks, each closing over the prior accumulator).
+--
+-- Note this rewrite is sound even though 'Rightmost'\'s @(<>)@ is /not/
+-- value-level associative (left- vs right-nesting insert different numbers of
+-- 'RStep' layers): the only consumer of @'Getting' ('Rightmost' a)@ is 'lastOf',
+-- which observes solely 'getRightmost', and 'getRightmost' is invariant under
+-- both re-association and extra 'RStep' layers. The 'seq' only forces, so the
+-- strict left fold agrees with the lawful traversal on every observation
+-- 'lastOf' can make.
+stepRightmost :: Rightmost a -> Rightmost a -> Rightmost a
+stepRightmost acc r = case acc <> r of
+                        s@(RStep x) -> x `seq` s
+                        s           -> s
+{-# INLINE stepRightmost #-}
 
 imapBL :: (Int -> Word8 -> Word8) -> BL.ByteString -> BL.ByteString
 imapBL f = snd . BL.mapAccumL (\i a -> i `seq` (i + 1, f i a)) 0
@@ -171,7 +207,14 @@ traversedLazy8 pafb = \lbs -> BL.foldrChunks go (\_ -> pure BL.empty) lbs 0
     traversedLazy8 = foldring BL8.foldr :: Getting (Endo r) BL8.ByteString Char;
   "igets lazy bytestring"
     traversedLazy8 = ifoldring ifoldrBL8 :: IndexedGetting Int (Endo r) BL8.ByteString Char;
+  "lastOf lazy bytestring"
+    traversedLazy8 = lazyBytesRightmost8 :: Getting (Rightmost a) BL8.ByteString Char;
  #-}
+
+-- | See 'lazyBytesRightmost'; this is the @Char@ analogue for 'traversedLazy8'.
+lazyBytesRightmost8 :: Getting (Rightmost a) BL8.ByteString Char
+lazyBytesRightmost8 f = Const #. BL8.foldl' (\acc c -> stepRightmost acc (getConst (f c))) mempty
+{-# INLINE lazyBytesRightmost8 #-}
 
 imapBL8 :: (Int -> Char -> Char) -> BL8.ByteString -> BL8.ByteString
 imapBL8 f = snd . BL8.mapAccumL (\i a -> i `seq` (i + 1, f i a)) 0
