@@ -1,6 +1,6 @@
 name:          lens
 category:      Data, Lenses, Generics
-version:       5.3.6
+version:       5.3.7
 license:       BSD2
 cabal-version: 1.18
 license-file:  LICENSE
@@ -159,6 +159,10 @@ flag test-properties
   manual: True
 
 flag test-templates
+  default: True
+  manual: True
+
+flag test-space
   default: True
   manual: True
 
@@ -389,6 +393,25 @@ test-suite hunit
       tasty >= 1.4 && < 1.6,
       tasty-hunit >= 0.10 && < 0.11
 
+-- Regression test for the lazy-ByteString space leak in lastOf (issue #233).
+-- Uses GHC.Stats (base >= 4.10 / GHC >= 8.2); -O2 so the rewrite rule fires.
+test-suite space
+  type: exitcode-stdio-1.0
+  main-is: space.hs
+  -- -T enables GHC.Stats; the small nursery (-A256k) forces frequent GCs so
+  -- the leak's transient peak is sampled (with the default nursery it can slip
+  -- between major GCs). The test verifies at startup that both are in effect.
+  ghc-options: -Wall -O2 -rtsopts "-with-rtsopts=-T -A256k"
+  hs-source-dirs: tests
+  default-language: Haskell2010
+  if flag(test-space) && impl(ghc >= 8.2)
+    build-depends:
+      base,
+      bytestring,
+      lens
+  else
+    buildable: False
+
 -- We need this dummy test-suite to add simple-reflect to the install plan
 --
 -- When cabal-install's extra-packages support becomes widely available
@@ -484,3 +507,15 @@ benchmark unsafe
     generic-deriving,
     lens,
     transformers
+
+-- Benchmarking ReifiedFoo vs AFoo
+benchmark reified
+  type:             exitcode-stdio-1.0
+  main-is:          reified.hs
+  ghc-options:      -Wall -O2 -threaded -fdicts-cheap -funbox-strict-fields
+  hs-source-dirs:   benchmarks
+  default-language: Haskell2010
+  build-depends:
+    base,
+    criterion,
+    lens

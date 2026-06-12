@@ -1192,6 +1192,15 @@ ilocally l f = Reader.local (iover l f)
 -- 'iover' :: 'IndexedLens' i s t a b      -> (i -> a -> b) -> s -> t
 -- 'iover' :: 'IndexedTraversal' i s t a b -> (i -> a -> b) -> s -> t
 -- @
+--
+-- An 'IndexedSetter' such as 'imapped' supplies the index: for a list it is the
+-- @Int@ position, for a 'Data.Map.Map' it is the key.
+--
+-- >>> iover imapped (\i a -> a ++ show i) ["x","y","z"]
+-- ["x0","y1","z2"]
+--
+-- >>> iover imapped (\k v -> show k ++ v) (Map.fromList [(1,"a"),(2,"b")])
+-- fromList [(1,"1a"),(2,"2b")]
 iover :: AnIndexedSetter i s t a b -> (i -> a -> b) -> s -> t
 iover = coerce
 {-# INLINE iover #-}
@@ -1209,6 +1218,9 @@ iover = coerce
 -- 'iset' :: 'IndexedLens' i s t a b      -> (i -> b) -> s -> t
 -- 'iset' :: 'IndexedTraversal' i s t a b -> (i -> b) -> s -> t
 -- @
+--
+-- >>> iset imapped show ["x","y","z"]
+-- ["0","1","2"]
 iset :: AnIndexedSetter i s t a b -> (i -> b) -> s -> t
 iset l = iover l . (const .)
 {-# INLINE iset #-}
@@ -1231,6 +1243,9 @@ iset l = iover l . (const .)
 --
 -- Another way to view 'isets' is that it takes a \"semantic editor combinator\"
 -- which has been modified to carry an index and transforms it into a 'IndexedSetter'.
+--
+-- >>> iover (isets (\f xs -> zipWith f [0..] xs)) (\i a -> a ++ show i) ["x","y","z"]
+-- ["x0","y1","z2"]
 isets :: ((i -> a -> b) -> s -> t) -> IndexedSetter i s t a b
 isets f = sets (f . indexed)
 {-# INLINE isets #-}
@@ -1253,6 +1268,9 @@ isets f = sets (f . indexed)
 -- ('%@~') :: 'IndexedLens' i s t a b      -> (i -> a -> b) -> s -> t
 -- ('%@~') :: 'IndexedTraversal' i s t a b -> (i -> a -> b) -> s -> t
 -- @
+--
+-- >>> ["x","y","z"] & imapped %@~ \i a -> a ++ show i
+-- ["x0","y1","z2"]
 (%@~) :: AnIndexedSetter i s t a b -> (i -> a -> b) -> s -> t
 (%@~) = iover
 {-# INLINE (%@~) #-}
@@ -1275,6 +1293,9 @@ isets f = sets (f . indexed)
 -- ('.@~') :: 'IndexedLens' i s t a b      -> (i -> b) -> s -> t
 -- ('.@~') :: 'IndexedTraversal' i s t a b -> (i -> b) -> s -> t
 -- @
+--
+-- >>> ["x","y","z"] & imapped .@~ show
+-- ["0","1","2"]
 (.@~) :: AnIndexedSetter i s t a b -> (i -> b) -> s -> t
 l .@~ f = runIdentity #. l (Identity #. Indexed (const . f))
 {-# INLINE (.@~) #-}
@@ -1293,11 +1314,17 @@ l .@~ f = runIdentity #. l (Identity #. Indexed (const . f))
 -- ('%@=') :: 'MonadState' s m => 'IndexedLens' i s s a b      -> (i -> a -> b) -> m ()
 -- ('%@=') :: 'MonadState' s m => 'IndexedTraversal' i s t a b -> (i -> a -> b) -> m ()
 -- @
+--
+-- >>> execState (imapped %@= \i a -> a ++ show i) ["x","y","z"]
+-- ["x0","y1","z2"]
 (%@=) :: MonadState s m => AnIndexedSetter i s s a b -> (i -> a -> b) -> m ()
 l %@= f = State.modify (l %@~ f)
 {-# INLINE (%@=) #-}
 
 -- | This is an alias for ('%@=').
+--
+-- >>> execState (imodifying imapped (\i a -> a ++ show i)) ["x","y","z"]
+-- ["x0","y1","z2"]
 imodifying :: MonadState s m => AnIndexedSetter i s s a b -> (i -> a -> b) -> m ()
 imodifying l f = State.modify (iover l f)
 {-# INLINE imodifying #-}
@@ -1316,6 +1343,9 @@ imodifying l f = State.modify (iover l f)
 -- ('.@=') :: 'MonadState' s m => 'IndexedLens' i s s a b      -> (i -> b) -> m ()
 -- ('.@=') :: 'MonadState' s m => 'IndexedTraversal' i s t a b -> (i -> b) -> m ()
 -- @
+--
+-- >>> execState (imapped .@= show) ["x","y","z"]
+-- ["0","1","2"]
 (.@=) :: MonadState s m => AnIndexedSetter i s s a b -> (i -> b) -> m ()
 l .@= f = State.modify (l .@~ f)
 {-# INLINE (.@=) #-}

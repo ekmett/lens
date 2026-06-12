@@ -32,6 +32,7 @@ module Control.Lens.Internal.FieldTH
   , makeFieldOptics
   , makeFieldOpticsForDec
   , makeFieldOpticsForDec'
+  , makeFieldOpticExp
   , HasFieldClasses
   ) where
 
@@ -81,6 +82,37 @@ makeFieldOpticsForDec rules = (`evalStateT` Set.empty) . makeFieldOpticsForDec' 
 
 makeFieldOpticsForDec' :: LensRules -> Dec -> HasFieldClasses [Dec]
 makeFieldOpticsForDec' rules = makeFieldOpticsForDatatype rules <=< lift . D.normalizeDec
+
+-- | Build the field optic for a single record field as an /expression/, given
+-- that field's selector name. This is the engine behind
+-- 'Control.Lens.TH.makeLens'. It reuses the very same scaffold and clause
+-- generator as 'makeFieldOptics'\/'makeLenses', so the optic it produces is the
+-- one 'makeLenses' would declare for that field: an 'Control.Lens.Iso.Iso' for
+-- a sole single-field constructor, a 'Control.Lens.Traversal.Traversal' for a
+-- field absent from some constructors, and a 'Control.Lens.Lens' otherwise.
+--
+-- The generated clauses are bound in a @let@ so the result is an anonymous
+-- optic expression rather than a top-level declaration. Its type is left to be
+-- inferred at the splice site.
+makeFieldOpticExp :: LensRules -> Name {- ^ record field selector -} -> ExpQ
+makeFieldOpticExp rules fieldName =
+  do info <- D.reifyDatatype fieldName
+     let s    = datatypeTypeKinded info
+         cons = D.datatypeCons     info
+     fieldCons <- traverse normalizeConstructor cons
+     let allFields = toListOf (folded . _2 . folded . _1 . folded) fieldCons
+     unless (any sameField allFields) $
+       fail $ "makeLens: " ++ nameBase fieldName
+           ++ " is not a record field of " ++ nameBase (D.datatypeName info)
+     funNm <- newName "optic"
+     let defName = TopName funNm
+         assignDef mName | maybe False sameField mName = [(defName, mName)]
+                         | otherwise                   = []
+         defCons = over (traverse . _2 . traverse . _1) assignDef fieldCons
+     (opticType, _stab, scaffolds) <- buildScaffold rules s defCons defName
+     letE [funD funNm (makeFieldClauses rules opticType scaffolds)] (varE funNm)
+  where
+  sameField n = nameBase n == nameBase fieldName
 
 -- | Compute the field optics for a deconstructed datatype Dec
 -- When possible build an Iso otherwise build one optic per field.
