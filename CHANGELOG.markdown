@@ -1,5 +1,11 @@
 next [????.??.??]
 -----------------
+* Re-add the `Control.Monad.Primitive.Lens` module, which was removed in
+  `lens` 4.9. It offers `Iso`s for the conversions in
+  `Control.Monad.Primitive`: `prim` (between a `PrimBase` monad and its
+  underlying `State#` representation, now type-changing), and the new `st`
+  and `io` (between a `PrimBase` monad and `ST`/`IO`, respectively). This
+  reintroduces the dependency on the `primitive` package.
 * Add `ReifiedReview` to `Control.Lens.Reified`.
 * Add `makeLens` and `makePrism` to `Control.Lens.TH`. These build a single
   optic, as an expression, for one record field or one data constructor (e.g.
