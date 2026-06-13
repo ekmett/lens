@@ -10,6 +10,10 @@ next [????.??.??]
   declaring optics for an entire type as `makeLenses`/`makePrisms` do. The optic
   produced matches what the corresponding bulk generator would declare for that
   field or constructor. (#710)
+* Correct several stale type signatures in the lens hierarchy diagram — most
+  visibly the `Review` box, which still used the long-removed four-parameter
+  form — and add `images/Hierarchy.dot` as an editable Graphviz source for the
+  diagram (regenerated via `scripts/hierarchy`).
 
 5.3.6 [2026.01.10]
 ------------------
