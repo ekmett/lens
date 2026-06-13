@@ -16,6 +16,7 @@ next [????.??.??]
   declaring optics for an entire type as `makeLenses`/`makePrisms` do. The optic
   produced matches what the corresponding bulk generator would declare for that
   field or constructor. (#710)
+* Document the relationship between `filtered`, `has`/`anyOf`, and `noneOf`.
 
 5.3.6 [2026.01.10]
 ------------------
