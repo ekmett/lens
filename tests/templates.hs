@@ -459,6 +459,12 @@ makeLensesWith (classUnderscoreNoPrefixFields & lensField %~ avoidKeywordsNamer)
 checkAvoidKeywordsMethodName :: Lens' CheckAvoidKeywordsMethodName Int
 checkAvoidKeywordsMethodName = type_
 
+-- forall is an unconditional keyword on GHC 9.10+, so it is mangled too (#762)
+data CheckAvoidKeywordsForall = CheckAvoidKeywordsForall { _forall :: Int }
+makeLensesWith (lensRules & lensField %~ avoidKeywordsNamer) ''CheckAvoidKeywordsForall
+checkAvoidKeywordsForall :: Lens' CheckAvoidKeywordsForall Int
+checkAvoidKeywordsForall = forall_
+
 -- The keyword check fails early in Q, so it is recoverable; GHC's own
 -- "Illegal variable name" error during splicing would not be (#762).
 data T762 = T762 { _t762Type :: Int }

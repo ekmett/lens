@@ -169,11 +169,13 @@ isDataFamily D.TypeData        = False
 --
 -- This mirrors the check GHC applies to spliced declarations
 -- (@okVarOcc@\/@reservedIds@ in "GHC.Utils.Lexeme" from @ghc-boot@, on which
--- we do not wish to depend). Like GHC's @reservedIds@, it omits @forall@.
+-- we do not wish to depend). We also include @forall@, which GHC 9.10 and
+-- later treat as an unconditional keyword (and which extensions such as
+-- @RankNTypes@ and @ScopedTypeVariables@ reserve on earlier GHCs).
 haskellKeywords :: Set String
 haskellKeywords = Set.fromList
   [ "case", "class", "data", "default", "deriving", "do", "else"
-  , "foreign", "if", "import", "in", "infix", "infixl", "infixr"
+  , "forall", "foreign", "if", "import", "in", "infix", "infixl", "infixr"
   , "instance", "let", "module", "newtype", "of", "then", "type"
   , "where", "_"
   ]
