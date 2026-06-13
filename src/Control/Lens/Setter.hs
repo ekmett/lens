@@ -373,7 +373,8 @@ over = coerce
 -- 'set' :: 'Traversal' s t a b -> b -> s -> t
 -- @
 set :: ASetter s t a b -> b -> s -> t
-set l b = runIdentity #. l (\_ -> Identity b)
+-- See: NOTE: [Inlining and arity] in Control.Lens.Fold
+set l = \b -> runIdentity #. l (\_ -> Identity b)
 {-# INLINE set #-}
 
 -- | Replace the target of a 'Lens' or all of the targets of a 'Setter''
@@ -400,7 +401,8 @@ set l b = runIdentity #. l (\_ -> Identity b)
 -- 'set'' :: 'Traversal'' s a -> a -> s -> s
 -- @
 set' :: ASetter' s a -> a -> s -> s
-set' l b = runIdentity #. l (\_ -> Identity b)
+-- See: NOTE: [Inlining and arity] in Control.Lens.Fold
+set' l = \b -> runIdentity #. l (\_ -> Identity b)
 {-# INLINE set' #-}
 
 -- | Modifies the target of a 'Lens' or all of the targets of a 'Setter' or

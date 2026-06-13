@@ -1,6 +1,12 @@
 next [????.??.??]
 -----------------
 * Add `ReifiedReview` to `Control.Lens.Reified`.
+* Reduce the arity of `set`, `set'`, `partsOf`, `partsOf'`, `unsafePartsOf`,
+  `unsafePartsOf'`, `mapAccumLOf`, `imapAccumLOf`, `auf`, `both`, and `both1` so
+  that GHC is more eager to inline them, following up on the same change to the
+  strict folds in 5.3.4 (see the `NOTE: [Inlining and arity]` in
+  `Control.Lens.Fold`). On a benchmark applying a partially-applied `set _1` in a
+  tight loop, this improves performance by ~19x.
 * Fix a space leak in `lastOf` over lazy `ByteString`s, which previously
   retained memory proportional to the number of chunks; it now runs in constant
   space.
