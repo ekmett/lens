@@ -348,7 +348,7 @@ test-suite templates
   if !flag(test-templates)
     buildable: False
   else
-    build-depends: base, lens
+    build-depends: base, lens, template-haskell
 
 -- Verify the properties of lenses with QuickCheck
 test-suite properties

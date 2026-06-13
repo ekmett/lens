@@ -164,6 +164,33 @@ isDataFamily D.NewtypeInstance = True
 isDataFamily D.TypeData        = False
 #endif
 
+-- | Haskell's reserved identifiers, which cannot be used as names of
+-- functions or class methods.
+--
+-- This mirrors the check GHC applies to spliced declarations
+-- (@okVarOcc@\/@reservedIds@ in "GHC.Utils.Lexeme" from @ghc-boot@, on which
+-- we do not wish to depend). We also include @forall@, which GHC 9.10 and
+-- later treat as an unconditional keyword (and which extensions such as
+-- @RankNTypes@ and @ScopedTypeVariables@ reserve on earlier GHCs).
+haskellKeywords :: Set String
+haskellKeywords = Set.fromList
+  [ "case", "class", "data", "default", "deriving", "do", "else"
+  , "forall", "foreign", "if", "import", "in", "infix", "infixl", "infixr"
+  , "instance", "let", "module", "newtype", "of", "then", "type"
+  , "where", "_"
+  ]
+
+-- | Is this string one of the 'haskellKeywords'?
+isKeyword :: String -> Bool
+isKeyword = (`Set.member` haskellKeywords)
+
+-- | Append an underscore to a name that is a Haskell keyword; leave all
+-- other names untouched.
+avoidKeyword :: Name -> Name
+avoidKeyword n
+  | isKeyword (nameBase n) = mkName (nameBase n ++ "_")
+  | otherwise              = n
+
 #if !(MIN_VERSION_template_haskell(2,21,0)) && !(MIN_VERSION_th_abstraction(0,6,0))
 type TyVarBndrVis = D.TyVarBndr_ ()
 

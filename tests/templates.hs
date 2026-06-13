@@ -26,6 +26,7 @@
 module Main where
 
 import Control.Lens
+import Language.Haskell.TH (recover)
 -- import Test.QuickCheck (quickCheck)
 import BigRecord ()
 import T799 ()
@@ -439,6 +440,45 @@ data CheckAbbreviatedNamer = CheckAbbreviatedNamer
 makeLensesWith (defaultFieldRules & lensField .~ abbreviatedNamer ) ''CheckAbbreviatedNamer
 checkAbbreviatedNamer :: Lens' CheckAbbreviatedNamer Int
 checkAbbreviatedNamer = fieldAbbreviatedNamer
+
+data CheckClassUnderscoreNoPrefixNamer = CheckClassUnderscoreNoPrefixNamer
+                                         { _fieldClassUnderscoreNoPrefix :: Int }
+makeLensesWith (defaultFieldRules & lensField .~ classUnderscoreNoPrefixNamer) ''CheckClassUnderscoreNoPrefixNamer
+checkClassUnderscoreNoPrefixNamer :: Lens' CheckClassUnderscoreNoPrefixNamer Int
+checkClassUnderscoreNoPrefixNamer = fieldClassUnderscoreNoPrefix
+
+-- avoidKeywordsNamer appends an underscore to generated names that would
+-- otherwise be Haskell keywords (#762)
+data CheckAvoidKeywordsTopName = CheckAvoidKeywordsTopName { _data :: Int }
+makeLensesWith (lensRules & lensField %~ avoidKeywordsNamer) ''CheckAvoidKeywordsTopName
+checkAvoidKeywordsTopName :: Lens' CheckAvoidKeywordsTopName Int
+checkAvoidKeywordsTopName = data_
+
+data CheckAvoidKeywordsMethodName = CheckAvoidKeywordsMethodName { _type :: Int }
+makeLensesWith (classUnderscoreNoPrefixFields & lensField %~ avoidKeywordsNamer) ''CheckAvoidKeywordsMethodName
+checkAvoidKeywordsMethodName :: Lens' CheckAvoidKeywordsMethodName Int
+checkAvoidKeywordsMethodName = type_
+
+-- forall is an unconditional keyword on GHC 9.10+, so it is mangled too (#762)
+data CheckAvoidKeywordsForall = CheckAvoidKeywordsForall { _forall :: Int }
+makeLensesWith (lensRules & lensField %~ avoidKeywordsNamer) ''CheckAvoidKeywordsForall
+checkAvoidKeywordsForall :: Lens' CheckAvoidKeywordsForall Int
+checkAvoidKeywordsForall = forall_
+
+-- The keyword check fails early in Q, so it is recoverable; GHC's own
+-- "Illegal variable name" error during splicing would not be (#762).
+data T762 = T762 { _t762Type :: Int }
+$(recover (pure []) (makeFields ''T762))
+
+-- Same, for the classy path: makeClassy ''Where would generate a class
+-- method named "where".
+data Where = Where { _whereX :: Int }
+$(recover (pure []) (makeClassy ''Where))
+
+-- ...and avoidKeywordsClassyNamer appends an underscore there likewise
+makeLensesWith (classyRules & lensClass %~ avoidKeywordsClassyNamer) ''Where
+checkAvoidKeywordsClassyNamer :: Lens' Where Where
+checkAvoidKeywordsClassyNamer = where_
 
 -- Ensure that `makeClassyPrisms` doesn't generate a redundant catch-all case (#866)
 data T866 = MkT866
