@@ -48,7 +48,7 @@ module Control.Lens.Setter
   -- * Functional Combinators
   , over
   , set
-  , (.~), (%~)
+  , (.~), (!~), (%~)
   , (+~), (-~), (*~), (//~), (^~), (^^~), (**~), (||~), (<>~), (<>:~), (&&~), (<.~), (?~), (<?~)
   -- * State Combinators
   , assign, modifying
@@ -105,7 +105,7 @@ import Control.Monad.Writer.Class as Writer
 -- >>> let setter :: Expr -> Expr -> Expr; setter = fun "setter"
 -- >>> :set -XNoOverloadedStrings
 
-infixr 4 %@~, .@~, .~, +~, *~, -~, //~, ^~, ^^~, **~, &&~, <>~, <>:~, ||~, %~, <.~, ?~, <?~
+infixr 4 %@~, .@~, .~, !~, +~, *~, -~, //~, ^~, ^^~, **~, &&~, <>~, <>:~, ||~, %~, <.~, ?~, <?~
 infix  4 %@=, .@=, .=, +=, *=, -=, //=, ^=, ^^=, **=, &&=, <>=, <>:=, ||=, %=, <.=, ?=, <?=
 infixr 2 <~
 
@@ -470,6 +470,37 @@ set' l = \b -> runIdentity #. l (\_ -> Identity b)
 (.~) :: ASetter s t a b -> b -> s -> t
 (.~) = set
 {-# INLINE (.~) #-}
+
+-- | A strict version of ('.~') that forces the new value to weak head normal
+-- form.
+--
+-- Use this to update a strict container, such as a 'Data.Map.Strict.Map', whose
+-- values @lens@ would otherwise store lazily: the optic cannot tell a strict
+-- container from a lazy one (they share a type), so plain ('.~') may leave a
+-- thunk behind, whereas @m & 'Control.Lens.At.ix' k '!~' v@ stores @v@ in weak
+-- head normal form.
+--
+-- The value is forced regardless of whether the optic has a target (it is
+-- forced before 'set' runs), so @'Control.Lens.At.ix' k '!~' 'undefined'@
+-- raises an error even when @k@ is absent. Only the value itself is forced (to
+-- WHNF); to also force a value hidden inside a @Just@ (as with @at k .~ Just v@)
+-- use the strict @at'@ from "Control.Lens.At".
+--
+-- >>> (a,b,c,d) & _4 !~ e
+-- (a,b,c,e)
+--
+-- >>> (42,"world") & _1 !~ "hello"
+-- ("hello","world")
+--
+-- @
+-- ('!~') :: 'Setter' s t a b    -> b -> s -> t
+-- ('!~') :: 'Iso' s t a b       -> b -> s -> t
+-- ('!~') :: 'Lens' s t a b      -> b -> s -> t
+-- ('!~') :: 'Traversal' s t a b -> b -> s -> t
+-- @
+(!~) :: ASetter s t a b -> b -> s -> t
+l !~ b = b `seq` set l b
+{-# INLINE (!~) #-}
 
 -- | Set the target of a 'Lens', 'Traversal' or 'Setter' to 'Just' a value.
 --

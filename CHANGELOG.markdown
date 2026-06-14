@@ -17,6 +17,11 @@ next [????.??.??]
   produced matches what the corresponding bulk generator would declare for that
   field or constructor. (#710)
 * Document the relationship between `filtered`, `has`/`anyOf`, and `noneOf`.
+* Add `at'`, a strict version of `at` that forces the new value to weak head
+  normal form, so it can be used to update strict containers such as
+  `Data.Map.Strict.Map` without leaving a thunk behind.
+* Add `(!~)`, a strict version of `(.~)` that forces the new value to weak head
+  normal form.
 
 5.3.6 [2026.01.10]
 ------------------
