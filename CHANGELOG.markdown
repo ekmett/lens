@@ -1,5 +1,10 @@
 next [????.??.??]
 -----------------
+* Change `fromLens`, `fromIso`, and `fromPrism` in `Control.Lens.Profunctor` to
+  accept the canonical monomorphic optic types `ALens`, `AnIso`, and `APrism`,
+  matching `fromSetter`/`fromTraversal` which already take `ASetter`/`ATraversal`.
+  Full polymorphic `Lens`/`Iso`/`Prism` values are still accepted unchanged; only
+  code that relied on the previous ad-hoc representations needs adjusting.
 * Add `ReifiedReview` to `Control.Lens.Reified`.
 * Reduce the arity of `set`, `set'`, `partsOf`, `partsOf'`, `unsafePartsOf`,
   `unsafePartsOf'`, `mapAccumLOf`, `imapAccumLOf`, `auf`, `both`, and `both1` so
