@@ -21,6 +21,7 @@
 module Main (main) where
 
 import Control.Lens
+import Control.Applicative (ZipList(..))
 import Control.Monad.State
 import Data.Char
 import qualified Data.Text as StrictT
@@ -400,6 +401,23 @@ case_oneoff_prism_nullary =
   (has $(makePrism 'SVoid) SVoid, has $(makePrism 'SVoid) (SCircle origin 1))
     @?= (True, False)
 
+-- ZipList has no QuickCheck Arbitrary/CoArbitrary/Function instances, so its
+-- Prefixed/Suffixed instances are exercised here rather than in properties.hs.
+case_prefixed_ziplist =
+  ZipList [1,2,3,4 :: Int] ^? prefixed (ZipList [1,2]) @?= Just (ZipList [3,4])
+
+case_prefixed_ziplist_miss =
+  ZipList [1,2,3 :: Int] ^? prefixed (ZipList [2,3]) @?= Nothing
+
+case_prefixed_ziplist_review =
+  prefixed (ZipList [1,2]) # ZipList [3,4 :: Int] @?= ZipList [1,2,3,4]
+
+case_suffixed_ziplist =
+  ZipList [1,2,3,4 :: Int] ^? suffixed (ZipList [3,4]) @?= Just (ZipList [1,2])
+
+case_suffixed_ziplist_review =
+  suffixed (ZipList [3,4]) # ZipList [1,2 :: Int] @?= ZipList [1,2,3,4]
+
 main :: IO ()
 main = defaultMain $
   testGroup "Main"
@@ -464,4 +482,9 @@ main = defaultMain $
   , testCase "one-off prism preview miss" case_oneoff_prism_preview_miss
   , testCase "one-off prism review round-trip" case_oneoff_prism_review_roundtrip
   , testCase "one-off prism nullary" case_oneoff_prism_nullary
+  , testCase "prefixed ziplist" case_prefixed_ziplist
+  , testCase "prefixed ziplist miss" case_prefixed_ziplist_miss
+  , testCase "prefixed ziplist review" case_prefixed_ziplist_review
+  , testCase "suffixed ziplist" case_suffixed_ziplist
+  , testCase "suffixed ziplist review" case_suffixed_ziplist_review
   ]

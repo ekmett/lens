@@ -1,6 +1,9 @@
 next [????.??.??]
 -----------------
 * Add `ReifiedReview` to `Control.Lens.Reified`.
+* Add `Prefixed` and `Suffixed` instances for `ZipList`, `Seq`, and the boxed,
+  strict, storable, primitive, and unboxed `Vector` types, bringing them to
+  parity with the existing `Cons`/`Snoc` instances.
 * Reduce the arity of `set`, `set'`, `partsOf`, `partsOf'`, `unsafePartsOf`,
   `unsafePartsOf'`, `mapAccumLOf`, `imapAccumLOf`, `auf`, `both`, and `both1` so
   that GHC is more eager to inline them, following up on the same change to the
