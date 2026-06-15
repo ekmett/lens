@@ -21,6 +21,7 @@
 module Main (main) where
 
 import Control.Lens
+import Control.Lens.Profunctor (fromLens, fromIso, fromPrism, fromSetter, fromTraversal)
 import Control.Monad.State
 import Data.Char
 import qualified Data.Text as StrictT
@@ -400,6 +401,43 @@ case_oneoff_prism_nullary =
   (has $(makePrism 'SVoid) SVoid, has $(makePrism 'SVoid) (SCircle origin 1))
     @?= (True, False)
 
+-- Control.Lens.Profunctor (#971): the from* conversions all take the canonical
+-- monomorphic optics, bound here with explicit A-types. For the three that #971
+-- changed -- fromLens, fromIso, fromPrism -- the A-type is one that their old
+-- signatures would have rejected, so these cases guard the change;
+-- fromSetter/fromTraversal already accepted ASetter/ATraversal. Exercised at the
+-- function profunctor (->), where an @OpticP (->) s t a b@ is @(a -> b) -> s -> t@
+-- (i.e. 'over').
+case_profunctor_fromLens =
+  fromLens l (+1) (3, "x") @?= (4, "x")
+  where l :: ALens (Int, String) (Int, String) Int Int
+        l = _1
+
+case_profunctor_fromIso =
+  fromIso i succ 'a' @?= 'b'
+  where i :: AnIso Char Char Int Int
+        i = iso fromEnum toEnum
+
+case_profunctor_fromPrism_match =
+  fromPrism p (+1) (Just 3) @?= Just 4
+  where p :: APrism (Maybe Int) (Maybe Int) Int Int
+        p = _Just
+
+case_profunctor_fromPrism_miss =
+  fromPrism p (+1) Nothing @?= Nothing
+  where p :: APrism (Maybe Int) (Maybe Int) Int Int
+        p = _Just
+
+case_profunctor_fromSetter =
+  fromSetter s (+1) [1,2,3] @?= [2,3,4]
+  where s :: ASetter [Int] [Int] Int Int
+        s = mapped
+
+case_profunctor_fromTraversal =
+  fromTraversal t (+1) [1,2,3] @?= [2,3,4]
+  where t :: ATraversal [Int] [Int] Int Int
+        t = traversed
+
 main :: IO ()
 main = defaultMain $
   testGroup "Main"
@@ -464,4 +502,10 @@ main = defaultMain $
   , testCase "one-off prism preview miss" case_oneoff_prism_preview_miss
   , testCase "one-off prism review round-trip" case_oneoff_prism_review_roundtrip
   , testCase "one-off prism nullary" case_oneoff_prism_nullary
+  , testCase "profunctor fromLens" case_profunctor_fromLens
+  , testCase "profunctor fromIso" case_profunctor_fromIso
+  , testCase "profunctor fromPrism (match)" case_profunctor_fromPrism_match
+  , testCase "profunctor fromPrism (miss)" case_profunctor_fromPrism_miss
+  , testCase "profunctor fromSetter" case_profunctor_fromSetter
+  , testCase "profunctor fromTraversal" case_profunctor_fromTraversal
   ]
