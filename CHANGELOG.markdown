@@ -1,5 +1,7 @@
 next [????.??.??]
 -----------------
+* Deprecate `lifted` in `Control.Lens.Setter`. Use `mapped` instead, which
+  works for any `Monad` now that `Functor` is a superclass of `Monad`.
 * Add `ReifiedReview` to `Control.Lens.Reified`.
 * Add `Prefixed` and `Suffixed` instances for `ZipList`, `Seq`, and the boxed,
   strict, storable, primitive, and unboxed `Vector` types, bringing them to

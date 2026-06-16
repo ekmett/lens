@@ -42,7 +42,7 @@ module Control.Lens.Setter
   , cloneIndexPreservingSetter
   , cloneIndexedSetter
   -- * Common Setters
-  , mapped, lifted
+  , mapped
   , contramapped
   , argument
   -- * Functional Combinators
@@ -73,6 +73,7 @@ module Control.Lens.Setter
   , Settable
   , Identity(..)
   -- * Deprecated
+  , lifted
   , mapOf
   ) where
 
@@ -187,9 +188,9 @@ mapped = sets fmap
 
 -- | This 'setter' can be used to modify all of the values in a 'Monad'.
 --
--- You sometimes have to use this rather than 'mapped' -- due to
--- temporary insanity 'Functor' was not a superclass of 'Monad' until
--- GHC 7.10.
+-- /Deprecated:/ use 'mapped' instead. This existed only because 'Functor'
+-- was not a superclass of 'Monad' before GHC 7.10; now that it is, 'mapped'
+-- works for any 'Monad' and subsumes 'lifted'.
 --
 -- @
 -- 'liftM' ≡ 'over' 'lifted'
@@ -201,10 +202,11 @@ mapped = sets fmap
 -- >>> set lifted b (Just a)
 -- Just b
 --
--- If you want an 'IndexPreservingSetter' use @'setting' 'liftM'@.
+-- If you want an 'IndexPreservingSetter' use @'setting' 'fmap'@.
 lifted :: Monad m => Setter (m a) (m b) a b
 lifted = sets liftM
 {-# INLINE lifted #-}
+{-# DEPRECATED lifted "Use `mapped` instead; since GHC 7.10 `Functor` is a superclass of `Monad`, so `mapped` subsumes `lifted`." #-}
 
 -- | This 'Setter' can be used to map over all of the inputs to a 'Contravariant'.
 --
