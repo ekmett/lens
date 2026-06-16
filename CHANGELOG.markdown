@@ -1,5 +1,21 @@
 next [????.??.??]
 -----------------
+* Move the `Plated` class, the `[]`/`Tree` instances, and the `Generic`-based
+  `gplate`/`gplate1` (with the `GPlated`/`GPlated1` classes) into a new `plated`
+  package (depending only on `base` and `containers`), and the `Plated`
+  instances for the `free`/`comonad` type families into a companion
+  `plated-instances` package. Both are re-exported from `Control.Lens.Plated`,
+  so existing `import Control.Lens` / `import Control.Lens.Plated` code keeps
+  working, including empty `instance Plated T` declarations that rely on the
+  `Data`-based default. The split lets other libraries provide `Plated`
+  instances for their types depending only on `base` and `containers` (a GHC
+  boot library), instead of all of `lens`.
+  One behavioral note: the `Data`-based default for `plate` is now backed by a
+  portable `uniplate` defined in `plated` rather than the oracle-optimized
+  `Data.Data.Lens.uniplate`. The two compute the same traversal, but the
+  `plated` default can be slower on deeply nested non-matching structure; write
+  `plate = uniplate` (from `Data.Data.Lens`) explicitly to keep the optimized
+  version where it matters.
 * Add `ReifiedReview` to `Control.Lens.Reified`.
 * Reduce the arity of `set`, `set'`, `partsOf`, `partsOf'`, `unsafePartsOf`,
   `unsafePartsOf'`, `mapAccumLOf`, `imapAccumLOf`, `auf`, `both`, and `both1` so

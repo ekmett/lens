@@ -1,15 +1,18 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE Rank2Types #-}
-{-# LANGUAGE DefaultSignatures #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE PolyKinds #-}
 
 #ifdef TRUSTWORTHY
 {-# LANGUAGE Trustworthy #-} -- template-haskell
 #endif
+
+-- The 'Plated' class now lives in the standalone @plated@ package, so the
+-- 'Plated' instances for Template Haskell syntax kept here (they need 'uniplate'
+-- from @lens@) are necessarily orphans.
+{-# OPTIONS_GHC -Wno-orphans #-}
 
 #include "lens-common.h"
 
@@ -80,6 +83,7 @@ module Control.Lens.Plated
   , parts
 
   -- * Generics
+  -- $generics
   , gplate
   , gplate1
   , GPlated
@@ -89,8 +93,6 @@ module Control.Lens.Plated
 
 import Prelude ()
 
-import Control.Comonad.Cofree
-import qualified Control.Comonad.Trans.Cofree as CoTrans
 import Control.Lens.Fold
 import Control.Lens.Getter
 import Control.Lens.Indexed
@@ -99,14 +101,16 @@ import Control.Lens.Internal.Prelude
 import Control.Lens.Type
 import Control.Lens.Setter
 import Control.Lens.Traversal
-import Control.Monad.Free as Monad
-import Control.Monad.Free.Church as Church
-import Control.Monad.Trans.Free as Trans
+-- We import the class and the generics machinery from @plated@. For @lens@'s
+-- own 'Plated' instances below (the Template Haskell ones) we use @lens@'s
+-- oracle-optimized 'uniplate' from "Data.Data.Lens", so the import list omits
+-- @plated@'s portable 'uniplate' of the same name. This is purely @lens@'s own
+-- choice and does not change the class default: a downstream empty
+-- @instance Plated T@ still inherits @plated@'s portable 'uniplate'.
+import Data.Plated (Plated(..), gplate, gplate1, GPlated, GPlated1)
+import Data.Plated.Instances ()
 import qualified Language.Haskell.TH as TH
-import Data.Data
 import Data.Data.Lens
-import Data.Tree
-import GHC.Generics
 
 -- $setup
 -- >>> :set -XDeriveGeneric -XDeriveDataTypeable
@@ -115,139 +119,21 @@ import GHC.Generics
 -- >>> import GHC.Generics (Generic)
 -- >>> import Control.Lens
 
--- | A 'Plated' type is one where we know how to extract its immediate self-similar children.
+-- The 'Plated' class, its base instances, and the 'Generic'-based 'gplate' /
+-- 'gplate1' machinery live in the standalone @plated@ package ("Data.Plated")
+-- and are re-exported above, so that other libraries may provide 'Plated'
+-- instances without depending on @lens@.
 --
--- /Example 1/:
---
--- @
--- import Control.Applicative
--- import Control.Lens
--- import Control.Lens.Plated
--- import Data.Data
--- import Data.Data.Lens ('Data.Data.Lens.uniplate')
--- @
---
--- @
--- data Expr
---   = Val 'Int'
---   | Neg Expr
---   | Add Expr Expr
---   deriving ('Eq','Ord','Show','Read','Data')
--- @
---
--- @
--- instance 'Plated' Expr where
---   'plate' f (Neg e) = Neg '<$>' f e
---   'plate' f (Add a b) = Add '<$>' f a '<*>' f b
---   'plate' _ a = 'pure' a
--- @
---
--- /or/
---
--- @
--- instance 'Plated' Expr where
---   'plate' = 'Data.Data.Lens.uniplate'
--- @
---
--- /Example 2/:
---
--- @
--- import Control.Applicative
--- import Control.Lens
--- import Control.Lens.Plated
--- import Data.Data
--- import Data.Data.Lens ('Data.Data.Lens.uniplate')
--- @
---
--- @
--- data Tree a
---   = Bin (Tree a) (Tree a)
---   | Tip a
---   deriving ('Eq','Ord','Show','Read','Data')
--- @
---
--- @
--- instance 'Plated' (Tree a) where
---   'plate' f (Bin l r) = Bin '<$>' f l '<*>' f r
---   'plate' _ t = 'pure' t
--- @
---
--- /or/
---
--- @
--- instance 'Data' a => 'Plated' (Tree a) where
---   'plate' = 'uniplate'
--- @
---
--- Note the big distinction between these two implementations.
---
--- The former will only treat children directly in this tree as descendents,
--- the latter will treat trees contained in the values under the tips also
--- as descendants!
---
--- When in doubt, pick a 'Traversal' and just use the various @...Of@ combinators
--- rather than pollute 'Plated' with orphan instances!
---
--- If you want to find something unplated and non-recursive with 'Data.Data.Lens.biplate'
--- use the @...OnOf@ variant with 'ignored', though those usecases are much better served
--- in most cases by using the existing 'Lens' combinators! e.g.
---
--- @
--- 'toListOf' 'biplate' ≡ 'universeOnOf' 'biplate' 'ignored'
--- @
---
--- This same ability to explicitly pass the 'Traversal' in question is why there is no
--- analogue to uniplate's @Biplate@.
---
--- Moreover, since we can allow custom traversals, we implement reasonable defaults for
--- polymorphic data types, that only 'Control.Traversable.traverse' into themselves, and /not/ their
--- polymorphic arguments.
-
-class Plated a where
-  -- | 'Traversal' of the immediate children of this structure.
-  --
-  -- If you're using GHC 7.2 or newer and your type has a 'Data' instance,
-  -- 'plate' will default to 'uniplate' and you can choose to not override
-  -- it with your own definition.
-  plate :: Traversal' a a
-  default plate :: Data a => Traversal' a a
-  plate = uniplate
-
-instance Plated [a] where
-  plate f (x:xs) = (x:) <$> f xs
-  plate _ [] = pure []
-
-instance Traversable f => Plated (Monad.Free f a) where
-  plate f (Monad.Free as) = Monad.Free <$> traverse f as
-  plate _ x         = pure x
-
-instance (Traversable f, Traversable m) => Plated (Trans.FreeT f m a) where
-  plate f (Trans.FreeT xs) = Trans.FreeT <$> traverse (traverse f) xs
-
-instance Traversable f => Plated (Church.F f a) where
-  plate f = fmap Church.toF . plate (fmap Church.fromF . f . Church.toF) . Church.fromF
-
--- -- This one can't work
---
--- instance (Traversable f, Traversable m) => Plated (ChurchT.FT f m a) where
---   plate f = fmap ChurchT.toFT . plate (fmap ChurchT.fromFT . f . ChurchT.toFT) . ChurchT.fromFT
-
-instance (Traversable f, Traversable w) => Plated (CoTrans.CofreeT f w a) where
-  plate f (CoTrans.CofreeT xs) = CoTrans.CofreeT <$> traverse (traverse f) xs
-
-instance Traversable f => Plated (Cofree f a) where
-  plate f (a :< as) = (:<) a <$> traverse f as
-
-instance Plated (Tree a) where
-  plate f (Node a as) = Node a <$> traverse f as
-
-{- Default uniplate instances -}
-instance Plated TH.Exp
-instance Plated TH.Dec
-instance Plated TH.Con
-instance Plated TH.Type
-instance Plated TH.Stmt
-instance Plated TH.Pat
+-- The 'Plated' instances for Template Haskell syntax stay here, because they
+-- rely on 'uniplate' (from "Data.Data.Lens"), which is part of @lens@. They are
+-- orphan instances (the class now lives in @plated@), which is unavoidable
+-- given the split.
+instance Plated TH.Exp  where plate = uniplate
+instance Plated TH.Dec  where plate = uniplate
+instance Plated TH.Con  where plate = uniplate
+instance Plated TH.Type where plate = uniplate
+instance Plated TH.Stmt where plate = uniplate
+instance Plated TH.Pat  where plate = uniplate
 
 
 infixr 9 ...
@@ -715,7 +601,11 @@ parts = partsOf plate
 -- Generics
 -------------------------------------------------------------------------------
 
--- | Implement 'plate' operation for a type using its 'Generic' instance.
+-- $generics
+-- 'gplate' implements the 'plate' operation for a type using its 'Generic'
+-- instance, and 'gplate1' does the same using 'Generic1'. Both, together with
+-- the 'GPlated' and 'GPlated1' classes, are defined in the standalone @plated@
+-- package ("Data.Plated") and re-exported here.
 --
 -- Note: the behavior may be different than with 'uniplate' in some special cases.
 -- 'gplate' doesn't look through other types in a group of mutually
@@ -750,107 +640,3 @@ parts = partsOf plate
 --
 -- >>> universeOf evenplate (E (O (E (O Z))))
 -- [E (O (E (O Z))),E (O Z),Z]
---
-gplate :: (Generic a, GPlated a (Rep a)) => Traversal' a a
-gplate f x = GHC.Generics.to <$> gplate' f (GHC.Generics.from x)
-{-# INLINE gplate #-}
-
-class GPlated a g where
-  gplate' :: Traversal' (g p) a
-
-instance GPlated a f => GPlated a (M1 i c f) where
-  gplate' f (M1 x) = M1 <$> gplate' f x
-  {-# INLINE gplate' #-}
-
-instance (GPlated a f, GPlated a g) => GPlated a (f :+: g) where
-  gplate' f (L1 x) = L1 <$> gplate' f x
-  gplate' f (R1 x) = R1 <$> gplate' f x
-  {-# INLINE gplate' #-}
-
-instance (GPlated a f, GPlated a g) => GPlated a (f :*: g) where
-  gplate' f (x :*: y) = (:*:) <$> gplate' f x <*> gplate' f y
-  {-# INLINE gplate' #-}
-
-instance {-# OVERLAPPING #-} GPlated a (K1 i a) where
-  gplate' f (K1 x) = K1 <$> f x
-  {-# INLINE gplate' #-}
-
-instance GPlated a (K1 i b) where
-  gplate' _ = pure
-  {-# INLINE gplate' #-}
-
-instance GPlated a U1 where
-  gplate' _ = pure
-  {-# INLINE gplate' #-}
-
-instance GPlated a V1 where
-  gplate' _ v = v `seq` error "GPlated/V1"
-  {-# INLINE gplate' #-}
-
-instance GPlated a (URec b) where
-  gplate' _ = pure
-  {-# INLINE gplate' #-}
-
--- | Implement 'plate' operation for a type using its 'Generic1' instance.
-gplate1 :: (Generic1 f, GPlated1 f (Rep1 f)) => Traversal' (f a) (f a)
-gplate1 f x = GHC.Generics.to1 <$> gplate1' f (GHC.Generics.from1 x)
-{-# INLINE gplate1 #-}
-
-class GPlated1 f g where
-  gplate1' :: Traversal' (g a) (f a)
-
--- | recursive match
-instance GPlated1 f g => GPlated1 f (M1 i c g) where
-  gplate1' f (M1 x) = M1 <$> gplate1' f x
-  {-# INLINE gplate1' #-}
-
--- | recursive match
-instance (GPlated1 f g, GPlated1 f h) => GPlated1 f (g :+: h) where
-  gplate1' f (L1 x) = L1 <$> gplate1' f x
-  gplate1' f (R1 x) = R1 <$> gplate1' f x
-  {-# INLINE gplate1' #-}
-
--- | recursive match
-instance (GPlated1 f g, GPlated1 f h) => GPlated1 f (g :*: h) where
-  gplate1' f (x :*: y) = (:*:) <$> gplate1' f x <*> gplate1' f y
-  {-# INLINE gplate1' #-}
-
--- | ignored
-instance GPlated1 f (K1 i a) where
-  gplate1' _ = pure
-  {-# INLINE gplate1' #-}
-
--- | ignored
-instance GPlated1 f Par1 where
-  gplate1' _ = pure
-  {-# INLINE gplate1' #-}
-
--- | ignored
-instance GPlated1 f U1 where
-  gplate1' _ = pure
-  {-# INLINE gplate1' #-}
-
--- | ignored
-instance GPlated1 f V1 where
-  gplate1' _ = pure
-  {-# INLINE gplate1' #-}
-
--- | match
-instance {-# OVERLAPPING #-} GPlated1 f (Rec1 f) where
-  gplate1' f (Rec1 x) = Rec1 <$> f x
-  {-# INLINE gplate1' #-}
-
--- | ignored
-instance GPlated1 f (Rec1 g) where
-  gplate1' _ = pure
-  {-# INLINE gplate1' #-}
-
--- | recursive match under outer 'Traversable' instance
-instance (Traversable t, GPlated1 f g) => GPlated1 f (t :.: g) where
-  gplate1' f (Comp1 x) = Comp1 <$> traverse (gplate1' f) x
-  {-# INLINE gplate1' #-}
-
--- | ignored
-instance GPlated1 f (URec a) where
-  gplate1' _ = pure
-  {-# INLINE gplate1' #-}
