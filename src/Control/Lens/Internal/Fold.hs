@@ -212,13 +212,13 @@ data Same a
   | SameDiffer  -- ^ at least two targets differed
 
 instance Eq a => Semigroup (Same a) where
-  SameDiffer <> _          = SameDiffer        -- short-circuit, lazy in the right
-  SameEmpty  <> y          = y
-  x          <> SameEmpty  = x
-  SameOne a  <> SameOne b
-    | a == b               = SameOne a
-  _          <> _          = SameDiffer
-  {-# INLINE (<>) #-}
+  SameDiffer    <> _          = SameDiffer       -- short-circuit, lazy in the right
+  SameEmpty     <> y          = y
+  x@(SameOne _) <> SameEmpty  = x
+  SameOne _     <> SameDiffer = SameDiffer
+  x@(SameOne a) <> SameOne b
+    | a == b                  = x                -- reuse x; no new allocation
+    | otherwise               = SameDiffer
 
 instance Eq a => Monoid (Same a) where
   mempty = SameEmpty
@@ -232,4 +232,3 @@ instance Eq a => Monoid (Same a) where
 getSame :: Same a -> Bool
 getSame SameDiffer = False
 getSame _          = True
-{-# INLINE getSame #-}
