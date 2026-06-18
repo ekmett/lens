@@ -1,0 +1,59 @@
+name:          plated
+category:      Data, Generics
+version:       0.1
+license:       BSD2
+cabal-version: 1.18
+license-file:  LICENSE
+author:        Edward A. Kmett
+maintainer:    Edward A. Kmett <ekmett@gmail.com>
+stability:     provisional
+homepage:      http://github.com/ekmett/lens/
+bug-reports:   http://github.com/ekmett/lens/issues
+copyright:     Copyright (C) 2012-2016 Edward A. Kmett
+synopsis:      The Plated class for self-similar recursive data
+description:
+  The @Plated@ type class describes how to extract the immediate self-similar
+  children of a recursive structure, with a @Data@-based default and a
+  @Generic@-based @gplate@/@gplate1@ for deriving it.
+  .
+  This package depends only on @base@ and @containers@ (a GHC boot library), so
+  other libraries may provide @Plated@ instances for their own types without
+  depending on @lens@ or writing orphan instances. Instances that would require
+  heavier dependencies (@free@, @comonad@) live in the companion
+  @plated-instances@ package (import @Data.Plated.Instances@ to bring them into
+  scope; it re-exports nothing else). The combinators that consume @Plated@
+  values (@rewrite@, @transform@, @universe@, ...) live in @Control.Lens.Plated@
+  in the @lens@ package, which re-exports this class unchanged.
+build-type:    Simple
+tested-with:   GHC == 8.0.2
+             , GHC == 8.2.2
+             , GHC == 8.4.4
+             , GHC == 8.6.5
+             , GHC == 8.8.4
+             , GHC == 8.10.7
+             , GHC == 9.0.2
+             , GHC == 9.2.8
+             , GHC == 9.4.8
+             , GHC == 9.6.7
+             , GHC == 9.8.4
+             , GHC == 9.10.3
+             , GHC == 9.12.2
+             , GHC == 9.14.1
+extra-source-files:
+  CHANGELOG.markdown
+
+source-repository head
+  type: git
+  location: https://github.com/ekmett/lens.git
+
+library
+  build-depends:
+    base       >= 4.9      && < 5,
+    containers >= 0.5.5.1  && < 0.9
+
+  exposed-modules:
+    Data.Plated
+
+  hs-source-dirs: src
+  ghc-options: -Wall
+  default-language: Haskell2010
