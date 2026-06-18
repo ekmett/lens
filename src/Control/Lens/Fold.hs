@@ -84,6 +84,7 @@ module Control.Lens.Fold
   , asumOf, msumOf
   , concatMapOf, concatOf
   , elemOf, notElemOf
+  , sameOf, same
   , lengthOf
   , nullOf, notNullOf
   , firstOf, first1Of, lastOf, last1Of
@@ -1200,6 +1201,54 @@ elemOf l = anyOf l . (==)
 notElemOf :: Eq a => Getting All s a -> a -> s -> Bool
 notElemOf l = allOf l . (/=)
 {-# INLINE notElemOf #-}
+
+-- | Returns 'True' if all targets of a 'Fold' are equal to one another.
+--
+-- A 'Fold' with zero or one target is trivially uniform.
+--
+-- >>> sameOf both ('a','a')
+-- True
+--
+-- >>> sameOf both ('a','b')
+-- False
+--
+-- >>> sameOf (folded.folded.both.folded) [Just ("aaaa","aa"), Nothing, Just ("a","")]
+-- True
+--
+-- Only the targets are forced; an unexamined single target is never evaluated:
+--
+-- >>> sameOf both (Left (error "boom") :: Either Int Int)
+-- True
+--
+-- @
+-- 'sameOf' :: 'Eq' a => 'Getter' s a     -> s -> 'Bool'
+-- 'sameOf' :: 'Eq' a => 'Fold' s a       -> s -> 'Bool'
+-- 'sameOf' :: 'Eq' a => 'Lens'' s a      -> s -> 'Bool'
+-- 'sameOf' :: 'Eq' a => 'Iso'' s a       -> s -> 'Bool'
+-- 'sameOf' :: 'Eq' a => 'Traversal'' s a -> s -> 'Bool'
+-- 'sameOf' :: 'Eq' a => 'Prism'' s a     -> s -> 'Bool'
+-- @
+sameOf :: Eq a => Getting (Same a) s a -> s -> Bool
+sameOf l = getSame . foldMapOf l SameOne
+{-# INLINE sameOf #-}
+
+-- | Returns 'True' if all elements of a 'Foldable' container are equal.
+--
+-- >>> same [1,1,1]
+-- True
+--
+-- >>> same [1,2,1]
+-- False
+--
+-- >>> same []
+-- True
+--
+-- @
+-- 'same' ≡ 'sameOf' 'folded'
+-- @
+same :: (Foldable f, Eq a) => f a -> Bool
+same = sameOf folded
+{-# INLINE same #-}
 
 -- | Map a function over all the targets of a 'Fold' of a container and concatenate the resulting lists.
 --

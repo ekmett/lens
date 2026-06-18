@@ -23,6 +23,7 @@ module Control.Lens.Internal.Fold
   , Sequenced(..)
   , Leftmost(..), getLeftmost
   , Rightmost(..), getRightmost
+  , Same(..), getSame
   , ReifiedMonoid(..)
   -- * Semigroups for folding
   , NonEmptyDList(..)
@@ -198,3 +199,37 @@ getRightmost :: Rightmost a -> Maybe a
 getRightmost RPure = Nothing
 getRightmost (RLeaf a) = Just a
 getRightmost (RStep x) = getRightmost x
+
+------------------------------------------------------------------------------
+-- Same
+------------------------------------------------------------------------------
+
+-- | Used for 'Control.Lens.Fold.sameOf'. Tracks whether all targets seen so
+-- far agree on a single value.
+data Same a
+  = SameEmpty   -- ^ no targets yet ('mempty')
+  | SameOne a   -- ^ every target so far equals this value
+  | SameDiffer  -- ^ at least two targets differed
+
+instance Eq a => Semigroup (Same a) where
+  SameDiffer <> _          = SameDiffer        -- short-circuit, lazy in the right
+  SameEmpty  <> y          = y
+  x          <> SameEmpty  = x
+  SameOne a  <> SameOne b
+    | a == b               = SameOne a
+  _          <> _          = SameDiffer
+  {-# INLINE (<>) #-}
+
+instance Eq a => Monoid (Same a) where
+  mempty = SameEmpty
+  {-# INLINE mempty #-}
+#if !(MIN_VERSION_base(4,11,0))
+  mappend = (<>)
+  {-# INLINE mappend #-}
+#endif
+
+-- | 'True' unless two targets were found to differ.
+getSame :: Same a -> Bool
+getSame SameDiffer = False
+getSame _          = True
+{-# INLINE getSame #-}

@@ -1,6 +1,8 @@
 next [????.??.??]
 -----------------
 * Add `ReifiedReview` to `Control.Lens.Reified`.
+* Add `sameOf`/`same` to `Control.Lens.Fold` for testing whether all targets of
+  a `Fold` are equal.
 * Add `Prefixed` and `Suffixed` instances for `ZipList`, `Seq`, and the boxed,
   strict, storable, primitive, and unboxed `Vector` types, bringing them to
   parity with the existing `Cons`/`Snoc` instances.
