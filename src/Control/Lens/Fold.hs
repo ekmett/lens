@@ -336,6 +336,24 @@ iterated f g = go where
 -- >>> [1..10]^..folded.filtered even
 -- [2,4,6,8,10]
 --
+-- Composing 'filtered' with the 'Fold'-consuming combinator 'has' turns it into a
+-- predicate test: @'has' (l '.' 'filtered' p)@ asks whether /any/ target of @l@
+-- satisfies @p@ (the same as @'anyOf' l p@), and 'noneOf' is its negation.
+--
+-- @
+-- 'has' (l '.' 'filtered' p) ≡ 'anyOf' l p
+-- 'noneOf' l p           ≡ 'not' '.' 'has' (l '.' 'filtered' p)
+-- @
+--
+-- >>> has (folded . filtered even) [1,3,5]
+-- False
+-- >>> has (folded . filtered even) [1,2,3]
+-- True
+--
+-- Note, though, that 'filtered' is stronger than such a predicate test: it is a
+-- full optic you can also write through (subject to the law caveat above), and the
+-- combinators here only exercise its read side.
+--
 -- This will preserve an index if it is present.
 filtered :: (Choice p, Applicative f) => (a -> Bool) -> Optic' p f a a
 filtered p = dimap (\x -> if p x then Right x else Left x) (either pure id) . right'
@@ -753,6 +771,8 @@ orOf l = getAny #. foldMapOf l Any
 -- >>> anyOf biplate (== "world") (((),2::Int),"hello",("world",11::Int))
 -- True
 --
+-- See 'filtered' for a related operation: @'anyOf' l p ≡ 'has' (l '.' 'filtered' p)@.
+--
 -- @
 -- 'Data.Foldable.any' ≡ 'anyOf' 'folded'
 -- @
@@ -806,6 +826,8 @@ allOf l f = getAll #. foldMapOf l (All #. f)
 -- True
 -- >>> noneOf (folded.folded) (<10) [[13,99,20],[3,71,42]]
 -- False
+--
+-- See 'filtered' for a related operation: @'noneOf' l p ≡ 'not' '.' 'has' (l '.' 'filtered' p)@.
 --
 -- @
 -- 'inoneOf' l = 'noneOf' l '.' 'Indexed'

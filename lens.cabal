@@ -162,6 +162,10 @@ flag test-templates
   default: True
   manual: True
 
+flag test-space
+  default: True
+  manual: True
+
 -- Assert that we are trustworthy when we can
 flag trustworthy
   default: True
@@ -365,11 +369,14 @@ test-suite properties
   else
     build-depends:
       base,
+      containers,
       lens,
       QuickCheck >= 2.4,
+      quickcheck-instances >= 0.3.17 && < 0.5,
       tasty >= 1.4 && < 1.6,
       tasty-quickcheck >= 0.10 && < 0.12,
-      transformers
+      transformers,
+      vector
 
 test-suite hunit
   type: exitcode-stdio-1.0
@@ -390,6 +397,25 @@ test-suite hunit
       bytestring,
       tasty >= 1.4 && < 1.6,
       tasty-hunit >= 0.10 && < 0.11
+
+-- Regression test for the lazy-ByteString space leak in lastOf (issue #233).
+-- Uses GHC.Stats (base >= 4.10 / GHC >= 8.2); -O2 so the rewrite rule fires.
+test-suite space
+  type: exitcode-stdio-1.0
+  main-is: space.hs
+  -- -T enables GHC.Stats; the small nursery (-A256k) forces frequent GCs so
+  -- the leak's transient peak is sampled (with the default nursery it can slip
+  -- between major GCs). The test verifies at startup that both are in effect.
+  ghc-options: -Wall -O2 -rtsopts "-with-rtsopts=-T -A256k"
+  hs-source-dirs: tests
+  default-language: Haskell2010
+  if flag(test-space) && impl(ghc >= 8.2)
+    build-depends:
+      base,
+      bytestring,
+      lens
+  else
+    buildable: False
 
 -- We need this dummy test-suite to add simple-reflect to the install plan
 --
@@ -452,6 +478,18 @@ benchmark folds
     bytestring,
     unordered-containers,
     vector,
+    lens
+
+-- Benchmarking inlining/arity
+benchmark arity
+  type:             exitcode-stdio-1.0
+  main-is:          arity.hs
+  ghc-options:      -Wall -O2 -threaded -fdicts-cheap -funbox-strict-fields
+  hs-source-dirs:   benchmarks
+  default-language: Haskell2010
+  build-depends:
+    base,
+    criterion,
     lens
 
 -- Benchmarking traversals

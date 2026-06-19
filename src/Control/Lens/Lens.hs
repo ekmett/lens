@@ -108,6 +108,7 @@ module Control.Lens.Lens
 
   -- * Arrow operators
   , overA
+  , ioverA
 
   -- * ALens Combinators
   , storing
@@ -1248,6 +1249,39 @@ overA :: Arrow ar => LensLike (Context a b) s t a b -> ar a b -> ar s t
 overA l p = arr (\s -> let (Context f a) = l sell s in (f, a))
             >>> second p
             >>> arr (uncurry id)
+
+-- | 'Control.Lens.Setter.iover' for Arrows: 'overA' with access to the index.
+--
+-- Unlike 'Control.Lens.Setter.iover', 'ioverA' can't accept a simple
+-- 'Control.Lens.Setter.IndexedSetter', but requires a full indexed lens, or
+-- close enough. The arrow receives the index together with the old value as
+-- a pair. For example, viewing a @(name, salary)@ pair as a salary indexed
+-- by the name:
+--
+-- >>> let salaryOf = ilens id (\(name, _) new -> (name, new))
+-- >>> ioverA salaryOf (\(name, s) -> if name == "alice" then s + 500 else s) ("alice", 1000)
+-- ("alice",1500)
+--
+-- 'ioverA' accepts any 'Arrow', so the modification can be effectful — here
+-- a 'Kleisli' arrow over 'Maybe' vetoes raises for one employee:
+--
+-- >>> let raise = Kleisli (\(name, s) -> if name == "bob" then Nothing else Just (s + 500))
+-- >>> runKleisli (ioverA salaryOf raise) ("alice", 1000)
+-- Just ("alice",1500)
+-- >>> runKleisli (ioverA salaryOf raise) ("bob", 1000)
+-- Nothing
+--
+-- When you do not need access to the index, then 'overA' is more liberal in
+-- what it can accept.
+--
+-- @
+-- ioverA :: Arrow ar => IndexedLens i s t a b -> ar (i, a) b -> ar s t
+-- @
+ioverA :: Arrow ar => Over (Indexed i) (Context (i, a) b) s t a b -> ar (i, a) b -> ar s t
+ioverA l p = arr (\s -> let (Context f ia) = l (Indexed (curry (Context id))) s in (f, ia))
+             >>> second p
+             >>> arr (uncurry id)
+{-# INLINE ioverA #-}
 
 ------------------------------------------------------------------------------
 -- Indexed
