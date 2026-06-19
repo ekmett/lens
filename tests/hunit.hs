@@ -20,6 +20,7 @@
 -----------------------------------------------------------------------------
 module Main (main) where
 
+import Control.Arrow (Kleisli (..))
 import Control.Lens
 import Data.Data.Lens (upon)
 import Control.Applicative (ZipList(..))
@@ -432,6 +433,20 @@ case_suffixed_ziplist =
 case_suffixed_ziplist_review =
   suffixed (ZipList [3,4]) # ZipList [1,2 :: Int] @?= ZipList [1,2,3,4]
 
+-- ioverA (#772): indexed `over` for Arrows. The arrow receives the index
+-- together with the old value as a pair.
+case_ioverA_function_arrow =
+  ioverA (ilens id (\(k, _) v' -> (k, v'))) (\(k, v) -> k + v) (3, 10)
+    @?= ((3, 13) :: (Int, Int))
+
+case_ioverA_kleisli_arrow =
+  runKleisli (ioverA (ilens id (\(k, _) v' -> (k, v'))) (Kleisli (\(k, v) -> [v, v + k]))) (3, 10)
+    @?= ([(3, 10), (3, 13)] :: [(Int, Int)])
+
+case_ioverA_type_changing =
+  ioverA (ilens id (\(k, _) v' -> (k, v'))) (\(k, v) -> show (k + v)) ((3, 10) :: (Int, Int))
+    @?= (3 :: Int, "13")
+
 main :: IO ()
 main = defaultMain $
   testGroup "Main"
@@ -505,4 +520,7 @@ main = defaultMain $
   , testCase "prefixed ziplist review" case_prefixed_ziplist_review
   , testCase "suffixed ziplist" case_suffixed_ziplist
   , testCase "suffixed ziplist review" case_suffixed_ziplist_review
+  , testCase "ioverA with function arrow" case_ioverA_function_arrow
+  , testCase "ioverA with Kleisli arrow" case_ioverA_kleisli_arrow
+  , testCase "ioverA type-changing" case_ioverA_type_changing
   ]
