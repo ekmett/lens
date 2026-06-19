@@ -367,11 +367,14 @@ test-suite properties
   else
     build-depends:
       base,
+      containers,
       lens,
       QuickCheck >= 2.4,
+      quickcheck-instances >= 0.3.17 && < 0.5,
       tasty >= 1.4 && < 1.6,
       tasty-quickcheck >= 0.10 && < 0.12,
-      transformers
+      transformers,
+      vector
 
 test-suite hunit
   type: exitcode-stdio-1.0
@@ -473,6 +476,18 @@ benchmark folds
     bytestring,
     unordered-containers,
     vector,
+    lens
+
+-- Benchmarking inlining/arity
+benchmark arity
+  type:             exitcode-stdio-1.0
+  main-is:          arity.hs
+  ghc-options:      -Wall -O2 -threaded -fdicts-cheap -funbox-strict-fields
+  hs-source-dirs:   benchmarks
+  default-language: Haskell2010
+  build-depends:
+    base,
+    criterion,
     lens
 
 -- Benchmarking traversals

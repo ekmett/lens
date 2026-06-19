@@ -3,6 +3,15 @@ next [????.??.??]
 * Add `ReifiedReview` to `Control.Lens.Reified`.
 * Fix `Data.Data.Lens.upon` (and its variants) looping forever when nested,
   e.g. `(upon.view.upon) tail`.
+* Add `Prefixed` and `Suffixed` instances for `ZipList`, `Seq`, and the boxed,
+  strict, storable, primitive, and unboxed `Vector` types, bringing them to
+  parity with the existing `Cons`/`Snoc` instances.
+* Reduce the arity of `set`, `set'`, `partsOf`, `partsOf'`, `unsafePartsOf`,
+  `unsafePartsOf'`, `mapAccumLOf`, `imapAccumLOf`, `auf`, `both`, and `both1` so
+  that GHC is more eager to inline them, following up on the same change to the
+  strict folds in 5.3.4 (see the `NOTE: [Inlining and arity]` in
+  `Control.Lens.Fold`). On a benchmark applying a partially-applied `set _1` in a
+  tight loop, this improves performance by ~19x.
 * Fix a space leak in `lastOf` over lazy `ByteString`s, which previously
   retained memory proportional to the number of chunks; it now runs in constant
   space.
@@ -12,6 +21,7 @@ next [????.??.??]
   declaring optics for an entire type as `makeLenses`/`makePrisms` do. The optic
   produced matches what the corresponding bulk generator would declare for that
   field or constructor. (#710)
+* Document the relationship between `filtered`, `has`/`anyOf`, and `noneOf`.
 
 5.3.6 [2026.01.10]
 ------------------
