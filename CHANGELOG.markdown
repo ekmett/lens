@@ -4,8 +4,7 @@ next [????.??.??]
   `lens` 4.9. It offers `Iso`s for the conversions in
   `Control.Monad.Primitive`: `prim` (between a `PrimBase` monad and its
   underlying `State#` representation, now type-changing), and the new `st`
-  and `io` (between a `PrimBase` monad and `ST`/`IO`, respectively). This
-  reintroduces the dependency on the `primitive` package.
+  and `io` (between a `PrimBase` monad and `ST`/`IO`, respectively).
 * Add `ReifiedReview` to `Control.Lens.Reified`.
 * Fix `Data.Data.Lens.upon` (and its variants) looping forever when nested,
   e.g. `(upon.view.upon) tail`.

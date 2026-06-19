@@ -7,8 +7,6 @@
 {-# LANGUAGE Trustworthy #-}
 #endif
 
-#include "lens-common.h"
-
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Monad.Primitive.Lens
@@ -62,7 +60,7 @@ import GHC.Exts (State#)
 --   => 'Iso' (m a) (m b) (n a) (n b)
 -- @
 --
--- >>> (pure 5 :: IO Int) ^. prim . from prim :: IO Int
+-- >>> (pure 5 :: ST RealWorld Int) ^. prim . from prim :: IO Int
 -- 5
 prim :: PrimBase m
      => Iso (m a) (m b)
