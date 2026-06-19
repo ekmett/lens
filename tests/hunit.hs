@@ -21,6 +21,7 @@
 module Main (main) where
 
 import Control.Lens
+import Data.Data.Lens (upon)
 import Control.Applicative (ZipList(..))
 import Control.Monad.State
 import Data.Char
@@ -34,7 +35,7 @@ import Data.Map (Map)
 #if !(MIN_VERSION_base(4,11,0))
 import Data.Monoid
 #endif
-import Test.Tasty (defaultMain, testGroup)
+import Test.Tasty (defaultMain, testGroup, localOption, mkTimeout)
 import Test.Tasty.HUnit ((@?=), testCase)
 
 
@@ -379,6 +380,19 @@ case_correct_indexing_lazy_bytestring =
   map (\i -> LazyB.pack [1,2] ^? ix i) [-1..2]
     @?= [Nothing, Just 1, Just 2, Nothing]
 
+-- Nested `upon` (`(upon.view.upon) tail`) used to loop forever.
+case_upon_view_upon_matches_upon_tail =
+  ([1..10] & (upon.view.upon) tail %~ reverse)
+    @?= ([1..10] & upon tail %~ reverse :: [Int])
+
+case_upon_view_upon_value =
+  ([1..10] & (upon.view.upon) tail %~ reverse :: [Int])
+    @?= [1,10,9,8,7,6,5,4,3,2]
+
+-- 10 seconds (mkTimeout takes microseconds), so a non-termination regression
+-- fails fast instead of hanging CI. Increase if slower machines need headroom.
+uponTimeout = mkTimeout (10 * 1000000)
+
 -- One-off optic construction (#710): the spliced optics behave as expected.
 case_oneoff_lens_view =
   view $(makeLens '_x) (Point 3 4) @?= 3
@@ -476,6 +490,10 @@ main = defaultMain $
   , testCase "correct indexing lazy text" case_correct_indexing_lazy_text
   , testCase "correct indexing strict bytestring" case_correct_indexing_strict_bytestring
   , testCase "correct indexing lazy bytestring" case_correct_indexing_lazy_bytestring
+  , localOption uponTimeout $
+      testCase "upon.view.upon matches upon tail" case_upon_view_upon_matches_upon_tail
+  , localOption uponTimeout $
+      testCase "upon.view.upon value" case_upon_view_upon_value
   , testCase "one-off lens view" case_oneoff_lens_view
   , testCase "one-off lens set" case_oneoff_lens_set
   , testCase "one-off prism preview hit" case_oneoff_prism_preview_hit

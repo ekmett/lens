@@ -1,6 +1,8 @@
 next [????.??.??]
 -----------------
 * Add `ReifiedReview` to `Control.Lens.Reified`.
+* Fix `Data.Data.Lens.upon` (and its variants) looping forever when nested,
+  e.g. `(upon.view.upon) tail`.
 * Add `Prefixed` and `Suffixed` instances for `ZipList`, `Seq`, and the boxed,
   strict, storable, primitive, and unboxed `Vector` types, bringing them to
   parity with the existing `Cons`/`Snoc` instances.
