@@ -199,6 +199,7 @@ library
     kan-extensions                >= 5        && < 6,
     mtl                           >= 2.2.1    && < 2.4,
     parallel                      >= 3.2.1.0  && < 3.4,
+    primitive                     >= 0.6.4    && < 0.10,
     profunctors                   >= 5.5.2    && < 6,
     reflection                    >= 2.1      && < 3,
     semigroupoids                 >= 5.0.1    && < 7,
@@ -270,6 +271,7 @@ library
     Control.Lens.Wrapped
     Control.Lens.Zoom
     Control.Monad.Error.Lens
+    Control.Monad.Primitive.Lens
     Control.Parallel.Strategies.Lens
     Control.Seq.Lens
     Data.Array.Lens
@@ -368,11 +370,14 @@ test-suite properties
   else
     build-depends:
       base,
+      containers,
       lens,
       QuickCheck >= 2.4,
+      quickcheck-instances >= 0.3.17 && < 0.5,
       tasty >= 1.4 && < 1.6,
       tasty-quickcheck >= 0.10 && < 0.12,
-      transformers
+      transformers,
+      vector
 
 test-suite hunit
   type: exitcode-stdio-1.0
@@ -474,6 +479,18 @@ benchmark folds
     bytestring,
     unordered-containers,
     vector,
+    lens
+
+-- Benchmarking inlining/arity
+benchmark arity
+  type:             exitcode-stdio-1.0
+  main-is:          arity.hs
+  ghc-options:      -Wall -O2 -threaded -fdicts-cheap -funbox-strict-fields
+  hs-source-dirs:   benchmarks
+  default-language: Haskell2010
+  build-depends:
+    base,
+    criterion,
     lens
 
 -- Benchmarking traversals

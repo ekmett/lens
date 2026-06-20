@@ -1,6 +1,22 @@
 next [????.??.??]
 -----------------
+* Re-add the `Control.Monad.Primitive.Lens` module, which was removed in
+  `lens` 4.9. It offers `Iso`s for the conversions in
+  `Control.Monad.Primitive`: `prim` (between a `PrimBase` monad and its
+  underlying `State#` representation, now type-changing), and the new `st`
+  and `io` (between a `PrimBase` monad and `ST`/`IO`, respectively).
 * Add `ReifiedReview` to `Control.Lens.Reified`.
+* Fix `Data.Data.Lens.upon` (and its variants) looping forever when nested,
+  e.g. `(upon.view.upon) tail`.
+* Add `Prefixed` and `Suffixed` instances for `ZipList`, `Seq`, and the boxed,
+  strict, storable, primitive, and unboxed `Vector` types, bringing them to
+  parity with the existing `Cons`/`Snoc` instances.
+* Reduce the arity of `set`, `set'`, `partsOf`, `partsOf'`, `unsafePartsOf`,
+  `unsafePartsOf'`, `mapAccumLOf`, `imapAccumLOf`, `auf`, `both`, and `both1` so
+  that GHC is more eager to inline them, following up on the same change to the
+  strict folds in 5.3.4 (see the `NOTE: [Inlining and arity]` in
+  `Control.Lens.Fold`). On a benchmark applying a partially-applied `set _1` in a
+  tight loop, this improves performance by ~19x.
 * Fix a space leak in `lastOf` over lazy `ByteString`s, which previously
   retained memory proportional to the number of chunks; it now runs in constant
   space.
@@ -10,6 +26,9 @@ next [????.??.??]
   declaring optics for an entire type as `makeLenses`/`makePrisms` do. The optic
   produced matches what the corresponding bulk generator would declare for that
   field or constructor. (#710)
+* Document the relationship between `filtered`, `has`/`anyOf`, and `noneOf`.
+* Add `ioverA` to `Control.Lens.Lens`, an indexed variant of `overA`. The
+  supplied arrow receives the index together with the old value as a pair.
 * Correct several stale type signatures in the lens hierarchy diagram — most
   visibly the `Review` box, which still used the long-removed four-parameter
   form — and add `images/Hierarchy.dot` as an editable Graphviz source for the
