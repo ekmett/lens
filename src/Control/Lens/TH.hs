@@ -87,6 +87,13 @@ module Control.Lens.TH
   -- ** Avoiding keywords
   , avoidKeywordsNamer
   , avoidKeywordsClassyNamer
+  , avoidNamesNamer
+  , avoidNamesClassyNamer
+  -- *** Reserved-identifier lists
+  , haskellKeywords
+  , recursiveDoKeywords
+  , arrowsKeywords
+  , patternSynonymsKeywords
   ) where
 
 import Prelude ()
@@ -691,6 +698,25 @@ classIdNamer _ _ field = [MethodName (mkName className) (mkName fieldName)]
   fieldName = nameBase field
   className = "Has" ++ overHead toUpper fieldName
 
+-- | Modify a 'FieldNamer' so that any generated name belonging to the given
+-- set of reserved identifiers gets an underscore appended to it. All other
+-- names are left untouched. Class names are not affected.
+--
+-- 'avoidKeywordsNamer' is @avoidNamesNamer 'haskellKeywords'@. Pass a larger
+-- set to also avoid identifiers reserved by particular extensions; the
+-- 'recursiveDoKeywords', 'arrowsKeywords', and 'patternSynonymsKeywords' lists
+-- are provided for this, e.g.
+--
+-- @
+-- 'makeLensesWith' (rules & 'lensField' '%~' avoidNamesNamer ('haskellKeywords' '<>' 'recursiveDoKeywords')) ''Foo
+-- @
+avoidNamesNamer :: Set String -> FieldNamer -> FieldNamer
+avoidNamesNamer names namer tyName fields field =
+  map avoidDefName (namer tyName fields field)
+  where
+  avoidDefName (TopName n)      = TopName (avoidName names n)
+  avoidDefName (MethodName c n) = MethodName c (avoidName names n)
+
 -- | Modify a 'FieldNamer' so that generated names that would be Haskell
 -- keywords, such as @type@ or @data@, get an underscore appended to them.
 -- All other names are left untouched. Class names are not affected, as they
@@ -713,11 +739,15 @@ classIdNamer _ _ field = [MethodName (mkName className) (mkName fieldName)]
 --   type_ = ...
 -- @
 avoidKeywordsNamer :: FieldNamer -> FieldNamer
-avoidKeywordsNamer namer tyName fields field =
-  map avoidDefKeyword (namer tyName fields field)
-  where
-  avoidDefKeyword (TopName n)      = TopName (avoidKeyword n)
-  avoidDefKeyword (MethodName c n) = MethodName c (avoidKeyword n)
+avoidKeywordsNamer = avoidNamesNamer haskellKeywords
+
+-- | Modify a 'ClassyNamer' so that a generated method name belonging to the
+-- given set of reserved identifiers gets an underscore appended to it. The
+-- class name is not affected.
+--
+-- 'avoidKeywordsClassyNamer' is @avoidNamesClassyNamer 'haskellKeywords'@.
+avoidNamesClassyNamer :: Set String -> ClassyNamer -> ClassyNamer
+avoidNamesClassyNamer names namer tyName = second (avoidName names) <$> namer tyName
 
 -- | Modify a 'ClassyNamer' so that a generated method name that would be a
 -- Haskell keyword gets an underscore appended to it. The class name is not
@@ -742,7 +772,7 @@ avoidKeywordsNamer namer tyName fields field =
 --   ...
 -- @
 avoidKeywordsClassyNamer :: ClassyNamer -> ClassyNamer
-avoidKeywordsClassyNamer namer tyName = second avoidKeyword <$> namer tyName
+avoidKeywordsClassyNamer = avoidNamesClassyNamer haskellKeywords
 
 -- | Field rules fields in the form @ prefixFieldname or _prefixFieldname @
 -- If you want all fields to be lensed, then there is no reason to use an @_@ before the prefix.

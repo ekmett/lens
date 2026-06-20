@@ -180,16 +180,28 @@ haskellKeywords = Set.fromList
   , "where", "_"
   ]
 
+-- | Identifiers that the @RecursiveDo@ extension reserves: @mdo@ and @rec@.
+recursiveDoKeywords :: Set String
+recursiveDoKeywords = Set.fromList ["mdo", "rec"]
+
+-- | Identifiers that the @Arrows@ extension reserves: @proc@ and @rec@.
+arrowsKeywords :: Set String
+arrowsKeywords = Set.fromList ["proc", "rec"]
+
+-- | Identifiers that the @PatternSynonyms@ extension reserves: @pattern@.
+patternSynonymsKeywords :: Set String
+patternSynonymsKeywords = Set.fromList ["pattern"]
+
 -- | Is this string one of the 'haskellKeywords'?
 isKeyword :: String -> Bool
 isKeyword = (`Set.member` haskellKeywords)
 
--- | Append an underscore to a name that is a Haskell keyword; leave all
--- other names untouched.
-avoidKeyword :: Name -> Name
-avoidKeyword n
-  | isKeyword (nameBase n) = mkName (nameBase n ++ "_")
-  | otherwise              = n
+-- | Append an underscore to a name that belongs to the given set of reserved
+-- identifiers; leave all other names untouched.
+avoidName :: Set String -> Name -> Name
+avoidName names n
+  | nameBase n `Set.member` names = mkName (nameBase n ++ "_")
+  | otherwise                     = n
 
 #if !(MIN_VERSION_template_haskell(2,21,0)) && !(MIN_VERSION_th_abstraction(0,6,0))
 type TyVarBndrVis = D.TyVarBndr_ ()

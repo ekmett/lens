@@ -19,6 +19,13 @@ next [????.??.??]
   namer to append an underscore to any generated name that would otherwise
   be a keyword (e.g., generating a `type_` method for a `_connectionType`
   field, or a `where_` method for `makeClassy` on a type named `Where`).
+* Add `avoidNamesNamer :: Set String -> FieldNamer -> FieldNamer` and
+  `avoidNamesClassyNamer :: Set String -> ClassyNamer -> ClassyNamer`, which
+  generalize the above to an arbitrary set of reserved identifiers, together
+  with the `haskellKeywords`, `recursiveDoKeywords`, `arrowsKeywords`, and
+  `patternSynonymsKeywords` lists to choose from. This lets you also avoid
+  identifiers that are only reserved when a particular extension is enabled,
+  e.g. `avoidNamesNamer (haskellKeywords <> recursiveDoKeywords)`.
 
 5.3.6 [2026.01.10]
 ------------------

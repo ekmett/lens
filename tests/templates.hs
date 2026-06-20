@@ -465,6 +465,13 @@ makeLensesWith (lensRules & lensField %~ avoidKeywordsNamer) ''CheckAvoidKeyword
 checkAvoidKeywordsForall :: Lens' CheckAvoidKeywordsForall Int
 checkAvoidKeywordsForall = forall_
 
+-- avoidNamesNamer mangles names from a user-supplied set, e.g. identifiers
+-- reserved only under an extension such as RecursiveDo (#762)
+data CheckAvoidNames = CheckAvoidNames { _mdo :: Int }
+makeLensesWith (lensRules & lensField %~ avoidNamesNamer recursiveDoKeywords) ''CheckAvoidNames
+checkAvoidNames :: Lens' CheckAvoidNames Int
+checkAvoidNames = mdo_
+
 -- The keyword check fails early in Q, so it is recoverable; GHC's own
 -- "Illegal variable name" error during splicing would not be (#762).
 data T762 = T762 { _t762Type :: Int }
