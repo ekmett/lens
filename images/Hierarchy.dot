@@ -14,14 +14,17 @@
 //
 // Each box is one node whose label is an HTML-like <TABLE>:
 //   row 1  — the optic and its type parameters (e.g. "Lens s t a b")
-//   row 2  — the *type synonym* it expands to (kept verbatim from Control.Lens.Type)
-//   rows 3+ — a few headline combinators, one <TR> per line.
+//   row 2  — the type synonym it expands to (from Control.Lens.Type, with some
+//            signatures simplified as in the cabal description — e.g. Equality's
+//            kind annotations are elided)
+//   rows 3+ — the headline combinators, one <TR> per line.
 // To add detail later, just add more <TR> rows; nothing else needs to change.
 // Inside HTML labels, write ">" as "&gt;" (so "->" is "-&gt;", "=>" is "=&gt;").
 
 digraph LensHierarchy {
   rankdir=BT;
   bgcolor="white";
+  ranksep=0.9;
   node [shape=plaintext, fontname="Helvetica", fontsize=10];
   edge [color="#36486b", arrowhead=onormal, arrowsize=1.1, penwidth=1.0];
 
@@ -30,7 +33,7 @@ digraph LensHierarchy {
     <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" COLOR="#36486b" BGCOLOR="#eef3fa">
       <TR><TD ALIGN="CENTER" BGCOLOR="#dde6f2"><B>Equality s t a b</B></TD></TR>
       <HR/>
-      <TR><TD ALIGN="LEFT" BALIGN="LEFT"><I>forall p f. p a (f b) -&gt; p s (f t)</I></TD></TR>
+      <TR><TD ALIGN="LEFT" BALIGN="LEFT"><I>type Equality s t a b = forall p f. p a (f b) -&gt; p s (f t)</I></TD></TR>
       <HR/>
       <TR><TD ALIGN="LEFT" BALIGN="LEFT">simple :: Equality' a a</TD></TR>
       <TR><TD ALIGN="LEFT" BALIGN="LEFT">mapEq :: Equality s t a b -&gt; f s -&gt; f a</TD></TR>
@@ -43,14 +46,16 @@ digraph LensHierarchy {
     <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" COLOR="#36486b" BGCOLOR="#eef3fa">
       <TR><TD ALIGN="CENTER" BGCOLOR="#dde6f2"><B>Iso s t a b</B></TD></TR>
       <HR/>
-      <TR><TD ALIGN="LEFT" BALIGN="LEFT"><I>forall p f. (Profunctor p, Functor f) =&gt; p a (f b) -&gt; p s (f t)</I></TD></TR>
+      <TR><TD ALIGN="LEFT" BALIGN="LEFT"><I>type Iso s t a b = forall p f. (Profunctor p, Functor f) =&gt; p a (f b) -&gt; p s (f t)</I></TD></TR>
       <HR/>
       <TR><TD ALIGN="LEFT" BALIGN="LEFT">iso :: (s -&gt; a) -&gt; (b -&gt; t) -&gt; Iso s t a b</TD></TR>
       <TR><TD ALIGN="LEFT" BALIGN="LEFT">from :: Iso s t a b -&gt; Iso b a t s</TD></TR>
       <TR><TD ALIGN="LEFT" BALIGN="LEFT">enum :: Enum a =&gt; Iso' Int a</TD></TR>
       <TR><TD ALIGN="LEFT" BALIGN="LEFT">mapping :: Functor f =&gt; Iso s t a b -&gt; Iso (f s) (f t) (f a) (f b)</TD></TR>
       <TR><TD ALIGN="LEFT" BALIGN="LEFT">curried :: Iso ((a, b) -&gt; c) ((d, e) -&gt; f) (a -&gt; b -&gt; c) (d -&gt; e -&gt; f)</TD></TR>
+      <TR><TD ALIGN="LEFT" BALIGN="LEFT">uncurried :: Iso (a -&gt; b -&gt; c) (d -&gt; e -&gt; f) ((a, b) -&gt; c) ((d, e) -&gt; f)</TD></TR>
       <TR><TD ALIGN="LEFT" BALIGN="LEFT">au :: Iso s t a b -&gt; ((b -&gt; t) -&gt; e -&gt; s) -&gt; e -&gt; a</TD></TR>
+      <TR><TD ALIGN="LEFT" BALIGN="LEFT">auf :: Iso s t a b -&gt; ((r -&gt; t) -&gt; e -&gt; s) -&gt; (r -&gt; b) -&gt; e -&gt; a</TD></TR>
       <TR><TD ALIGN="LEFT" BALIGN="LEFT">under :: Iso s t a b -&gt; (t -&gt; s) -&gt; b -&gt; a</TD></TR>
     </TABLE>>];
 
@@ -59,15 +64,15 @@ digraph LensHierarchy {
     <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" COLOR="#36486b" BGCOLOR="#eef3fa">
       <TR><TD ALIGN="CENTER" BGCOLOR="#dde6f2"><B>Lens s t a b</B></TD></TR>
       <HR/>
-      <TR><TD ALIGN="LEFT" BALIGN="LEFT"><I>forall f. Functor f =&gt; (a -&gt; f b) -&gt; s -&gt; f t</I></TD></TR>
+      <TR><TD ALIGN="LEFT" BALIGN="LEFT"><I>type Lens s t a b = forall f. Functor f =&gt; (a -&gt; f b) -&gt; s -&gt; f t</I></TD></TR>
       <HR/>
       <TR><TD ALIGN="LEFT" BALIGN="LEFT">lens :: (s -&gt; a) -&gt; (s -&gt; b -&gt; t) -&gt; Lens s t a b</TD></TR>
       <TR><TD ALIGN="LEFT" BALIGN="LEFT">_1 :: Field1 s t a b =&gt; Lens s t a b</TD></TR>
+      <TR><TD ALIGN="LEFT" BALIGN="LEFT">_2 :: Field2 s t a b =&gt; Lens s t a b</TD></TR>
       <TR><TD ALIGN="LEFT" BALIGN="LEFT">..</TD></TR>
       <TR><TD ALIGN="LEFT" BALIGN="LEFT">_9 :: Field9 s t a b =&gt; Lens s t a b</TD></TR>
       <TR><TD ALIGN="LEFT" BALIGN="LEFT">inside :: Lens s t a b -&gt; Lens (e -&gt; s) (e -&gt; t) (e -&gt; a) (e -&gt; b)</TD></TR>
       <TR><TD ALIGN="LEFT" BALIGN="LEFT">outside :: Prism s t a b -&gt; Lens (t -&gt; r) (s -&gt; r) (b -&gt; r) (a -&gt; r)</TD></TR>
-      <HR/>
       <TR><TD ALIGN="LEFT" BALIGN="LEFT">(%%~) :: Functor f =&gt; Lens s t a b -&gt; (a -&gt; f b) -&gt; s -&gt; f t</TD></TR>
       <TR><TD ALIGN="LEFT" BALIGN="LEFT">(%%=) :: MonadState s m =&gt; Lens s s a b -&gt; (a -&gt; (r, b)) -&gt; m r</TD></TR>
     </TABLE>>];
@@ -77,9 +82,10 @@ digraph LensHierarchy {
     <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" COLOR="#36486b" BGCOLOR="#eef3fa">
       <TR><TD ALIGN="CENTER" BGCOLOR="#dde6f2"><B>Prism s t a b</B></TD></TR>
       <HR/>
-      <TR><TD ALIGN="LEFT" BALIGN="LEFT"><I>forall p f. (Choice p, Applicative f) =&gt; p a (f b) -&gt; p s (f t)</I></TD></TR>
+      <TR><TD ALIGN="LEFT" BALIGN="LEFT"><I>type Prism s t a b = forall p f. (Choice p, Applicative f) =&gt; p a (f b) -&gt; p s (f t)</I></TD></TR>
       <HR/>
       <TR><TD ALIGN="LEFT" BALIGN="LEFT">prism :: (b -&gt; t) -&gt; (s -&gt; Either t a) -&gt; Prism s t a b</TD></TR>
+      <TR><TD ALIGN="LEFT" BALIGN="LEFT">prism' :: (b -&gt; s) -&gt; (s -&gt; Maybe a) -&gt; Prism s s a b</TD></TR>
       <TR><TD ALIGN="LEFT" BALIGN="LEFT">_Left :: Prism (Either a c) (Either b c) a b</TD></TR>
       <TR><TD ALIGN="LEFT" BALIGN="LEFT">_Right :: Prism (Either c a) (Either c b) a b</TD></TR>
       <TR><TD ALIGN="LEFT" BALIGN="LEFT">...</TD></TR>
@@ -90,7 +96,7 @@ digraph LensHierarchy {
     <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" COLOR="#36486b" BGCOLOR="#eef3fa">
       <TR><TD ALIGN="CENTER" BGCOLOR="#dde6f2"><B>Getter s a</B></TD></TR>
       <HR/>
-      <TR><TD ALIGN="LEFT" BALIGN="LEFT"><I>forall f. (Contravariant f, Functor f) =&gt; (a -&gt; f a) -&gt; s -&gt; f s</I></TD></TR>
+      <TR><TD ALIGN="LEFT" BALIGN="LEFT"><I>type Getter s a = forall f. (Contravariant f, Functor f) =&gt; (a -&gt; f a) -&gt; s -&gt; f s</I></TD></TR>
       <HR/>
       <TR><TD ALIGN="LEFT" BALIGN="LEFT">to :: (s -&gt; a) -&gt; Getter s a</TD></TR>
       <TR><TD ALIGN="LEFT" BALIGN="LEFT">view :: MonadReader s m =&gt; Getter s a -&gt; m a</TD></TR>
@@ -104,15 +110,17 @@ digraph LensHierarchy {
     <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" COLOR="#36486b" BGCOLOR="#eef3fa">
       <TR><TD ALIGN="CENTER" BGCOLOR="#dde6f2"><B>Traversal s t a b</B></TD></TR>
       <HR/>
-      <TR><TD ALIGN="LEFT" BALIGN="LEFT"><I>forall f. Applicative f =&gt; (a -&gt; f b) -&gt; s -&gt; f t</I></TD></TR>
+      <TR><TD ALIGN="LEFT" BALIGN="LEFT"><I>type Traversal s t a b = forall f. Applicative f =&gt; (a -&gt; f b) -&gt; s -&gt; f t</I></TD></TR>
       <HR/>
       <TR><TD ALIGN="LEFT" BALIGN="LEFT">traverse :: Traversable f =&gt; Traversal (f a) (f b) a b</TD></TR>
       <TR><TD ALIGN="LEFT" BALIGN="LEFT">mapMOf :: Monad m =&gt; Traversal s t a b -&gt; (a -&gt; m b) -&gt; s -&gt; m t</TD></TR>
       <TR><TD ALIGN="LEFT" BALIGN="LEFT">mapAccumLOf :: Traversal s t a b -&gt; (acc -&gt; a -&gt; (acc, b)) -&gt; acc -&gt; s -&gt; (acc, t)</TD></TR>
+      <TR><TD ALIGN="LEFT" BALIGN="LEFT">mapAccumROf :: Traversal s t a b -&gt; (acc -&gt; a -&gt; (acc, b)) -&gt; acc -&gt; s -&gt; (acc, t)</TD></TR>
       <TR><TD ALIGN="LEFT" BALIGN="LEFT">transposeOf :: Traversal s t [a] a -&gt; s -&gt; [t]</TD></TR>
       <TR><TD ALIGN="LEFT" BALIGN="LEFT">elementOf :: Traversal' s a -&gt; Int -&gt; IndexedTraversal' Int s a</TD></TR>
-      <TR><TD ALIGN="LEFT" BALIGN="LEFT">...</TD></TR>
+      <TR><TD ALIGN="LEFT" BALIGN="LEFT">elementsOf :: Traversal' s a -&gt; (Int -&gt; Bool) -&gt; IndexedTraversal' Int s a</TD></TR>
       <TR><TD ALIGN="LEFT" BALIGN="LEFT">(%%~) :: Applicative f =&gt; Traversal s t a b -&gt; (a -&gt; f b) -&gt; s -&gt; f t</TD></TR>
+      <TR><TD ALIGN="LEFT" BALIGN="LEFT">(%%=) :: (MonadState s m, Monoid r) =&gt; Traversal s s a b -&gt; (a -&gt; (r, b)) -&gt; m r</TD></TR>
     </TABLE>>];
 
   // ---------------------------------------------------------------- Setter
@@ -120,16 +128,16 @@ digraph LensHierarchy {
     <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" COLOR="#36486b" BGCOLOR="#eef3fa">
       <TR><TD ALIGN="CENTER" BGCOLOR="#dde6f2"><B>Setter s t a b</B></TD></TR>
       <HR/>
-      <TR><TD ALIGN="LEFT" BALIGN="LEFT"><I>forall f. Settable f =&gt; (a -&gt; f b) -&gt; s -&gt; f t</I></TD></TR>
+      <TR><TD ALIGN="LEFT" BALIGN="LEFT"><I>type Setter s t a b = forall f. Settable f =&gt; (a -&gt; f b) -&gt; s -&gt; f t</I></TD></TR>
       <HR/>
       <TR><TD ALIGN="LEFT" BALIGN="LEFT">sets :: ((a -&gt; b) -&gt; s -&gt; t) -&gt; Setter s t a b</TD></TR>
       <TR><TD ALIGN="LEFT" BALIGN="LEFT">mapped :: Functor f =&gt; Setter (f a) (f b) a b</TD></TR>
-      <HR/>
       <TR><TD ALIGN="LEFT" BALIGN="LEFT">over, (%~) :: Setter s t a b -&gt; (a -&gt; b) -&gt; s -&gt; t</TD></TR>
       <TR><TD ALIGN="LEFT" BALIGN="LEFT">set, (.~) :: Setter s t a b -&gt; b -&gt; s -&gt; t</TD></TR>
-      <TR><TD ALIGN="LEFT" BALIGN="LEFT">(+~) :: Num a =&gt; Setter s t a a -&gt; a -&gt; s -&gt; t</TD></TR>
+      <TR><TD ALIGN="LEFT" BALIGN="LEFT">(+~), (*~), (-~) :: Num a =&gt; Setter' s a -&gt; a -&gt; s -&gt; s</TD></TR>
       <TR><TD ALIGN="LEFT" BALIGN="LEFT">(%=) :: MonadState s m =&gt; Setter s s a b -&gt; (a -&gt; b) -&gt; m ()</TD></TR>
       <TR><TD ALIGN="LEFT" BALIGN="LEFT">(.=) :: MonadState s m =&gt; Setter s s a b -&gt; b -&gt; m ()</TD></TR>
+      <TR><TD ALIGN="LEFT" BALIGN="LEFT">(+=), (*=), (-=) :: (MonadState s m, Num a) =&gt; Setter' s a -&gt; a -&gt; m ()</TD></TR>
       <TR><TD ALIGN="LEFT" BALIGN="LEFT">...</TD></TR>
     </TABLE>>];
 
@@ -138,16 +146,19 @@ digraph LensHierarchy {
     <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" COLOR="#36486b" BGCOLOR="#eef3fa">
       <TR><TD ALIGN="CENTER" BGCOLOR="#dde6f2"><B>Fold s a</B></TD></TR>
       <HR/>
-      <TR><TD ALIGN="LEFT" BALIGN="LEFT"><I>forall f. (Contravariant f, Applicative f) =&gt; (a -&gt; f a) -&gt; s -&gt; f s</I></TD></TR>
+      <TR><TD ALIGN="LEFT" BALIGN="LEFT"><I>type Fold s a = forall f. (Contravariant f, Applicative f) =&gt; (a -&gt; f a) -&gt; s -&gt; f s</I></TD></TR>
       <HR/>
       <TR><TD ALIGN="LEFT" BALIGN="LEFT">folded :: Foldable f =&gt; IndexedFold Int (f a) a</TD></TR>
       <TR><TD ALIGN="LEFT" BALIGN="LEFT">foldMapOf :: Monoid r =&gt; Fold s a -&gt; (a -&gt; r) -&gt; s -&gt; r</TD></TR>
       <TR><TD ALIGN="LEFT" BALIGN="LEFT">foldrOf :: Fold s a -&gt; (a -&gt; r -&gt; r) -&gt; r -&gt; s -&gt; r</TD></TR>
       <TR><TD ALIGN="LEFT" BALIGN="LEFT">toListOf :: Fold s a -&gt; s -&gt; [a]</TD></TR>
       <TR><TD ALIGN="LEFT" BALIGN="LEFT">anyOf :: Fold s a -&gt; (a -&gt; Bool) -&gt; s -&gt; Bool</TD></TR>
+      <TR><TD ALIGN="LEFT" BALIGN="LEFT">traverseOf_ :: Applicative f =&gt; Fold s a -&gt; (a -&gt; f r) -&gt; s -&gt; f ()</TD></TR>
       <TR><TD ALIGN="LEFT" BALIGN="LEFT">(^..) :: s -&gt; Fold s a -&gt; [a]</TD></TR>
       <TR><TD ALIGN="LEFT" BALIGN="LEFT">(^?) :: s -&gt; Fold s a -&gt; Maybe a</TD></TR>
-      <TR><TD ALIGN="LEFT" BALIGN="LEFT">...</TD></TR>
+      <TR><TD ALIGN="LEFT" BALIGN="LEFT">(^.) :: Monoid m =&gt; s -&gt; Fold s m -&gt; m</TD></TR>
+      <TR><TD ALIGN="LEFT" BALIGN="LEFT">view :: Monoid m =&gt; Fold s m -&gt; s -&gt; m</TD></TR>
+      <TR><TD ALIGN="LEFT" BALIGN="LEFT">use :: (MonadState s m, Monoid r) =&gt; Fold s r -&gt; m r</TD></TR>
     </TABLE>>];
 
   // ---------------------------------------------------------------- Review  (#828: was 4-param "Review s a"; correct type is "Review t b")
@@ -155,7 +166,7 @@ digraph LensHierarchy {
     <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" COLOR="#36486b" BGCOLOR="#eef3fa">
       <TR><TD ALIGN="CENTER" BGCOLOR="#dde6f2"><B>Review t b</B></TD></TR>
       <HR/>
-      <TR><TD ALIGN="LEFT" BALIGN="LEFT"><I>forall p f. (Choice p, Bifunctor p, Settable f) =&gt; Optic' p f t b</I></TD></TR>
+      <TR><TD ALIGN="LEFT" BALIGN="LEFT"><I>type Review t b = forall p f. (Choice p, Bifunctor p, Settable f) =&gt; Optic' p f t b</I></TD></TR>
       <HR/>
       <TR><TD ALIGN="LEFT" BALIGN="LEFT">unto :: (b -&gt; t) -&gt; Review t b</TD></TR>
       <TR><TD ALIGN="LEFT" BALIGN="LEFT">re :: Review t b -&gt; Getter b t</TD></TR>
@@ -167,12 +178,12 @@ digraph LensHierarchy {
   Equality  -> Iso;
   Iso       -> Lens;
   Iso       -> Prism;
-  Lens      -> Getter    [label="s = t\na = b"];
+  Lens      -> Getter    [label="  s = t\l  a = b\l"];
   Lens      -> Traversal;
   Prism     -> Traversal;
-  Prism     -> Review    [label="s = t\na = b"];
+  Prism     -> Review    [label="  s = t\l  a = b\l"];
   Traversal -> Setter;
-  Traversal -> Fold      [label="s = t\na = b"];
+  Traversal -> Fold      [label="  s = t\l  a = b\l"];
   Getter    -> Fold;
 
   // keep the tiers visually aligned (Equality bottom ... Fold/Setter top)
