@@ -54,7 +54,7 @@ description:
   With some signatures simplified, the core of the hierarchy of lens-like constructions looks like:
   .
   .
-  <<https://raw.githubusercontent.com/ekmett/lens/master/images/Hierarchy.png>>
+  <<https://raw.githubusercontent.com/ekmett/lens/v5.3.7/images/Hierarchy.png>>
   .
   You can compose any two elements of the hierarchy above using @(.)@ from the @Prelude@, and you can
   use any element of the hierarchy as any type it linked to above it.
@@ -109,6 +109,7 @@ extra-source-files:
   examples/*.lhs
   examples/.hlint.yaml
   include/*.h
+  images/*.dot
   lens-properties/.hlint.yaml
   lens-properties/CHANGELOG.markdown
   lens-properties/LICENSE

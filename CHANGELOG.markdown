@@ -29,6 +29,10 @@ next [????.??.??]
 * Document the relationship between `filtered`, `has`/`anyOf`, and `noneOf`.
 * Add `ioverA` to `Control.Lens.Lens`, an indexed variant of `overA`. The
   supplied arrow receives the index together with the old value as a pair.
+* Correct several stale type signatures in the lens hierarchy diagram — most
+  visibly the `Review` box, which still used the long-removed four-parameter
+  form — and add `images/Hierarchy.dot` as an editable Graphviz source for the
+  diagram (regenerated via `scripts/hierarchy`).
 
 5.3.6 [2026.01.10]
 ------------------
