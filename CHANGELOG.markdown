@@ -33,6 +33,11 @@ next [????.??.??]
   visibly the `Review` box, which still used the long-removed four-parameter
   form — and add `images/Hierarchy.dot` as an editable Graphviz source for the
   diagram (regenerated via `scripts/hierarchy`).
+* Add `at'`, a strict version of `at` that forces the new value to weak head
+  normal form, so it can be used to update strict containers such as
+  `Data.Map.Strict.Map` without leaving a thunk behind.
+* Add `(!~)`, a strict version of `(.~)` that forces the new value to weak head
+  normal form.
 
 5.3.6 [2026.01.10]
 ------------------

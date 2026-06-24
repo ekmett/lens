@@ -1,5 +1,6 @@
 {-# OPTIONS_GHC -Wno-missing-signatures #-}
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 -----------------------------------------------------------------------------
@@ -32,7 +33,9 @@ import qualified Data.ByteString as StrictB
 import qualified Data.ByteString.Lazy as LazyB
 import qualified Data.List as List
 import qualified Data.Map as Map
+import qualified Data.Map.Strict as MapS
 import Data.Map (Map)
+import Control.Exception (evaluate, try, ErrorCall)
 #if !(MIN_VERSION_base(4,11,0))
 import Data.Monoid
 #endif
@@ -349,6 +352,51 @@ case_delete_maybe_map_entry =
   (trig & labels.at origin .~ Nothing)
     @?= trig { _labels = Map.fromList [ (Point { _x = 4, _y = 7 }, "Peak") ] }
 
+-- #944: at' and (!~) force the new value to WHNF, so they don't stash a thunk
+-- in a strict container; plain (.~) stays lazy.
+
+-- | True if forcing the argument to weak head normal form raises an exception.
+throws :: forall a. a -> IO Bool
+throws thunk = do
+  r <- try (evaluate thunk) :: IO (Either ErrorCall a)
+  return $ case r of
+    Left _  -> True
+    Right _ -> False
+
+case_strict_ix_op_forces_value = do
+  thrown <- throws (MapS.singleton () (0 :: Int) & ix () !~ undefined)
+  thrown @?= True
+
+case_strict_at'_forces_value = do
+  thrown <- throws (MapS.singleton () (0 :: Int) & at' () .~ Just undefined)
+  thrown @?= True
+
+case_lazy_ix_set_keeps_thunk = do
+  thrown <- throws (MapS.singleton () (0 :: Int) & ix () .~ undefined)
+  thrown @?= False
+
+case_strict_ix_op_roundtrips =
+  (MapS.singleton () (0 :: Int) & ix () !~ 5) @?= MapS.singleton () 5
+
+case_strict_at'_roundtrips =
+  (MapS.singleton () (0 :: Int) & at' () .~ Just 5) @?= MapS.singleton () 5
+
+-- (!~) forces its argument even when the optic has no target (see its docs),
+-- because it forces before `set` runs; so this still throws on an empty map.
+case_strict_ix_op_forces_even_when_absent = do
+  thrown <- throws ((MapS.empty :: Map () Int) & ix () !~ undefined)
+  thrown @?= True
+
+-- at' k . traverse is the target-aware strict "ix" (recall ix k = at k . traverse):
+-- it forces the value when the key is present, but not when it is absent.
+case_strict_at_traverse_forces_when_present = do
+  thrown <- throws (MapS.singleton () (0 :: Int) & at' () . traverse .~ undefined)
+  thrown @?= True
+
+case_strict_at_traverse_lazy_when_absent = do
+  thrown <- throws ((MapS.empty :: Map () Int) & at' () . traverse .~ undefined)
+  thrown @?= False
+
 case_read_list_entry =
   (trig ^? points.element 0)
     @?= Just origin
@@ -498,6 +546,14 @@ main = defaultMain $
   , testCase "modify map entry" case_modify_map_entry
   , testCase "insert maybe map entry" case_insert_maybe_map_entry
   , testCase "delete maybe map entry" case_delete_maybe_map_entry
+  , testCase "strict ix operator forces value" case_strict_ix_op_forces_value
+  , testCase "strict at' forces value" case_strict_at'_forces_value
+  , testCase "lazy ix set keeps thunk" case_lazy_ix_set_keeps_thunk
+  , testCase "strict ix operator round-trips" case_strict_ix_op_roundtrips
+  , testCase "strict at' round-trips" case_strict_at'_roundtrips
+  , testCase "strict ix operator forces even when absent" case_strict_ix_op_forces_even_when_absent
+  , testCase "strict at'.traverse forces when present" case_strict_at_traverse_forces_when_present
+  , testCase "strict at'.traverse lazy when absent" case_strict_at_traverse_lazy_when_absent
   , testCase "read list entry" case_read_list_entry
   , testCase "write list entry" case_write_list_entry
   , testCase "write through list entry" case_write_through_list_entry
