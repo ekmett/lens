@@ -1,0 +1,70 @@
+name:          lens-witherable
+category:      Data, Lenses
+version:       0.1
+license:       BSD2
+cabal-version: >= 1.10
+license-file:  LICENSE
+author:        Edward A. Kmett
+maintainer:    Edward A. Kmett <ekmett@gmail.com>
+stability:     provisional
+homepage:      http://github.com/ekmett/lens/
+bug-reports:   http://github.com/ekmett/lens/issues
+copyright:     Copyright (C) 2012-2016 Edward A. Kmett
+synopsis:      Inverse prisms and partial isomorphisms for lens
+description:
+  Optics for reversible parsing and building (codecs) that need the
+  @Filterable@ class from @witherable@: \"turned-around\" prisms whose
+  @review@ may fail, and partial isomorphisms where both directions may fail.
+  .
+  These live in a companion package so that @lens@ itself does not have to
+  depend on @witherable@.
+build-type:    Simple
+tested-with:   GHC == 8.0.2
+             , GHC == 8.2.2
+             , GHC == 8.4.4
+             , GHC == 8.6.5
+             , GHC == 8.8.4
+             , GHC == 8.10.7
+             , GHC == 9.0.2
+             , GHC == 9.2.8
+             , GHC == 9.4.8
+             , GHC == 9.6.7
+             , GHC == 9.8.4
+             , GHC == 9.10.3
+             , GHC == 9.12.2
+             , GHC == 9.14.1
+
+extra-source-files:
+  .hlint.yaml
+  CHANGELOG.markdown
+
+source-repository head
+  type: git
+  location: https://github.com/ekmett/lens.git
+
+library
+  build-depends:
+    base       >= 4.9   && < 5,
+    lens       >= 5     && < 6,
+    tagged     >= 0.8.6 && < 1,
+    witherable >= 0.3.5 && < 0.6
+
+  exposed-modules:
+    Control.Lens.PartialIso
+
+  hs-source-dirs: src
+  ghc-options: -Wall
+  default-language: Haskell2010
+
+test-suite hunit
+  type: exitcode-stdio-1.0
+  main-is: hunit.hs
+  hs-source-dirs: tests
+  ghc-options: -Wall -threaded
+  default-language: Haskell2010
+  build-depends:
+    base,
+    lens,
+    lens-witherable,
+    tasty       >= 1.4  && < 1.6,
+    tasty-hunit >= 0.10 && < 0.11
