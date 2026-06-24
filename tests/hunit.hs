@@ -1,5 +1,6 @@
 {-# OPTIONS_GHC -Wno-missing-signatures #-}
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 -----------------------------------------------------------------------------
@@ -31,7 +32,7 @@ import qualified Data.List as List
 import qualified Data.Map as Map
 import qualified Data.Map.Strict as MapS
 import Data.Map (Map)
-import Control.Exception (evaluate, try, SomeException)
+import Control.Exception (evaluate, try, ErrorCall)
 #if !(MIN_VERSION_base(4,11,0))
 import Data.Monoid
 #endif
@@ -352,9 +353,9 @@ case_delete_maybe_map_entry =
 -- in a strict container; plain (.~) stays lazy.
 
 -- | True if forcing the argument to weak head normal form raises an exception.
-throws :: a -> IO Bool
+throws :: forall a. a -> IO Bool
 throws thunk = do
-  r <- try (evaluate thunk >> return ()) :: IO (Either SomeException ())
+  r <- try (evaluate thunk) :: IO (Either ErrorCall a)
   return $ case r of
     Left _  -> True
     Right _ -> False
