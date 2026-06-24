@@ -1,0 +1,18 @@
+#!/bin/bash
+set -eu
+
+# Regenerate the lens "field guide" hierarchy diagram (images/Hierarchy.png)
+# from its Graphviz source (images/Hierarchy.dot).
+#
+# Requires graphviz for `dot`; `optipng`, if installed, shrinks the PNG to match
+# how the committed images were last optimised.
+
+cd "$(git rev-parse --show-toplevel)"
+
+dot -Tpng -Gdpi=96 images/Hierarchy.dot -o images/Hierarchy.png
+
+if command -v optipng >/dev/null 2>&1 ; then
+	optipng -quiet images/Hierarchy.png
+fi
+
+echo "Wrote images/Hierarchy.png"

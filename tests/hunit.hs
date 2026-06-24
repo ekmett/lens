@@ -21,7 +21,10 @@
 -----------------------------------------------------------------------------
 module Main (main) where
 
+import Control.Arrow (Kleisli (..))
 import Control.Lens
+import Data.Data.Lens (upon)
+import Control.Applicative (ZipList(..))
 import Control.Monad.State
 import Data.Char
 import qualified Data.Text as StrictT
@@ -36,7 +39,7 @@ import Control.Exception (evaluate, try, ErrorCall)
 #if !(MIN_VERSION_base(4,11,0))
 import Data.Monoid
 #endif
-import Test.Tasty (defaultMain, testGroup)
+import Test.Tasty (defaultMain, testGroup, localOption, mkTimeout)
 import Test.Tasty.HUnit ((@?=), testCase)
 
 
@@ -426,6 +429,19 @@ case_correct_indexing_lazy_bytestring =
   map (\i -> LazyB.pack [1,2] ^? ix i) [-1..2]
     @?= [Nothing, Just 1, Just 2, Nothing]
 
+-- Nested `upon` (`(upon.view.upon) tail`) used to loop forever.
+case_upon_view_upon_matches_upon_tail =
+  ([1..10] & (upon.view.upon) tail %~ reverse)
+    @?= ([1..10] & upon tail %~ reverse :: [Int])
+
+case_upon_view_upon_value =
+  ([1..10] & (upon.view.upon) tail %~ reverse :: [Int])
+    @?= [1,10,9,8,7,6,5,4,3,2]
+
+-- 10 seconds (mkTimeout takes microseconds), so a non-termination regression
+-- fails fast instead of hanging CI. Increase if slower machines need headroom.
+uponTimeout = mkTimeout (10 * 1000000)
+
 -- One-off optic construction (#710): the spliced optics behave as expected.
 case_oneoff_lens_view =
   view $(makeLens '_x) (Point 3 4) @?= 3
@@ -447,6 +463,37 @@ case_oneoff_prism_review_roundtrip =
 case_oneoff_prism_nullary =
   (has $(makePrism 'SVoid) SVoid, has $(makePrism 'SVoid) (SCircle origin 1))
     @?= (True, False)
+
+-- ZipList has no QuickCheck Arbitrary/CoArbitrary/Function instances, so its
+-- Prefixed/Suffixed instances are exercised here rather than in properties.hs.
+case_prefixed_ziplist =
+  ZipList [1,2,3,4 :: Int] ^? prefixed (ZipList [1,2]) @?= Just (ZipList [3,4])
+
+case_prefixed_ziplist_miss =
+  ZipList [1,2,3 :: Int] ^? prefixed (ZipList [2,3]) @?= Nothing
+
+case_prefixed_ziplist_review =
+  prefixed (ZipList [1,2]) # ZipList [3,4 :: Int] @?= ZipList [1,2,3,4]
+
+case_suffixed_ziplist =
+  ZipList [1,2,3,4 :: Int] ^? suffixed (ZipList [3,4]) @?= Just (ZipList [1,2])
+
+case_suffixed_ziplist_review =
+  suffixed (ZipList [3,4]) # ZipList [1,2 :: Int] @?= ZipList [1,2,3,4]
+
+-- ioverA (#772): indexed `over` for Arrows. The arrow receives the index
+-- together with the old value as a pair.
+case_ioverA_function_arrow =
+  ioverA (ilens id (\(k, _) v' -> (k, v'))) (\(k, v) -> k + v) (3, 10)
+    @?= ((3, 13) :: (Int, Int))
+
+case_ioverA_kleisli_arrow =
+  runKleisli (ioverA (ilens id (\(k, _) v' -> (k, v'))) (Kleisli (\(k, v) -> [v, v + k]))) (3, 10)
+    @?= ([(3, 10), (3, 13)] :: [(Int, Int)])
+
+case_ioverA_type_changing =
+  ioverA (ilens id (\(k, _) v' -> (k, v'))) (\(k, v) -> show (k + v)) ((3, 10) :: (Int, Int))
+    @?= (3 :: Int, "13")
 
 main :: IO ()
 main = defaultMain $
@@ -514,10 +561,22 @@ main = defaultMain $
   , testCase "correct indexing lazy text" case_correct_indexing_lazy_text
   , testCase "correct indexing strict bytestring" case_correct_indexing_strict_bytestring
   , testCase "correct indexing lazy bytestring" case_correct_indexing_lazy_bytestring
+  , localOption uponTimeout $
+      testCase "upon.view.upon matches upon tail" case_upon_view_upon_matches_upon_tail
+  , localOption uponTimeout $
+      testCase "upon.view.upon value" case_upon_view_upon_value
   , testCase "one-off lens view" case_oneoff_lens_view
   , testCase "one-off lens set" case_oneoff_lens_set
   , testCase "one-off prism preview hit" case_oneoff_prism_preview_hit
   , testCase "one-off prism preview miss" case_oneoff_prism_preview_miss
   , testCase "one-off prism review round-trip" case_oneoff_prism_review_roundtrip
   , testCase "one-off prism nullary" case_oneoff_prism_nullary
+  , testCase "prefixed ziplist" case_prefixed_ziplist
+  , testCase "prefixed ziplist miss" case_prefixed_ziplist_miss
+  , testCase "prefixed ziplist review" case_prefixed_ziplist_review
+  , testCase "suffixed ziplist" case_suffixed_ziplist
+  , testCase "suffixed ziplist review" case_suffixed_ziplist_review
+  , testCase "ioverA with function arrow" case_ioverA_function_arrow
+  , testCase "ioverA with Kleisli arrow" case_ioverA_kleisli_arrow
+  , testCase "ioverA type-changing" case_ioverA_type_changing
   ]

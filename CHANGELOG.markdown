@@ -1,6 +1,16 @@
 next [????.??.??]
 -----------------
+* Re-add the `Control.Monad.Primitive.Lens` module, which was removed in
+  `lens` 4.9. It offers `Iso`s for the conversions in
+  `Control.Monad.Primitive`: `prim` (between a `PrimBase` monad and its
+  underlying `State#` representation, now type-changing), and the new `st`
+  and `io` (between a `PrimBase` monad and `ST`/`IO`, respectively).
 * Add `ReifiedReview` to `Control.Lens.Reified`.
+* Fix `Data.Data.Lens.upon` (and its variants) looping forever when nested,
+  e.g. `(upon.view.upon) tail`.
+* Add `Prefixed` and `Suffixed` instances for `ZipList`, `Seq`, and the boxed,
+  strict, storable, primitive, and unboxed `Vector` types, bringing them to
+  parity with the existing `Cons`/`Snoc` instances.
 * Reduce the arity of `set`, `set'`, `partsOf`, `partsOf'`, `unsafePartsOf`,
   `unsafePartsOf'`, `mapAccumLOf`, `imapAccumLOf`, `auf`, `both`, and `both1` so
   that GHC is more eager to inline them, following up on the same change to the
@@ -17,6 +27,12 @@ next [????.??.??]
   produced matches what the corresponding bulk generator would declare for that
   field or constructor. (#710)
 * Document the relationship between `filtered`, `has`/`anyOf`, and `noneOf`.
+* Add `ioverA` to `Control.Lens.Lens`, an indexed variant of `overA`. The
+  supplied arrow receives the index together with the old value as a pair.
+* Correct several stale type signatures in the lens hierarchy diagram — most
+  visibly the `Review` box, which still used the long-removed four-parameter
+  form — and add `images/Hierarchy.dot` as an editable Graphviz source for the
+  diagram (regenerated via `scripts/hierarchy`).
 * Add `at'`, a strict version of `at` that forces the new value to weak head
   normal form, so it can be used to update strict containers such as
   `Data.Map.Strict.Map` without leaving a thunk behind.

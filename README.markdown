@@ -1,7 +1,7 @@
 Lens: Lenses, Folds, and Traversals
 ==================================
 
-[![Hackage](https://img.shields.io/hackage/v/lens.svg)](https://hackage.haskell.org/package/lens) [![Build Status](https://github.com/ekmett/lens/workflows/Haskell-CI/badge.svg)](https://github.com/ekmett/lens/actions?query=workflow%3AHaskell-CI) [![Hackage Deps](https://img.shields.io/hackage-deps/v/lens.svg)](http://packdeps.haskellers.com/reverse/lens)
+[![Hackage](https://img.shields.io/hackage/v/lens.svg)](https://hackage.haskell.org/package/lens) [![Build Status](https://github.com/ekmett/lens/workflows/Haskell-CI/badge.svg)](https://github.com/ekmett/lens/actions?query=workflow%3AHaskell-CI)
 
 This package provides families of [lenses](https://github.com/ekmett/lens/blob/master/src/Control/Lens/Type.hs), [isomorphisms](https://github.com/ekmett/lens/blob/master/src/Control/Lens/Iso.hs), [folds](https://github.com/ekmett/lens/blob/master/src/Control/Lens/Fold.hs), [traversals](https://github.com/ekmett/lens/blob/master/src/Control/Lens/Traversal.hs), [getters](https://github.com/ekmett/lens/blob/master/src/Control/Lens/Getter.hs) and [setters](https://github.com/ekmett/lens/blob/master/src/Control/Lens/Setter.hs).
 
@@ -14,7 +14,7 @@ Documentation is available through [github](https://ekmett.github.io/lens/frames
 Field Guide
 -----------
 
-[![Lens Hierarchy](https://raw.githubusercontent.com/wiki/ekmett/lens/images/Hierarchy.png)](https://creately.com/diagram/h5nyo9ne1/QZ9UBOtw4AJWtmAKYK3wT8Mm1HM%3D)
+[![Lens Hierarchy](images/Hierarchy.png)](images/Hierarchy.dot)
 
 
 Examples
