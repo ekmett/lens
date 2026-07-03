@@ -52,10 +52,6 @@ type OpticP p s t a b = p a b -> p s t
 
 -- | Converts a 'Control.Lens.Type.Lens' to a 'Profunctor'-based one.
 --
--- The result is a 'Strong' profunctor optic: 'second'' carries the rebuild
--- function alongside the focus, so a single @k 'sell' s@ yields both the focus
--- and the setter in one pass.
---
 -- >>> fromLens _1 (+1) (3, "hello")
 -- (4,"hello")
 fromLens :: Strong p => ALens s t a b -> OpticP p s t a b
@@ -66,18 +62,12 @@ fromLens k p = dimap project (uncurry id) (second' p)
 
 -- | Converts an 'Control.Lens.Type.Iso' to a 'Profunctor'-based one.
 --
--- An 'Control.Lens.Type.Iso' is just a pair of mutually inverse functions, so
--- this is exactly a 'dimap' — it adds no profunctor structure of its own.
---
 -- >>> fromIso (iso fromEnum toEnum) succ 'a' :: Char
 -- 'b'
 fromIso :: Profunctor p => AnIso s t a b -> OpticP p s t a b
 fromIso k = withIso k dimap
 
 -- | Converts a 'Control.Lens.Type.Prism' to a 'Profunctor'-based one.
---
--- The result is a 'Choice' profunctor optic: 'right'' runs the profunctor only
--- on the matching branch, passing a non-match through to @t@ untouched.
 --
 -- >>> fromPrism _Just (+1) (Just 3)
 -- Just 4
