@@ -54,7 +54,7 @@ description:
   With some signatures simplified, the core of the hierarchy of lens-like constructions looks like:
   .
   .
-  <<https://raw.githubusercontent.com/ekmett/lens/master/images/Hierarchy.png>>
+  <<https://raw.githubusercontent.com/ekmett/lens/v5.3.7/images/Hierarchy.png>>
   .
   You can compose any two elements of the hierarchy above using @(.)@ from the @Prelude@, and you can
   use any element of the hierarchy as any type it linked to above it.
@@ -109,6 +109,7 @@ extra-source-files:
   examples/*.lhs
   examples/.hlint.yaml
   include/*.h
+  images/*.dot
   lens-properties/.hlint.yaml
   lens-properties/CHANGELOG.markdown
   lens-properties/LICENSE
@@ -198,6 +199,7 @@ library
     kan-extensions                >= 5        && < 6,
     mtl                           >= 2.2.1    && < 2.4,
     parallel                      >= 3.2.1.0  && < 3.4,
+    primitive                     >= 0.6.4    && < 0.10,
     profunctors                   >= 5.5.2    && < 6,
     reflection                    >= 2.1      && < 3,
     semigroupoids                 >= 5.0.1    && < 7,
@@ -269,6 +271,7 @@ library
     Control.Lens.Wrapped
     Control.Lens.Zoom
     Control.Monad.Error.Lens
+    Control.Monad.Primitive.Lens
     Control.Parallel.Strategies.Lens
     Control.Seq.Lens
     Data.Array.Lens
@@ -367,11 +370,14 @@ test-suite properties
   else
     build-depends:
       base,
+      containers,
       lens,
       QuickCheck >= 2.4,
+      quickcheck-instances >= 0.3.17 && < 0.5,
       tasty >= 1.4 && < 1.6,
       tasty-quickcheck >= 0.10 && < 0.12,
-      transformers
+      transformers,
+      vector
 
 test-suite hunit
   type: exitcode-stdio-1.0
