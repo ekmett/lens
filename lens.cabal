@@ -54,7 +54,7 @@ description:
   With some signatures simplified, the core of the hierarchy of lens-like constructions looks like:
   .
   .
-  <<https://raw.githubusercontent.com/ekmett/lens/master/images/Hierarchy.png>>
+  <<https://raw.githubusercontent.com/ekmett/lens/v5.3.7/images/Hierarchy.png>>
   .
   You can compose any two elements of the hierarchy above using @(.)@ from the @Prelude@, and you can
   use any element of the hierarchy as any type it linked to above it.
@@ -109,6 +109,7 @@ extra-source-files:
   examples/*.lhs
   examples/.hlint.yaml
   include/*.h
+  images/*.dot
   lens-properties/.hlint.yaml
   lens-properties/CHANGELOG.markdown
   lens-properties/LICENSE
@@ -162,6 +163,10 @@ flag test-templates
   default: True
   manual: True
 
+flag test-space
+  default: True
+  manual: True
+
 -- Assert that we are trustworthy when we can
 flag trustworthy
   default: True
@@ -194,6 +199,7 @@ library
     kan-extensions                >= 5        && < 6,
     mtl                           >= 2.2.1    && < 2.4,
     parallel                      >= 3.2.1.0  && < 3.4,
+    primitive                     >= 0.6.4    && < 0.10,
     profunctors                   >= 5.5.2    && < 6,
     reflection                    >= 2.1      && < 3,
     semigroupoids                 >= 5.0.1    && < 7,
@@ -265,6 +271,7 @@ library
     Control.Lens.Wrapped
     Control.Lens.Zoom
     Control.Monad.Error.Lens
+    Control.Monad.Primitive.Lens
     Control.Parallel.Strategies.Lens
     Control.Seq.Lens
     Data.Array.Lens
@@ -363,11 +370,14 @@ test-suite properties
   else
     build-depends:
       base,
+      containers,
       lens,
       QuickCheck >= 2.4,
+      quickcheck-instances >= 0.3.17 && < 0.5,
       tasty >= 1.4 && < 1.6,
       tasty-quickcheck >= 0.10 && < 0.12,
-      transformers
+      transformers,
+      vector
 
 test-suite hunit
   type: exitcode-stdio-1.0
@@ -388,6 +398,25 @@ test-suite hunit
       bytestring,
       tasty >= 1.4 && < 1.6,
       tasty-hunit >= 0.10 && < 0.11
+
+-- Regression test for the lazy-ByteString space leak in lastOf (issue #233).
+-- Uses GHC.Stats (base >= 4.10 / GHC >= 8.2); -O2 so the rewrite rule fires.
+test-suite space
+  type: exitcode-stdio-1.0
+  main-is: space.hs
+  -- -T enables GHC.Stats; the small nursery (-A256k) forces frequent GCs so
+  -- the leak's transient peak is sampled (with the default nursery it can slip
+  -- between major GCs). The test verifies at startup that both are in effect.
+  ghc-options: -Wall -O2 -rtsopts "-with-rtsopts=-T -A256k"
+  hs-source-dirs: tests
+  default-language: Haskell2010
+  if flag(test-space) && impl(ghc >= 8.2)
+    build-depends:
+      base,
+      bytestring,
+      lens
+  else
+    buildable: False
 
 -- We need this dummy test-suite to add simple-reflect to the install plan
 --
@@ -450,6 +479,18 @@ benchmark folds
     bytestring,
     unordered-containers,
     vector,
+    lens
+
+-- Benchmarking inlining/arity
+benchmark arity
+  type:             exitcode-stdio-1.0
+  main-is:          arity.hs
+  ghc-options:      -Wall -O2 -threaded -fdicts-cheap -funbox-strict-fields
+  hs-source-dirs:   benchmarks
+  default-language: Haskell2010
+  build-depends:
+    base,
+    criterion,
     lens
 
 -- Benchmarking traversals
