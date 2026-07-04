@@ -1,4 +1,4 @@
-name:          lens-witherable
+name:          lens-partial-iso
 category:      Data, Lenses
 version:       0.1
 license:       BSD2
@@ -65,6 +65,6 @@ test-suite hunit
   build-depends:
     base,
     lens,
-    lens-witherable,
+    lens-partial-iso,
     tasty       >= 1.4  && < 1.6,
     tasty-hunit >= 0.10 && < 0.11

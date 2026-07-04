@@ -38,7 +38,7 @@ case_failing'_prism_fallback =
 
 main :: IO ()
 main = defaultMain $
-  testGroup "lens-witherable"
+  testGroup "lens-partial-iso"
   [ testCase "partialIso get hit" case_partialiso_get_hit
   , testCase "partialIso get miss" case_partialiso_get_miss
   , testCase "partialIso review hit" case_partialiso_review_hit
