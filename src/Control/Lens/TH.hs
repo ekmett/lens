@@ -91,9 +91,14 @@ module Control.Lens.TH
   , avoidNamesClassyNamer
   -- *** Reserved-identifier lists
   , haskellKeywords
+  , ghcExtensionKeywords
+  , explicitForAllKeywords
   , recursiveDoKeywords
   , arrowsKeywords
   , patternSynonymsKeywords
+  , transformListCompKeywords
+  , staticPointersKeywords
+  , roleAnnotationsKeywords
   ) where
 
 import Prelude ()
@@ -702,13 +707,13 @@ classIdNamer _ _ field = [MethodName (mkName className) (mkName fieldName)]
 -- set of reserved identifiers gets an underscore appended to it. All other
 -- names are left untouched. Class names are not affected.
 --
--- 'avoidKeywordsNamer' is @avoidNamesNamer 'haskellKeywords'@. Pass a larger
--- set to also avoid identifiers reserved by particular extensions; the
--- 'recursiveDoKeywords', 'arrowsKeywords', and 'patternSynonymsKeywords' lists
--- are provided for this, e.g.
+-- 'avoidKeywordsNamer' is @avoidNamesNamer 'haskellKeywords'@. Pass
+-- 'haskellKeywords' '<>' 'ghcExtensionKeywords' to also avoid identifiers
+-- reserved by GHC language extensions, or combine only the specific extension
+-- lists you need.
 --
 -- @
--- 'makeLensesWith' (rules & 'lensField' '%~' avoidNamesNamer ('haskellKeywords' '<>' 'recursiveDoKeywords')) ''Foo
+-- 'makeLensesWith' (rules & 'lensField' '%~' avoidNamesNamer ('haskellKeywords' '<>' 'ghcExtensionKeywords')) ''Foo
 -- @
 avoidNamesNamer :: Set String -> FieldNamer -> FieldNamer
 avoidNamesNamer names namer tyName fields field =
@@ -746,6 +751,8 @@ avoidKeywordsNamer = avoidNamesNamer haskellKeywords
 -- class name is not affected.
 --
 -- 'avoidKeywordsClassyNamer' is @avoidNamesClassyNamer 'haskellKeywords'@.
+-- Pass 'haskellKeywords' '<>' 'ghcExtensionKeywords' to also avoid identifiers
+-- reserved by GHC language extensions.
 avoidNamesClassyNamer :: Set String -> ClassyNamer -> ClassyNamer
 avoidNamesClassyNamer names namer tyName = second (avoidName names) <$> namer tyName
 

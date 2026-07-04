@@ -22,10 +22,14 @@ next [????.??.??]
 * Add `avoidNamesNamer :: Set String -> FieldNamer -> FieldNamer` and
   `avoidNamesClassyNamer :: Set String -> ClassyNamer -> ClassyNamer`, which
   generalize the above to an arbitrary set of reserved identifiers, together
-  with the `haskellKeywords`, `recursiveDoKeywords`, `arrowsKeywords`, and
-  `patternSynonymsKeywords` lists to choose from. This lets you also avoid
-  identifiers that are only reserved when a particular extension is enabled,
-  e.g. `avoidNamesNamer (haskellKeywords <> recursiveDoKeywords)`.
+  with the `haskellKeywords`, `ghcExtensionKeywords`, and per-extension keyword
+  lists to choose from. This lets you also avoid identifiers that are only
+  reserved when a particular extension is enabled, e.g.
+  `avoidNamesNamer (haskellKeywords <> ghcExtensionKeywords)`.
+* When `template-haskell-2.12` or later is available, the early keyword check
+  also accounts for enabled extensions that reserve additional generated
+  function or class method names, such as `TransformListComp` and
+  `StaticPointers`.
 
 5.3.6 [2026.01.10]
 ------------------

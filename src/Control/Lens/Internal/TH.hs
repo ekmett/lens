@@ -169,16 +169,22 @@ isDataFamily D.TypeData        = False
 --
 -- This mirrors the check GHC applies to spliced declarations
 -- (@okVarOcc@\/@reservedIds@ in "GHC.Utils.Lexeme" from @ghc-boot@, on which
--- we do not wish to depend). We also include @forall@, which GHC 9.10 and
--- later treat as an unconditional keyword (and which extensions such as
--- @RankNTypes@ and @ScopedTypeVariables@ reserve on earlier GHCs).
+-- we do not wish to depend). GHC 9.10 and later treat @forall@ as an
+-- unconditional keyword, so it is included when building with those GHCs.
 haskellKeywords :: Set String
 haskellKeywords = Set.fromList
   [ "case", "class", "data", "default", "deriving", "do", "else"
-  , "forall", "foreign", "if", "import", "in", "infix", "infixl", "infixr"
+#if __GLASGOW_HASKELL__ >= 910
+  , "forall"
+#endif
+  , "foreign", "if", "import", "in", "infix", "infixl", "infixr"
   , "instance", "let", "module", "newtype", "of", "then", "type"
   , "where", "_"
   ]
+
+-- | Identifiers that explicit-forall extensions reserve: @forall@.
+explicitForAllKeywords :: Set String
+explicitForAllKeywords = Set.fromList ["forall"]
 
 -- | Identifiers that the @RecursiveDo@ extension reserves: @mdo@ and @rec@.
 recursiveDoKeywords :: Set String
@@ -192,9 +198,58 @@ arrowsKeywords = Set.fromList ["proc", "rec"]
 patternSynonymsKeywords :: Set String
 patternSynonymsKeywords = Set.fromList ["pattern"]
 
--- | Is this string one of the 'haskellKeywords'?
-isKeyword :: String -> Bool
-isKeyword = (`Set.member` haskellKeywords)
+-- | Identifiers that the @TransformListComp@ extension reserves:
+-- @by@ and @using@.
+transformListCompKeywords :: Set String
+transformListCompKeywords = Set.fromList ["by", "using"]
+
+-- | Identifiers that the @StaticPointers@ extension reserves: @static@.
+staticPointersKeywords :: Set String
+staticPointersKeywords = Set.fromList ["static"]
+
+-- | Identifiers that the @RoleAnnotations@ extension reserves: @role@.
+--
+-- This is provided for callers who want a conservative list of extension
+-- keywords. 'activeKeywords' deliberately does not reject @role@, since it is
+-- still valid as a generated function or class method name.
+roleAnnotationsKeywords :: Set String
+roleAnnotationsKeywords = Set.fromList ["role"]
+
+-- | Identifiers reserved by GHC language extensions.
+ghcExtensionKeywords :: Set String
+ghcExtensionKeywords = Set.unions
+  [ explicitForAllKeywords
+  , recursiveDoKeywords
+  , arrowsKeywords
+  , patternSynonymsKeywords
+  , transformListCompKeywords
+  , staticPointersKeywords
+  , roleAnnotationsKeywords
+  ]
+
+-- | Haskell keywords plus the identifiers reserved by enabled extensions that
+-- would make generated functions or class methods fail to parse.
+activeKeywords :: Q (Set String)
+#if MIN_VERSION_template_haskell(2,12,0)
+activeKeywords = do
+  explicitForAll <- or <$> mapM isExtEnabled
+    [ ExplicitForAll, RankNTypes, ScopedTypeVariables ]
+  recursiveDo <- isExtEnabled RecursiveDo
+  arrows <- isExtEnabled Arrows
+  patternSynonyms <- isExtEnabled PatternSynonyms
+  transformListComp <- isExtEnabled TransformListComp
+  staticPointers <- isExtEnabled StaticPointers
+  return $ Set.unions $
+    [ haskellKeywords ]
+    ++ [ explicitForAllKeywords | explicitForAll ]
+    ++ [ recursiveDoKeywords | recursiveDo ]
+    ++ [ arrowsKeywords | arrows ]
+    ++ [ patternSynonymsKeywords | patternSynonyms ]
+    ++ [ transformListCompKeywords | transformListComp ]
+    ++ [ staticPointersKeywords | staticPointers ]
+#else
+activeKeywords = return haskellKeywords
+#endif
 
 -- | Append an underscore to a name that belongs to the given set of reserved
 -- identifiers; leave all other names untouched.
