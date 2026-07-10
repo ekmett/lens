@@ -1,8 +1,20 @@
 next [????.??.??]
 -----------------
+* Change `fromLens`, `fromIso`, and `fromPrism` in `Control.Lens.Profunctor` to
+  accept the canonical monomorphic optic types `ALens`, `AnIso`, and `APrism`,
+  matching `fromSetter`/`fromTraversal` which already take `ASetter`/`ATraversal`.
+  Full polymorphic `Lens`/`Iso`/`Prism` values are still accepted unchanged; only
+  code that relied on the previous ad-hoc representations needs adjusting.
+* Re-add the `Control.Monad.Primitive.Lens` module, which was removed in
+  `lens` 4.9. It offers `Iso`s for the conversions in
+  `Control.Monad.Primitive`: `prim` (between a `PrimBase` monad and its
+  underlying `State#` representation, now type-changing), and the new `st`
+  and `io` (between a `PrimBase` monad and `ST`/`IO`, respectively).
 * Deprecate `lifted` in `Control.Lens.Setter`. Use `mapped` instead, which
   works for any `Monad` now that `Functor` is a superclass of `Monad`.
 * Add `ReifiedReview` to `Control.Lens.Reified`.
+* Fix `Data.Data.Lens.upon` (and its variants) looping forever when nested,
+  e.g. `(upon.view.upon) tail`.
 * Add `Prefixed` and `Suffixed` instances for `ZipList`, `Seq`, and the boxed,
   strict, storable, primitive, and unboxed `Vector` types, bringing them to
   parity with the existing `Cons`/`Snoc` instances.
@@ -21,7 +33,36 @@ next [????.??.??]
   declaring optics for an entire type as `makeLenses`/`makePrisms` do. The optic
   produced matches what the corresponding bulk generator would declare for that
   field or constructor. (#710)
+* `makeLenses`, `makeFields`, `makeClassy`, and the other field optic
+  generators now fail early with an error message naming the offending field
+  and data type when a field namer generates a Haskell keyword (for example,
+  a `_connectionType` field with `makeFields` would generate a class method
+  named `type`). Previously, GHC rejected the generated declarations with an
+  "Illegal variable name" error that gave no indication of which field was
+  responsible.
+* Add `avoidKeywordsNamer :: FieldNamer -> FieldNamer` and
+  `avoidKeywordsClassyNamer :: ClassyNamer -> ClassyNamer`, which modify a
+  namer to append an underscore to any generated name that would otherwise
+  be a keyword (e.g., generating a `type_` method for a `_connectionType`
+  field, or a `where_` method for `makeClassy` on a type named `Where`).
+* Add `avoidNamesNamer :: Set String -> FieldNamer -> FieldNamer` and
+  `avoidNamesClassyNamer :: Set String -> ClassyNamer -> ClassyNamer`, which
+  generalize the above to an arbitrary set of reserved identifiers, together
+  with the `haskellKeywords`, `ghcExtensionKeywords`, and per-extension keyword
+  lists to choose from. This lets you also avoid identifiers that are only
+  reserved when a particular extension is enabled, e.g.
+  `avoidNamesNamer (haskellKeywords <> ghcExtensionKeywords)`.
+* When `template-haskell-2.12` or later is available, the early keyword check
+  also accounts for enabled extensions that reserve additional generated
+  function or class method names, such as `TransformListComp` and
+  `StaticPointers`.
 * Document the relationship between `filtered`, `has`/`anyOf`, and `noneOf`.
+* Add `ioverA` to `Control.Lens.Lens`, an indexed variant of `overA`. The
+  supplied arrow receives the index together with the old value as a pair.
+* Correct several stale type signatures in the lens hierarchy diagram — most
+  visibly the `Review` box, which still used the long-removed four-parameter
+  form — and add `images/Hierarchy.dot` as an editable Graphviz source for the
+  diagram (regenerated via `scripts/hierarchy`).
 
 5.3.6 [2026.01.10]
 ------------------

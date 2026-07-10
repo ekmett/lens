@@ -20,7 +20,10 @@
 -----------------------------------------------------------------------------
 module Main (main) where
 
+import Control.Arrow (Kleisli (..))
 import Control.Lens
+import Control.Lens.Profunctor (fromLens, fromIso, fromPrism, fromSetter, fromTraversal)
+import Data.Data.Lens (upon)
 import Control.Applicative (ZipList(..))
 import Control.Monad.State
 import Data.Char
@@ -34,7 +37,7 @@ import Data.Map (Map)
 #if !(MIN_VERSION_base(4,11,0))
 import Data.Monoid
 #endif
-import Test.Tasty (defaultMain, testGroup)
+import Test.Tasty (defaultMain, testGroup, localOption, mkTimeout)
 import Test.Tasty.HUnit ((@?=), testCase)
 
 
@@ -379,6 +382,19 @@ case_correct_indexing_lazy_bytestring =
   map (\i -> LazyB.pack [1,2] ^? ix i) [-1..2]
     @?= [Nothing, Just 1, Just 2, Nothing]
 
+-- Nested `upon` (`(upon.view.upon) tail`) used to loop forever.
+case_upon_view_upon_matches_upon_tail =
+  ([1..10] & (upon.view.upon) tail %~ reverse)
+    @?= ([1..10] & upon tail %~ reverse :: [Int])
+
+case_upon_view_upon_value =
+  ([1..10] & (upon.view.upon) tail %~ reverse :: [Int])
+    @?= [1,10,9,8,7,6,5,4,3,2]
+
+-- 10 seconds (mkTimeout takes microseconds), so a non-termination regression
+-- fails fast instead of hanging CI. Increase if slower machines need headroom.
+uponTimeout = mkTimeout (10 * 1000000)
+
 -- One-off optic construction (#710): the spliced optics behave as expected.
 case_oneoff_lens_view =
   view $(makeLens '_x) (Point 3 4) @?= 3
@@ -401,6 +417,43 @@ case_oneoff_prism_nullary =
   (has $(makePrism 'SVoid) SVoid, has $(makePrism 'SVoid) (SCircle origin 1))
     @?= (True, False)
 
+-- Control.Lens.Profunctor (#971): the from* conversions all take the canonical
+-- monomorphic optics, bound here with explicit A-types. For the three that #971
+-- changed -- fromLens, fromIso, fromPrism -- the A-type is one that their old
+-- signatures would have rejected, so these cases guard the change;
+-- fromSetter/fromTraversal already accepted ASetter/ATraversal. Exercised at the
+-- function profunctor (->), where an @OpticP (->) s t a b@ is @(a -> b) -> s -> t@
+-- (i.e. 'over').
+case_profunctor_fromLens =
+  fromLens l (+1) (3, "x") @?= (4, "x")
+  where l :: ALens (Int, String) (Int, String) Int Int
+        l = _1
+
+case_profunctor_fromIso =
+  fromIso i succ 'a' @?= 'b'
+  where i :: AnIso Char Char Int Int
+        i = iso fromEnum toEnum
+
+case_profunctor_fromPrism_match =
+  fromPrism p (+1) (Just 3) @?= Just 4
+  where p :: APrism (Maybe Int) (Maybe Int) Int Int
+        p = _Just
+
+case_profunctor_fromPrism_miss =
+  fromPrism p (+1) Nothing @?= Nothing
+  where p :: APrism (Maybe Int) (Maybe Int) Int Int
+        p = _Just
+
+case_profunctor_fromSetter =
+  fromSetter s (+1) [1,2,3] @?= [2,3,4]
+  where s :: ASetter [Int] [Int] Int Int
+        s = mapped
+
+case_profunctor_fromTraversal =
+  fromTraversal t (+1) [1,2,3] @?= [2,3,4]
+  where t :: ATraversal [Int] [Int] Int Int
+        t = traversed
+
 -- ZipList has no QuickCheck Arbitrary/CoArbitrary/Function instances, so its
 -- Prefixed/Suffixed instances are exercised here rather than in properties.hs.
 case_prefixed_ziplist =
@@ -417,6 +470,20 @@ case_suffixed_ziplist =
 
 case_suffixed_ziplist_review =
   suffixed (ZipList [3,4]) # ZipList [1,2 :: Int] @?= ZipList [1,2,3,4]
+
+-- ioverA (#772): indexed `over` for Arrows. The arrow receives the index
+-- together with the old value as a pair.
+case_ioverA_function_arrow =
+  ioverA (ilens id (\(k, _) v' -> (k, v'))) (\(k, v) -> k + v) (3, 10)
+    @?= ((3, 13) :: (Int, Int))
+
+case_ioverA_kleisli_arrow =
+  runKleisli (ioverA (ilens id (\(k, _) v' -> (k, v'))) (Kleisli (\(k, v) -> [v, v + k]))) (3, 10)
+    @?= ([(3, 10), (3, 13)] :: [(Int, Int)])
+
+case_ioverA_type_changing =
+  ioverA (ilens id (\(k, _) v' -> (k, v'))) (\(k, v) -> show (k + v)) ((3, 10) :: (Int, Int))
+    @?= (3 :: Int, "13")
 
 main :: IO ()
 main = defaultMain $
@@ -476,15 +543,28 @@ main = defaultMain $
   , testCase "correct indexing lazy text" case_correct_indexing_lazy_text
   , testCase "correct indexing strict bytestring" case_correct_indexing_strict_bytestring
   , testCase "correct indexing lazy bytestring" case_correct_indexing_lazy_bytestring
+  , localOption uponTimeout $
+      testCase "upon.view.upon matches upon tail" case_upon_view_upon_matches_upon_tail
+  , localOption uponTimeout $
+      testCase "upon.view.upon value" case_upon_view_upon_value
   , testCase "one-off lens view" case_oneoff_lens_view
   , testCase "one-off lens set" case_oneoff_lens_set
   , testCase "one-off prism preview hit" case_oneoff_prism_preview_hit
   , testCase "one-off prism preview miss" case_oneoff_prism_preview_miss
   , testCase "one-off prism review round-trip" case_oneoff_prism_review_roundtrip
   , testCase "one-off prism nullary" case_oneoff_prism_nullary
+  , testCase "profunctor fromLens" case_profunctor_fromLens
+  , testCase "profunctor fromIso" case_profunctor_fromIso
+  , testCase "profunctor fromPrism (match)" case_profunctor_fromPrism_match
+  , testCase "profunctor fromPrism (miss)" case_profunctor_fromPrism_miss
+  , testCase "profunctor fromSetter" case_profunctor_fromSetter
+  , testCase "profunctor fromTraversal" case_profunctor_fromTraversal
   , testCase "prefixed ziplist" case_prefixed_ziplist
   , testCase "prefixed ziplist miss" case_prefixed_ziplist_miss
   , testCase "prefixed ziplist review" case_prefixed_ziplist_review
   , testCase "suffixed ziplist" case_suffixed_ziplist
   , testCase "suffixed ziplist review" case_suffixed_ziplist_review
+  , testCase "ioverA with function arrow" case_ioverA_function_arrow
+  , testCase "ioverA with Kleisli arrow" case_ioverA_kleisli_arrow
+  , testCase "ioverA type-changing" case_ioverA_type_changing
   ]
