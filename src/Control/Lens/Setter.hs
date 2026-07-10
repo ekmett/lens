@@ -196,10 +196,12 @@ mapped = sets fmap
 -- 'liftM' ≡ 'over' 'lifted'
 -- @
 --
--- >>> over lifted f [a,b,c]
+-- Use 'mapped' in place of 'lifted':
+--
+-- >>> over mapped f [a,b,c]
 -- [f a,f b,f c]
 --
--- >>> set lifted b (Just a)
+-- >>> set mapped b (Just a)
 -- Just b
 --
 -- If you want an 'IndexPreservingSetter' use @'setting' 'fmap'@.
