@@ -41,3 +41,13 @@ jobs:
       with:
         path: examples/
         fail-on: suggestion
+
+    - name: 'HLint config (lens-build)'
+      run: |
+        cp lens-build/.hlint.yaml .
+
+    - name: 'Run HLint (lens-build)'
+      uses: haskell-actions/hlint-run@v2
+      with:
+        path: lens-build/src/
+        fail-on: suggestion

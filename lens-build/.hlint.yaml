@@ -1,0 +1,4 @@
+- arguments: [--cpp-ansi]
+- ignore: { name: Use camelCase }
+- fixity: "infixr 9 ..."
+- fixity: "infixl 1 &~"
