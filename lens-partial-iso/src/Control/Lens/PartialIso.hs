@@ -3,18 +3,18 @@
 -------------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.PartialIso
--- Copyright   :  (C) 2012-16 Edward Kmett
+-- Copyright   :  (C) 2012-2026 Edward Kmett
 -- License     :  BSD-style (see the file LICENSE)
--- Maintainer  :  Edward Kmett <ekmett@gmail.com>
+-- Maintainer  :  Edward Kmett <ekmett@gmail.com>, Jozef Koval <jozef.koval@protonmail.ch>
 -- Stability   :  provisional
 -- Portability :  RankNTypes
 --
--- A 'Prism' matches one way and builds the other: matching may fail, but
--- building (a 'review') always succeeds. This module provides two optics with
+-- A 'Prism' matches one way and builds the other: matching (a 'preview') may fail,
+-- but building (a 'review') always succeeds. This module provides two optics with
 -- the opposite flavor of partiality, useful when describing reversible
 -- parsing\/building (codecs):
 --
--- * An 'InvPrism' is a 'Prism' \"turned around\": the get direction always
+-- * An 'InvPrism' is a 'Prism' \"turned around\": the match direction (the 'preview') always
 --   succeeds, but the build direction (the 'review') may fail.
 --
 -- * A 'PartialIso' is an 'Iso' where both directions may fail.
@@ -37,12 +37,6 @@ module Control.Lens.PartialIso
   -- * Combinators
   , failing'
   , (#?)
-  -- * Filterable
-  --
-  -- | We re-export the 'Filterable' methods used to build these optics, but not
-  -- the rest of the class — in particular @filter@, which would clash with
-  -- "Prelude".'Prelude.filter'. Import "Witherable" directly for the others.
-  , Filterable(mapMaybe, catMaybes)
   ) where
 
 import Control.Lens
@@ -59,7 +53,7 @@ import Witherable (Filterable (mapMaybe, catMaybes))
 
 infixr 8 #?
 
--- | A 'Prism' \"turned around\": a total getter one way, but a partial 'review'
+-- | A 'Prism' \"turned around\": total matching one way, but a partial 'review'
 -- the other way.
 --
 -- Compare the encoding to 'Prism':
@@ -70,13 +64,14 @@ infixr 8 #?
 -- @
 --
 -- A 'Prism' wants 'Choice' (so matching may fail) and 'Applicative' (so
--- building always succeeds). An 'InvPrism' wants only 'Profunctor' (so getting
+-- building always succeeds). An 'InvPrism' wants only 'Profunctor' (so matching
 -- is total) and 'Filterable' (so building may now fail).
 --
 -- /Laws:/ an 'InvPrism' @i@ is well-behaved exactly when it is 'invPrism' of a
--- lawful 'Prism'; the inverse-prism laws are then the 'Prism' laws with the get
--- and build directions exchanged. The total get is @'view' ('getting' i)@ and
--- the partial build is @i '#?' _@; for a simple @'InvPrism'' s a@ they satisfy:
+-- lawful 'Prism'; the inverse-prism laws are then the 'Prism' laws with the
+-- match and build directions exchanged. The total match is @'view' ('getting'
+-- i)@ and the partial build is @i '#?' _@; for a simple @'InvPrism'' s a@ they
+-- satisfy:
 --
 -- @
 -- i #? 'view' ('getting' i) s ≡ 'Just' s
@@ -92,7 +87,7 @@ type InvPrism s t a b =
 -- | A 'Simple' 'InvPrism'.
 type InvPrism' s a = InvPrism s s a a
 
--- | A partial isomorphism: a partial getter and a partial 'review', i.e.
+-- | A partial isomorphism: partial matching and a partial 'review', i.e.
 -- conversion in either direction may fail.
 --
 -- @
@@ -105,15 +100,16 @@ type InvPrism' s a = InvPrism s s a a
 -- 'PartialIso'.
 --
 -- /Laws:/ a simple @'PartialIso'' s a@ presents two partial functions, a
--- forward @sma :: s -> 'Maybe' a@ (the get) and a backward @ams :: a -> 'Maybe'
--- s@ (the build). They must be mutually inverse where defined:
+-- forward @sma :: s -> 'Maybe' a@ (the match) and a backward
+-- @ams :: a -> 'Maybe' s@ (the build). They must be mutually inverse where
+-- defined:
 --
 -- @
 -- sma s ≡ 'Just' a   ⟹   ams a ≡ 'Just' s
 -- ams a ≡ 'Just' s   ⟹   sma s ≡ 'Just' a
 -- @
 --
--- (For the type-changing @'PartialIso' s t a b@ the laws generalize exactly as
+-- (For a type-changing @'PartialIso' s t a b@, the laws generalize exactly as
 -- the 'Iso' laws do.) When @sma@ and @ams@ are total this collapses to the two
 -- 'Iso' round-trip laws.
 type PartialIso s t a b =
@@ -136,15 +132,15 @@ type PartialIso' s a = PartialIso s s a a
 f #? b = Just b & Tagged & f & unTagged
 {-# INLINE (#?) #-}
 
--- | Turn an 'APrism' around into an 'InvPrism': the prism's 'review' becomes a
--- total getter, and the prism's match becomes a partial 'review'.
+-- | Turn an 'APrism' around into an 'InvPrism': the prism's 'review' becomes the
+-- total match, and the prism's 'preview' becomes a partial 'review'.
 --
 -- @
 -- 'invPrism' :: 'APrism' b a t s -> 'InvPrism' s t a b
 -- @
 --
 -- /Laws:/ if @p@ is a lawful 'Prism' then @'invPrism' p@ is a lawful
--- 'InvPrism' — its laws are precisely @p@'s 'Prism' laws with the get and
+-- 'InvPrism' — its laws are precisely @p@'s 'Prism' laws with the match and
 -- build directions exchanged.
 --
 -- >>> (3 :: Int) ^? getting (invPrism _Left) :: Maybe (Either Int String)
@@ -157,7 +153,7 @@ invPrism p =
 {-# INLINE invPrism #-}
 
 -- | Build a 'PartialIso' from two partial conversions: a forward @sma@ (the
--- get) and a backward @ams@ (the build).
+-- match) and a backward @ams@ (the build).
 --
 -- /Laws:/ the result is a lawful 'PartialIso' when @sma@ and @ams@ are mutually
 -- inverse partial functions (see 'PartialIso'). For a simple

@@ -5,11 +5,11 @@ license:       BSD2
 cabal-version: >= 1.10
 license-file:  LICENSE
 author:        Edward A. Kmett
-maintainer:    Edward A. Kmett <ekmett@gmail.com>
+maintainer:    Edward A. Kmett <ekmett@gmail.com>, Jozef Koval <jozef.koval@protonmail.ch>
 stability:     provisional
 homepage:      http://github.com/ekmett/lens/
 bug-reports:   http://github.com/ekmett/lens/issues
-copyright:     Copyright (C) 2012-2016 Edward A. Kmett
+copyright:     Copyright (C) 2012-2026 Edward A. Kmett
 synopsis:      Inverse prisms and partial isomorphisms for lens
 description:
   Optics for reversible parsing and building (codecs) that need the

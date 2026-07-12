@@ -32,6 +32,17 @@ jobs:
         path: lens-properties/src/
         fail-on: suggestion
 
+    # https://github.com/haskell-actions/hlint-run/issues/12
+    - name: 'HLint config (lens-partial-iso)'
+      run: |
+        cp lens-partial-iso/.hlint.yaml .
+
+    - name: 'Run HLint (lens-partial-iso)'
+      uses: haskell-actions/hlint-run@v2
+      with:
+        path: lens-partial-iso/src/
+        fail-on: suggestion
+
     - name: 'HLint config (examples)'
       run: |
         cp examples/.hlint.yaml .
