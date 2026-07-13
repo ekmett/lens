@@ -8,6 +8,8 @@
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE StaticPointers #-}
+{-# LANGUAGE TransformListComp #-}
 {-# LANGUAGE CPP #-}
 -----------------------------------------------------------------------------
 -- |
@@ -26,6 +28,7 @@
 module Main where
 
 import Control.Lens
+import Language.Haskell.TH (recover)
 -- import Test.QuickCheck (quickCheck)
 import BigRecord ()
 import T799 ()
@@ -439,6 +442,87 @@ data CheckAbbreviatedNamer = CheckAbbreviatedNamer
 makeLensesWith (defaultFieldRules & lensField .~ abbreviatedNamer ) ''CheckAbbreviatedNamer
 checkAbbreviatedNamer :: Lens' CheckAbbreviatedNamer Int
 checkAbbreviatedNamer = fieldAbbreviatedNamer
+
+data CheckClassUnderscoreNoPrefixNamer = CheckClassUnderscoreNoPrefixNamer
+                                         { _fieldClassUnderscoreNoPrefix :: Int }
+makeLensesWith (defaultFieldRules & lensField .~ classUnderscoreNoPrefixNamer) ''CheckClassUnderscoreNoPrefixNamer
+checkClassUnderscoreNoPrefixNamer :: Lens' CheckClassUnderscoreNoPrefixNamer Int
+checkClassUnderscoreNoPrefixNamer = fieldClassUnderscoreNoPrefix
+
+-- avoidKeywordsNamer appends an underscore to generated names that would
+-- otherwise be Haskell keywords (#762)
+data CheckAvoidKeywordsTopName = CheckAvoidKeywordsTopName { _data :: Int }
+makeLensesWith (lensRules & lensField %~ avoidKeywordsNamer) ''CheckAvoidKeywordsTopName
+checkAvoidKeywordsTopName :: Lens' CheckAvoidKeywordsTopName Int
+checkAvoidKeywordsTopName = data_
+
+data CheckAvoidKeywordsMethodName = CheckAvoidKeywordsMethodName { _type :: Int }
+makeLensesWith (classUnderscoreNoPrefixFields & lensField %~ avoidKeywordsNamer) ''CheckAvoidKeywordsMethodName
+checkAvoidKeywordsMethodName :: Lens' CheckAvoidKeywordsMethodName Int
+checkAvoidKeywordsMethodName = type_
+
+-- ghcExtensionKeywords collects extension-reserved identifiers for callers who
+-- want one broad opt-in set (#762)
+data CheckAvoidNamesGhcExtensions = CheckAvoidNamesGhcExtensions
+  { _checkGhcExtensionBy     :: Int
+  , _checkGhcExtensionUsing  :: Int
+  , _checkGhcExtensionStatic :: Int
+  , _checkGhcExtensionRole   :: Int
+  , _checkGhcExtensionForall :: Int
+  }
+makeLensesWith
+  (lensRulesFor
+    [ ("_checkGhcExtensionBy", "by")
+    , ("_checkGhcExtensionUsing", "using")
+    , ("_checkGhcExtensionStatic", "static")
+    , ("_checkGhcExtensionRole", "role")
+    , ("_checkGhcExtensionForall", "forall")
+    ] & lensField %~ avoidNamesNamer ghcExtensionKeywords)
+  ''CheckAvoidNamesGhcExtensions
+checkAvoidNamesGhcExtensionBy :: Lens' CheckAvoidNamesGhcExtensions Int
+checkAvoidNamesGhcExtensionBy = by_
+checkAvoidNamesGhcExtensionUsing :: Lens' CheckAvoidNamesGhcExtensions Int
+checkAvoidNamesGhcExtensionUsing = using_
+checkAvoidNamesGhcExtensionStatic :: Lens' CheckAvoidNamesGhcExtensions Int
+checkAvoidNamesGhcExtensionStatic = static_
+checkAvoidNamesGhcExtensionRole :: Lens' CheckAvoidNamesGhcExtensions Int
+checkAvoidNamesGhcExtensionRole = role_
+checkAvoidNamesGhcExtensionForall :: Lens' CheckAvoidNamesGhcExtensions Int
+checkAvoidNamesGhcExtensionForall = forall_
+
+-- avoidNamesNamer mangles names from a user-supplied set, e.g. identifiers
+-- reserved only under an extension such as RecursiveDo (#762)
+data CheckAvoidNames = CheckAvoidNames { _mdo :: Int }
+makeLensesWith (lensRules & lensField %~ avoidNamesNamer recursiveDoKeywords) ''CheckAvoidNames
+checkAvoidNames :: Lens' CheckAvoidNames Int
+checkAvoidNames = mdo_
+
+-- The keyword check fails early in Q, so it is recoverable; GHC's own
+-- "Illegal variable name" error during splicing would not be (#762).
+data T762 = T762 { _t762Type :: Int }
+$(recover (pure []) (makeFields ''T762))
+
+#if MIN_VERSION_template_haskell(2,12,0)
+-- Extension-sensitive keyword checks are recoverable too.
+data T762By = T762By { _t762By :: Int }
+$(recover (pure []) (makeLensesFor [("_t762By", "by")] ''T762By))
+
+data T762Using = T762Using { _t762Using :: Int }
+$(recover (pure []) (makeLensesFor [("_t762Using", "using")] ''T762Using))
+
+data T762Static = T762Static { _t762Static :: Int }
+$(recover (pure []) (makeLensesFor [("_t762Static", "static")] ''T762Static))
+#endif
+
+-- Same, for the classy path: makeClassy ''Where would generate a class
+-- method named "where".
+data Where = Where { _whereX :: Int }
+$(recover (pure []) (makeClassy ''Where))
+
+-- ...and avoidKeywordsClassyNamer appends an underscore there likewise
+makeLensesWith (classyRules & lensClass %~ avoidKeywordsClassyNamer) ''Where
+checkAvoidKeywordsClassyNamer :: Lens' Where Where
+checkAvoidKeywordsClassyNamer = where_
 
 -- Ensure that `makeClassyPrisms` doesn't generate a redundant catch-all case (#866)
 data T866 = MkT866
