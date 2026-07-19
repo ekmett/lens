@@ -670,6 +670,10 @@ toNonEmptyOf l = flip getNonEmptyDList [] . foldMapOf l (NonEmptyDList #. (:|))
 --
 -- Generalizes 'toListOf' and '(^?)'.
 --
+-- __Note:__  Unless you need to implement your own interface that is itself
+-- polymorphic in @f@, consider a specialized combinator like `toListOf`,
+-- @toVectorOf@, etc.  It is likely to have better performance characteristics.
+--
 -- >>> altOf both ("hello", "world") :: [String]
 -- ["hello","world"]
 -- >>> altOf both ("hello", "world") :: Maybe String
