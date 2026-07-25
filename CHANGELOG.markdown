@@ -1,5 +1,8 @@
 next [????.??.??]
 -----------------
+* Add `fromMaybeOf` to `Control.Lens.Fold`: return the first target of a
+  `Fold` or `Traversal`, or a caller-supplied default if there are none. This
+  generalizes `fromMaybe` to any `Fold`: `fromMaybe = fromMaybeOf traverse`.
 * Change `fromLens`, `fromIso`, and `fromPrism` in `Control.Lens.Profunctor` to
   accept the canonical monomorphic optic types `ALens`, `AnIso`, and `APrism`,
   matching `fromSetter`/`fromTraversal` which already take `ASetter`/`ATraversal`.
