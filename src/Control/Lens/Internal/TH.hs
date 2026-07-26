@@ -39,6 +39,12 @@ import Data.Set (Set)
 import Language.Haskell.TH
 import qualified Language.Haskell.TH.Datatype as D
 import qualified Language.Haskell.TH.Datatype.TyVarBndr as D
+#if MIN_VERSION_template_haskell(2,18,0)
+import Control.Monad (when)
+import Data.Foldable (for_)
+import Data.Maybe (isNothing)
+import Language.Haskell.TH.Syntax (addModFinalizer)
+#endif
 
 -- | Apply arguments to a type constructor
 appsT :: TypeQ -> [TypeQ] -> TypeQ
@@ -360,3 +366,39 @@ leftDataName             = 'Left
 
 inlinePragma :: Name -> [DecQ]
 inlinePragma methodName = [pragInlD methodName Inline FunLike AllPhases]
+
+------------------------------------------------------------------------
+-- Haddock documentation inheritance
+------------------------------------------------------------------------
+
+-- | Arrange for the optic declared under the given 'Name' to inherit the
+-- Haddock documentation of the record field or data constructor it focuses.
+-- Copies nothing if the sources name more than one distinct declaration, if
+-- the target already has documentation (handwritten docs win), or if the
+-- target is not declared in the current module. Runs as a module finalizer,
+-- since the target does not exist at splice time. Requires @-haddock@;
+-- no-op before template-haskell-2.18.
+copyDocs :: [Name] {- ^ sources: field selectors or data constructors -} ->
+            Name   {- ^ target: name the optic is declared under      -} ->
+            Q ()
+#if MIN_VERSION_template_haskell(2,18,0)
+copyDocs sources target =
+  case Set.toList (Set.fromList sources) of
+    [source] -> do
+      thisMod <- loc_module <$> location
+      addModFinalizer $ do
+        -- getDoc fails on nonexistent Names (e.g. selectors stripped by
+        -- declareLenses), hence the recovers
+        mdoc <- recover (return Nothing) (getDoc (DeclDoc source))
+        for_ mdoc $ \doc -> do
+          -- qualified lookup: dodges clashes with imports (GHC #26817) and
+          -- fails for targets not declared here, where putDoc would error
+          mtarget <- recover (return Nothing) $
+                       lookupValueName (thisMod ++ "." ++ nameBase target)
+          for_ mtarget $ \target' -> do
+            mexisting <- recover (return Nothing) (getDoc (DeclDoc target'))
+            when (isNothing mexisting) (putDoc (DeclDoc target') doc)
+    _ -> return ()
+#else
+copyDocs _ _ = return ()
+#endif

@@ -64,6 +64,10 @@ import Prelude
 -- _Bar :: Prism (FooBarBaz a) (FooBarBaz b) a b
 -- _Baz :: Prism' (FooBarBaz a) (Int, Char)
 -- @
+--
+-- On GHC 9.2 and later, with @-haddock@, each generated prism inherits its
+-- constructor's Haddock documentation, as 'Control.Lens.TH.makeLenses'
+-- does for fields.
 makePrisms :: Name {- ^ Type constructor name -} -> DecsQ
 makePrisms = makePrisms' True
 
@@ -127,6 +131,9 @@ makePrisms = makePrisms' True
 --
 -- instance AsQuux Quux
 -- @
+--
+-- The class methods inherit their constructor's Haddock documentation, as
+-- with 'makePrisms'.
 makeClassyPrisms :: Name {- ^ Type constructor name -} -> DecsQ
 makeClassyPrisms = makePrisms' False
 
@@ -198,6 +205,7 @@ makeConsPrisms t cons Nothing =
     do let conName = view nconName con
        stab <- computeOpticType t cons con
        let n = prismName conName
+       copyDocs [conName] n
        sequenceA
          ( [ sigD n (return (quantifyType [] (stabToType Set.empty stab)))
            , valD (varP n) (normalB (makeConOpticExp stab cons con)) []
@@ -302,6 +310,7 @@ makeConIso :: Type -> NCon -> DecsQ
 makeConIso s con =
   do let ty      = computeIsoType s (view nconTypes con)
          defName = prismName (view nconName con)
+     copyDocs [view nconName con] defName
      sequenceA
        ( [ sigD       defName  ty
          , valD (varP defName) (normalB (makeConIsoExp con)) []
@@ -447,19 +456,21 @@ makeClassyPrismClass ::
 makeClassyPrismClass t className methodName cons =
   do r <- newName "r"
      let methodType = appsT (conT prism'TypeName) [varT r,return t]
-     methodss <- traverse (mkMethod r) cons'
+     methodss <- traverse (mkMethod r) (zip cons cons')
      classD (cxt[]) className (D.plainTV r : vs) (fds r)
        ( sigD methodName methodType
        : map return (concat methodss)
        )
 
   where
-  mkMethod r con =
+  -- srcCon carries the constructor's Name; con has it renamed to the method's
+  mkMethod r (srcCon, con) =
     do Stab cx o _ _ _ b <- computeOpticType t cons con
        let rTy   = VarT r
            stab' = Stab cx o rTy rTy b b
            defName = view nconName con
            body    = appsE [varE composeValName, varE methodName, varE defName]
+       copyDocs [view nconName srcCon] defName
        sequenceA
          [ sigD defName        (return (stabToType (Set.fromList (r:vNames)) stab'))
          , valD (varP defName) (normalB body) []

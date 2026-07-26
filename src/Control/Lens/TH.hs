@@ -141,7 +141,8 @@ simpleLenses f r = fmap (\x -> r { _simpleLenses = x}) (f (_simpleLenses r))
 -- lenses.
 --
 -- Disabling this can be useful if you want to provide a more restricted type
--- signature or if you want to supply hand-written haddocks.
+-- signature or if you want to supply hand-written haddocks, which are
+-- never overwritten by inherited field documentation (see 'makeLenses').
 generateSignatures :: Lens' LensRules Bool
 generateSignatures f r =
   fmap (\x -> r { _generateSigs = x}) (f (_generateSigs r))
@@ -300,6 +301,13 @@ classyRules_
 -- y _ c\@(Bar _) = pure c
 -- @
 --
+-- On GHC 9.2 and later, when compiled with @-haddock@, each generated
+-- optic inherits the Haddock documentation of the record field it focuses.
+-- Existing documentation (e.g. handwritten signatures, with
+-- 'generateSignatures' turned off) is never overwritten, undocumented
+-- fields gain none, and definitions merging several fields (e.g. via
+-- 'makeLensesFor') inherit nothing.
+--
 -- @
 -- 'makeLenses' = 'makeLensesWith' 'lensRules'
 -- @
@@ -357,6 +365,9 @@ makeLens = makeFieldOpticExp lensRules
 --   foo = id
 -- @
 --
+-- The class methods inherit their field's Haddock documentation, as with
+-- 'makeLenses'.
+--
 -- @
 -- 'makeClassy' = 'makeLensesWith' 'classyRules'
 -- @
@@ -399,6 +410,10 @@ makeClassyFor clsName funName fields = makeFieldOptics $
   classyRulesFor (const (Just (clsName, funName))) fields
 
 -- | Build lenses with a custom configuration.
+--
+-- Only 'TopName' definitions from the 'lensField' rule inherit Haddock
+-- documentation (see 'makeLenses'); 'MethodName' (field-class) definitions
+-- never do.
 makeLensesWith :: LensRules -> Name -> DecsQ
 makeLensesWith = makeFieldOptics
 
@@ -422,13 +437,16 @@ makeLensesWith = makeFieldOptics
 -- data Foo = Foo 'Int' 'Int' deriving 'Show'
 -- fooX, fooY :: 'Lens'' Foo Int
 -- @
+--
+-- Cannot inherit field documentation; see 'declareLensesWith'.
 declareLenses :: DecsQ -> DecsQ
 declareLenses
   = declareLensesWith
   $ lensRules
   & lensField .~ \_ _ n -> [TopName n]
 
--- | Similar to 'makeLensesFor', but takes a declaration quote.
+-- | Similar to 'makeLensesFor', but takes a declaration quote. Cannot
+-- inherit field documentation; see 'declareLensesWith'.
 declareLensesFor :: [(String, String)] -> DecsQ -> DecsQ
 declareLensesFor fields
   = declareLensesWith
@@ -457,13 +475,16 @@ declareLensesFor fields
 -- instance HasFoo Foo where foo = 'id'
 -- fooX, fooY :: HasFoo t => 'Lens'' t 'Int'
 -- @
+--
+-- Cannot inherit field documentation; see 'declareLensesWith'.
 declareClassy :: DecsQ -> DecsQ
 declareClassy
   = declareLensesWith
   $ classyRules
   & lensField .~ \_ _ n -> [TopName n]
 
--- | Similar to 'makeClassyFor', but takes a declaration quote.
+-- | Similar to 'makeClassyFor', but takes a declaration quote. Cannot
+-- inherit field documentation; see 'declareLensesWith'.
 declareClassyFor ::
   [(String, (String, String))] -> [(String, String)] -> DecsQ -> DecsQ
 declareClassyFor classes fields
@@ -489,6 +510,8 @@ declareClassyFor classes fields
 -- _Var :: 'Prism'' Exp String
 -- _Lambda :: 'Prism'' Exp (String, Exp)
 -- @
+--
+-- Cannot inherit constructor documentation; see 'declareLensesWith'.
 declarePrisms :: DecsQ -> DecsQ
 declarePrisms = declareWith $ \dec -> do
   emit =<< liftDeclare (makeDecPrisms True dec)
@@ -504,12 +527,18 @@ declareWrapped = declareWith $ \dec -> do
   return dec
 
 -- | @ declareFields = 'declareLensesWith' 'defaultFieldRules' @
+--
+-- Cannot inherit field documentation; see 'declareLensesWith'.
 declareFields :: DecsQ -> DecsQ
 declareFields = declareLensesWith defaultFieldRules
 
 -- | Declare lenses for each records in the given declarations, using the
 -- specified 'LensRules'. Any record syntax in the input will be stripped
 -- off.
+--
+-- Optics declared by the quote-based @declare@* variants cannot inherit
+-- Haddock documentation, because GHC does not retain documentation
+-- comments inside declaration quotes.
 declareLensesWith :: LensRules -> DecsQ -> DecsQ
 declareLensesWith rules = declareWith $ \dec -> do
   emit =<< lift (makeFieldOpticsForDec' rules dec)
@@ -849,6 +878,10 @@ abbreviatedNamer _ fields field = maybeToList $ do
 -- (e.g. @'makeLensesWith' ('camelCaseFields' & 'lensField' '%~'
 -- 'avoidKeywordsNamer')@) to append an underscore to such names instead.
 --
+-- The @Has@* class methods do /not/ inherit field documentation: the class
+-- can be shared by many types. This holds for every field-class rule; see
+-- 'makeLensesWith'.
+--
 -- @
 -- makeFields = 'makeLensesWith' 'defaultFieldRules'
 -- @
@@ -897,6 +930,8 @@ makeFields = makeFieldOptics camelCaseFields
 -- (e.g. @'makeLensesWith' ('classUnderscoreNoPrefixFields' & 'lensField' '%~'
 -- 'avoidKeywordsNamer')@) to append an underscore to such names instead.
 --
+-- The class methods do not inherit field documentation; see 'makeFields'.
+--
 -- @
 -- makeFieldsNoPrefix = 'makeLensesWith' 'classUnderscoreNoPrefixFields'
 -- @
@@ -932,6 +967,8 @@ makeFieldsNoPrefix = makeFieldOptics classUnderscoreNoPrefixFields
 -- instance HasY (Foo a) a where
 -- instance HasX Bar Char where
 -- @
+--
+-- The class methods do not inherit field documentation; see 'makeFields'.
 --
 -- @
 -- makeFieldsId = 'makeLensesWith' 'classIdFields'

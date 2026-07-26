@@ -1,5 +1,13 @@
 next [????.??.??]
 -----------------
+* On GHC 9.2 or later, when compiled with `-haddock`, the optics generated
+  by `makeLenses`, `makeClassy`, `makePrisms`, `makeClassyPrisms`, and the
+  other generators that reify a type by name now inherit the Haddock
+  documentation of the record field or data constructor they focus.
+  Existing documentation is never overwritten. Definitions merging several
+  fields, shared field-class methods (`makeFields` and relatives), and the
+  quote-based `declare*` variants inherit nothing; see the `makeLenses` and
+  `makeLensesWith` documentation for details.
 * Change `fromLens`, `fromIso`, and `fromPrism` in `Control.Lens.Profunctor` to
   accept the canonical monomorphic optic types `ALens`, `AnIso`, and `APrism`,
   matching `fromSetter`/`fromTraversal` which already take `ASetter`/`ATraversal`.

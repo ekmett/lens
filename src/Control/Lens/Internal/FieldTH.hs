@@ -380,8 +380,17 @@ makeFieldOptic rules (defName, (opticType, defType, cons)) = do
   locals <- get
   addName
   lift $ do cls <- mkCls locals
+            copyTopDocs
             T.sequenceA (cls ++ sig ++ def)
   where
+  docSources = [ f | (_, _, fields) <- cons, (Just f, _) <- fields ]
+
+  -- Shared field-class methods (MethodName) inherit nothing; makeClassy
+  -- methods arrive here as TopNames via makeClassyInstance.
+  copyTopDocs = case defName of
+                  TopName n    -> copyDocs docSources n
+                  MethodName{} -> return ()
+
   mkCls locals = case defName of
                  MethodName c n | _generateClasses rules ->
                   do classExists <- isJust <$> lookupTypeName (show c)
@@ -740,8 +749,10 @@ type FieldNamer = Name -- ^ Name of the data type that lenses are being generate
 
 -- | Name to give to generated field optics.
 data DefName
-  = TopName Name -- ^ Simple top-level definition name
-  | MethodName Name Name -- ^ makeFields-style class name and method name
+  = TopName Name -- ^ Simple top-level definition name; inherits the
+                 -- field's Haddock documentation.
+  | MethodName Name Name -- ^ makeFields-style class name and method name;
+                         -- never inherits field documentation.
   deriving (Show, Eq, Ord)
 
 -- | The optional rule to create a class and method around a
