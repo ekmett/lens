@@ -141,8 +141,8 @@ simpleLenses f r = fmap (\x -> r { _simpleLenses = x}) (f (_simpleLenses r))
 -- lenses.
 --
 -- Disabling this can be useful if you want to provide a more restricted type
--- signature or if you want to supply hand-written haddocks, which are
--- never overwritten by inherited field documentation (see 'makeLenses').
+-- signature or if you want to supply hand-written haddocks for individual
+-- optics.
 generateSignatures :: Lens' LensRules Bool
 generateSignatures f r =
   fmap (\x -> r { _generateSigs = x}) (f (_generateSigs r))
@@ -438,7 +438,7 @@ makeLensesWith = makeFieldOptics
 -- fooX, fooY :: 'Lens'' Foo Int
 -- @
 --
--- Cannot inherit field documentation; see 'declareLensesWith'.
+-- Cannot inherit field documentation; 'declareLensesWith' explains why.
 declareLenses :: DecsQ -> DecsQ
 declareLenses
   = declareLensesWith
@@ -446,7 +446,7 @@ declareLenses
   & lensField .~ \_ _ n -> [TopName n]
 
 -- | Similar to 'makeLensesFor', but takes a declaration quote. Cannot
--- inherit field documentation; see 'declareLensesWith'.
+-- inherit field documentation; 'declareLensesWith' explains why.
 declareLensesFor :: [(String, String)] -> DecsQ -> DecsQ
 declareLensesFor fields
   = declareLensesWith
@@ -476,7 +476,7 @@ declareLensesFor fields
 -- fooX, fooY :: HasFoo t => 'Lens'' t 'Int'
 -- @
 --
--- Cannot inherit field documentation; see 'declareLensesWith'.
+-- Cannot inherit field documentation; 'declareLensesWith' explains why.
 declareClassy :: DecsQ -> DecsQ
 declareClassy
   = declareLensesWith
@@ -484,7 +484,7 @@ declareClassy
   & lensField .~ \_ _ n -> [TopName n]
 
 -- | Similar to 'makeClassyFor', but takes a declaration quote. Cannot
--- inherit field documentation; see 'declareLensesWith'.
+-- inherit field documentation; 'declareLensesWith' explains why.
 declareClassyFor ::
   [(String, (String, String))] -> [(String, String)] -> DecsQ -> DecsQ
 declareClassyFor classes fields
@@ -511,7 +511,7 @@ declareClassyFor classes fields
 -- _Lambda :: 'Prism'' Exp (String, Exp)
 -- @
 --
--- Cannot inherit constructor documentation; see 'declareLensesWith'.
+-- Cannot inherit constructor documentation; 'declareLensesWith' explains why.
 declarePrisms :: DecsQ -> DecsQ
 declarePrisms = declareWith $ \dec -> do
   emit =<< liftDeclare (makeDecPrisms True dec)
@@ -528,7 +528,7 @@ declareWrapped = declareWith $ \dec -> do
 
 -- | @ declareFields = 'declareLensesWith' 'defaultFieldRules' @
 --
--- Cannot inherit field documentation; see 'declareLensesWith'.
+-- Cannot inherit field documentation; 'declareLensesWith' explains why.
 declareFields :: DecsQ -> DecsQ
 declareFields = declareLensesWith defaultFieldRules
 

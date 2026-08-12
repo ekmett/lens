@@ -27,7 +27,6 @@ import Control.Applicative
 import Control.Lens.Getter
 import Control.Lens.Internal.TH
 import Control.Lens.Lens
-import Control.Lens.Setter
 import Control.Monad
 import Data.Char (isUpper)
 import qualified Data.List as List
@@ -456,27 +455,26 @@ makeClassyPrismClass ::
 makeClassyPrismClass t className methodName cons =
   do r <- newName "r"
      let methodType = appsT (conT prism'TypeName) [varT r,return t]
-     methodss <- traverse (mkMethod r) (zip cons cons')
+     methodss <- traverse (mkMethod r) cons
      classD (cxt[]) className (D.plainTV r : vs) (fds r)
        ( sigD methodName methodType
        : map return (concat methodss)
        )
 
   where
-  -- srcCon carries the constructor's Name; con has it renamed to the method's
-  mkMethod r (srcCon, con) =
+  mkMethod r con =
     do Stab cx o _ _ _ b <- computeOpticType t cons con
-       let rTy   = VarT r
-           stab' = Stab cx o rTy rTy b b
-           defName = view nconName con
+       let rTy     = VarT r
+           stab'   = Stab cx o rTy rTy b b
+           conName = view nconName con
+           defName = prismName conName
            body    = appsE [varE composeValName, varE methodName, varE defName]
-       copyDocs [view nconName srcCon] defName
+       copyDocs [conName] defName
        sequenceA
          [ sigD defName        (return (stabToType (Set.fromList (r:vNames)) stab'))
          , valD (varP defName) (normalB body) []
          ]
 
-  cons'         = map (over nconName prismName) cons
   vs            = D.changeTVFlags bndrReq $ D.freeVariablesWellScoped [t]
   vNames        = map D.tvName vs
   fds r
