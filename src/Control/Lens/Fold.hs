@@ -47,6 +47,7 @@ module Control.Lens.Fold
   , (^..)
   , (^?)
   , (^?!)
+  , fromMaybeOf
   , pre, ipre
   , preview, previews, ipreview, ipreviews
   , preuse, preuses, ipreuse, ipreuses
@@ -1340,6 +1341,42 @@ s ^? l = getFirst (foldMapOf l (First #. Just) s)
 (^?!) :: HasCallStack => s -> Getting (Endo a) s a -> a
 s ^?! l = foldrOf l const (error "(^?!): empty Fold") s
 {-# INLINE (^?!) #-}
+
+-- | Perform a safe 'head' of a 'Fold' or 'Traversal', returning a default value
+-- if there are no targets.
+--
+-- This generalizes 'Data.Maybe.fromMaybe' to work on any 'Fold':
+--
+-- @
+-- 'Data.Maybe.fromMaybe' ≡ 'fromMaybeOf' 'traverse'
+-- 'fromMaybeOf' l def ≡ 'Data.Maybe.fromMaybe' def '.' 'preview' l
+-- @
+--
+-- >>> fromMaybeOf _Left 99 (Left 4)
+-- 4
+--
+-- >>> fromMaybeOf _Left 99 (Right "hello")
+-- 99
+--
+-- >>> fromMaybeOf traverse "default" Nothing
+-- "default"
+--
+-- >>> fromMaybeOf (_1 . traverse . traverse) "foobar" ([Nothing, Just "hello", Just "bye"], 3)
+-- "hello"
+--
+-- It may be helpful to think of 'fromMaybeOf' as having one of the following
+-- more specialized types:
+--
+-- @
+-- 'fromMaybeOf' :: 'Getter' s a     -> a -> s -> a
+-- 'fromMaybeOf' :: 'Fold' s a       -> a -> s -> a
+-- 'fromMaybeOf' :: 'Lens'' s a      -> a -> s -> a
+-- 'fromMaybeOf' :: 'Iso'' s a       -> a -> s -> a
+-- 'fromMaybeOf' :: 'Traversal'' s a -> a -> s -> a
+-- @
+fromMaybeOf :: Getting (Endo a) s a -> a -> s -> a
+fromMaybeOf l = foldrOf l const
+{-# INLINE fromMaybeOf #-}
 
 -- | Retrieve the 'First' entry of a 'Fold' or 'Traversal' or retrieve 'Just' the result
 -- from a 'Getter' or 'Lens'.

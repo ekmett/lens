@@ -1,5 +1,8 @@
 next [????.??.??]
 -----------------
+* Add `fromMaybeOf` to `Control.Lens.Fold`: return the first target of a
+  `Fold` or `Traversal`, or a caller-supplied default if there are none. This
+  generalizes `fromMaybe` to any `Fold`: `fromMaybe = fromMaybeOf traverse`.
 * On GHC 9.2 or later, when compiled with `-haddock`, the optics generated
   by `makeLenses`, `makeClassy`, `makePrisms`, `makeClassyPrisms`, and the
   other generators that reify a type by name now inherit the Haddock
