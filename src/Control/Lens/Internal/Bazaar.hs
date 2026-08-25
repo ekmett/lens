@@ -87,7 +87,7 @@ instance Conjoined p => IndexedComonad (Bazaar p) where
   {-# INLINE iduplicate #-}
 
 instance Corepresentable p => Sellable p (Bazaar p) where
-  sell = cotabulate $ \ w -> Bazaar $ tabulate $ \k -> pure (cosieve k w)
+  sell = cotabulate $ \ w -> Bazaar (`cosieve` w)
   {-# INLINE sell #-}
 
 instance Profunctor p => Bizarre p (Bazaar p) where
@@ -188,7 +188,7 @@ instance Apply (BazaarT p g a b) where
   {-# INLINE (<.) #-}
 
 instance Applicative (BazaarT p g a b) where
-  pure a = BazaarT $ tabulate $ \_ -> pure (pure a)
+  pure a = BazaarT $ \_ -> pure a
   {-# INLINE pure #-}
   BazaarT mf <*> BazaarT ma = BazaarT $ \ pafb -> mf pafb <*> ma pafb
   {-# INLINE (<*>) #-}
@@ -279,7 +279,7 @@ instance Conjoined p => IndexedComonad (Bazaar1 p) where
   {-# INLINE iduplicate #-}
 
 instance Corepresentable p => Sellable p (Bazaar1 p) where
-  sell = cotabulate $ \ w -> Bazaar1 $ tabulate $ \k -> pure (cosieve k w)
+  sell = cotabulate $ \ w -> Bazaar1 (`cosieve` w)
   {-# INLINE sell #-}
 
 instance Profunctor p => Bizarre1 p (Bazaar1 p) where

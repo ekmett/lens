@@ -167,15 +167,15 @@ instance IndexedComonadStore Context where
   {-# INLINE context #-}
 
 instance Functor (Context a b) where
-  fmap f (Context g t) = Context (f . g) t
+  fmap = ifmap
   {-# INLINE fmap #-}
 
 instance a ~ b => Comonad (Context a b) where
-  extract   (Context f a) = f a
+  extract = iextract
   {-# INLINE extract #-}
-  duplicate (Context f a) = Context (Context f) a
+  duplicate = iduplicate
   {-# INLINE duplicate #-}
-  extend g  (Context f a) = Context (g . Context f) a
+  extend = iextend
   {-# INLINE extend #-}
 
 instance a ~ b => ComonadStore a (Context a b) where
