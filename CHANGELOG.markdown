@@ -75,9 +75,8 @@ next [????.??.??]
   form — and add `images/Hierarchy.dot` as an editable Graphviz source for the
   diagram (regenerated via `scripts/hierarchy`).
 * Add `makeConstructors` to `Control.Lens.TH`: the `makePrisms` counterpart of
-  `makeFields`. Each constructor `Con` of a type `T` gets the optic `makePrisms`
-  would generate, as `_TCon`, and an instance of a per-constructor class
-  `AsCon s a | s -> a` with method `_Con :: Prism' s a`; the class is declared
+  `makeFields`. Each constructor `Con` gets a class `AsCon s a | s -> a` with
+  method `_Con :: Prism' s a` and an instance of it; the class is declared
   only if not already in scope, so types with same-named constructors share it.
 
 5.3.6 [2026.01.10]

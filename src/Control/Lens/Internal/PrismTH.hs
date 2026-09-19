@@ -191,12 +191,12 @@ makePrism conName =
 
 
 -- | Generate overloaded constructor prisms: the 'makePrisms' counterpart of
--- 'Control.Lens.TH.makeFields'. Each constructor gets a top-level optic
--- named after the type and the constructor, and a class named after the
--- constructor alone whose one method is the overloaded prism. The class is
--- declared only when no class of that name is in scope, so a later
--- invocation on another type with a same-named constructor just adds an
--- instance, and both types share the method.
+-- 'Control.Lens.TH.makeFields'. Each constructor @Con@ gets a class @AsCon@
+-- whose one method, @_Con@, is a simple prism onto its fields, and this
+-- type's instance of the class. The class is declared only when no class of
+-- that name is in scope, so a later invocation on another type with a
+-- same-named constructor just adds an instance, and both types share the
+-- method.
 --
 -- /e.g./
 --
@@ -208,16 +208,14 @@ makePrism conName =
 -- will create
 --
 -- @
--- _Type1One :: Prism' Type1 (Int, String)
--- _Type1Two :: Prism' Type1 String
 -- class AsOne s a | s -> a where
 --   _One :: Prism' s a
 -- instance AsOne Type1 (Int, String) where
---   _One = _Type1One
+--   _One = prism ...
 -- class AsTwo s a | s -> a where
 --   _Two :: Prism' s a
 -- instance AsTwo Type1 String where
---   _Two = _Type1Two
+--   _Two = prism ...
 -- @
 --
 -- and then, anywhere @AsOne@ is in scope,
@@ -230,27 +228,22 @@ makePrism conName =
 -- will create
 --
 -- @
--- _Type2One :: Prism' Type2 Double
--- _Type2More :: Prism' Type2 Int
 -- instance AsOne Type2 Double where
---   _One = _Type2One
+--   _One = prism ...
 -- class AsMore s a | s -> a where
 --   _More :: Prism' s a
 -- instance AsMore Type2 Int where
---   _More = _Type2More
+--   _More = prism ...
 -- @
 --
--- The top-level optics are exactly those of 'makePrisms' — an @Iso@ for a
--- lone constructor, a @Review@ for an existentially quantified one,
--- type-changing where possible — under longer names; the class methods are
--- always simple prisms. The methods take the @_Con@ names 'makePrisms' would
+-- The methods are always simple prisms, even for a lone constructor or one
+-- whose fields could change type, where 'makePrisms' would give an @Iso@ or
+-- a type-changing @Prism@. They take the @_Con@ names 'makePrisms' would
 -- use, so apply one generator or the other to a given type, not both.
 --
--- Only the top-level optic, with no class or instance, is generated for
--- existentially quantified constructors, whose payload type the functional
--- dependency could not determine, and for operator-named types or
--- constructors, which cannot form the @AsCon@ and @_TypeCon@ identifiers
--- (such optics are named as by 'makePrisms').
+-- Nothing is generated for an existentially quantified constructor, whose
+-- payload type the functional dependency could not determine, or for an
+-- operator-named constructor, which cannot form the @AsCon@ identifier.
 --
 -- Class sharing is by name: @AsCon@ and @_Con@ must be in scope unqualified,
 -- and whatever is already named @AsCon@ gets the instance. A payload type
@@ -258,8 +251,8 @@ makePrism conName =
 -- instance head, as 'Control.Lens.TH.makeFields' does; such an instance needs
 -- @UndecidableInstances@ at the splice site.
 --
--- The top-level optics inherit their constructor's Haddock documentation,
--- as with 'makePrisms'; the shared class methods inherit nothing.
+-- The methods inherit no constructor documentation, being shared between
+-- types.
 makeConstructors :: Name {- ^ Type constructor name -} -> DecsQ
 makeConstructors typeName =
   do info <- D.reifyDatatype typeName
@@ -267,40 +260,31 @@ makeConstructors typeName =
          cons = map normalizeCon (D.datatypeCons info)
      -- Constructor names are unique within a module, so unlike makeFields no
      -- bookkeeping is needed to avoid declaring a class twice per splice.
-     fmap concat (for cons (makeConstructorDecs t (D.datatypeName info) cons))
+     fmap concat (for cons (makeConstructorDecs t cons))
 
 
--- | The top-level optic for one constructor and, when it admits an
--- overloaded @Prism'@, its class (unless already in scope) and this type's
--- instance of it.
-makeConstructorDecs :: Type -> Name -> [NCon] -> NCon -> DecsQ
-makeConstructorDecs t typeName cons con =
+-- | The class of one constructor, unless already in scope, and this type's
+-- instance of it; nothing for a constructor that admits no overloaded
+-- @Prism'@.
+makeConstructorDecs :: Type -> [NCon] -> NCon -> DecsQ
+makeConstructorDecs t cons con =
   do stab <- computeOpticType t cons con
-     let conName  = view nconName con
-         overload = isPrefixName typeName && isPrefixName conName
-         defName | overload  = mkName ('_' : nameBase typeName ++ nameBase conName)
-                 | otherwise = prismName conName
-     -- the lone-constructor Iso special case of 'makeConsPrisms' (stab still
-     -- decides the class below)
-     topLevel <- case cons of
-                   [NCon _ [] [] _] -> makeConIso defName t con
-                   _                -> makeConOptic defName stab cons con
-     overloaded <-
-       case stabType stab of
-         PrismType | overload ->
-           do let Stab cx _ _ _ _ b = stab -- b: the tuple of field types
-                  methodName = prismName conName
-                  clsBase    = "As" ++ nameBase conName
-              mcls <- lookupTypeName clsBase
-              let className = fromMaybe (mkName clsBase) mcls
-              sequenceA
-                ( [ makeConstructorClass className methodName | isNothing mcls ]
-                ++ [ makeClassInstance cx className t b
-                       (valD (varP methodName) (normalB (varE defName)) []
-                        : inlinePragma methodName) ]
-                )
-         _ -> return []
-     return (topLevel ++ overloaded)
+     let conName = view nconName con
+     case stabType stab of
+       PrismType | isPrefixName conName ->
+         do let Stab cx _ _ _ _ b = stab -- b: the tuple of field types
+                methodName = prismName conName
+                clsBase    = "As" ++ nameBase conName
+            mcls <- lookupTypeName clsBase
+            let className = fromMaybe (mkName clsBase) mcls
+            sequenceA
+              ( [ makeConstructorClass className methodName | isNothing mcls ]
+              ++ [ makeClassInstance cx className t b
+                     ( valD (varP methodName)
+                            (normalB (makeConOpticExp stab cons con)) []
+                     : inlinePragma methodName ) ]
+              )
+       _ -> return []
 
 
 -- | @class AsCon s a | s -> a where _Con :: Prism' s a@
@@ -322,14 +306,21 @@ makeConsPrisms :: Type -> [NCon] -> Maybe Name -> DecsQ
 -- special case: single constructor, not classy -> make iso
 -- ('makePrism' has the corresponding single-constructor Iso case; keep the two
 -- in sync.)
-makeConsPrisms t [con@(NCon _ [] [] _)] Nothing =
-  makeConIso (prismName (view nconName con)) t con
+makeConsPrisms t [con@(NCon _ [] [] _)] Nothing = makeConIso t con
 
 -- top-level definitions
 makeConsPrisms t cons Nothing =
   fmap concat $ for cons $ \con ->
-    do stab <- computeOpticType t cons con
-       makeConOptic (prismName (view nconName con)) stab cons con
+    do let conName = view nconName con
+       stab <- computeOpticType t cons con
+       let n = prismName conName
+       copyDocs [conName] n
+       sequenceA
+         ( [ sigD n (return (quantifyType [] (stabToType Set.empty stab)))
+           , valD (varP n) (normalB (makeConOpticExp stab cons con)) []
+           ]
+           ++ inlinePragma n
+         )
 
 
 -- classy prism class and instance
@@ -423,23 +414,11 @@ makeConOpticExp stab cons con =
     ReviewType -> makeConReviewExp con
 
 
--- | Declare the optic for one constructor under the given name, inheriting
--- the constructor's documentation.
-makeConOptic :: Name -> Stab -> [NCon] -> NCon -> DecsQ
-makeConOptic n stab cons con =
-  do copyDocs [view nconName con] n
-     sequenceA
-       ( [ sigD n (return (quantifyType [] (stabToType Set.empty stab)))
-         , valD (varP n) (normalB (makeConOpticExp stab cons con)) []
-         ]
-         ++ inlinePragma n
-       )
-
-
--- | Declare the iso for a lone constructor under the given name.
-makeConIso :: Name -> Type -> NCon -> DecsQ
-makeConIso defName s con =
-  do let ty = computeIsoType s (view nconTypes con)
+-- | Construct an iso declaration
+makeConIso :: Type -> NCon -> DecsQ
+makeConIso s con =
+  do let ty      = computeIsoType s (view nconTypes con)
+         defName = prismName (view nconName con)
      copyDocs [view nconName con] defName
      sequenceA
        ( [ sigD       defName  ty

@@ -628,14 +628,9 @@ checkT934OneHere = _T934One
 checkT934OneThere :: Prism' T934 (Int, String)
 checkT934OneThere = _T934One
 
-checkT934OneTop :: Prism' (T934Other a) Double
-checkT934OneTop = _T934OtherT934One
-
+-- A constructor whose field could change type still gets a simple prism
 checkT934Poly :: Prism' (T934Other a) a
 checkT934Poly = _T934Poly
-
-checkT934PolyTop :: Prism (T934Other a) (T934Other b) a b
-checkT934PolyTop = _T934OtherT934Poly
 
 -- Nullary and record constructors; a type sharing its constructor's name
 data T934Rec = T934Nil | T934Rec { _t934Field :: Int, _t934Flag :: Bool }
@@ -647,24 +642,15 @@ checkT934Nil = _T934Nil
 checkT934Rec :: Prism' T934Rec (Int, Bool)
 checkT934Rec = _T934Rec
 
-checkT934RecTop :: Prism' T934Rec (Int, Bool)
-checkT934RecTop = _T934RecT934Rec
-
--- A lone constructor gets an Iso, as with makePrisms
+-- A lone constructor gets a prism, not the Iso makePrisms would make
 newtype T934Lone a = T934Lone a
 makeConstructors ''T934Lone
-
-checkT934LoneIso :: Iso (T934Lone a) (T934Lone b) a b
-checkT934LoneIso = _T934LoneT934Lone
 
 checkT934Lone :: Prism' (T934Lone a) a
 checkT934Lone = _T934Lone
 
 data T934Pair a b = T934Pair a b
 makeConstructors ''T934Pair
-
-checkT934PairIso :: Iso (T934Pair a b) (T934Pair a' b') (a, b) (a', b')
-checkT934PairIso = _T934PairT934Pair
 
 checkT934Pair :: Prism' (T934Pair a b) (a, b)
 checkT934Pair = _T934Pair
@@ -687,9 +673,8 @@ makeConstructors ''T934TF
 checkT934TF :: Prism' (T934TF a) (T934Fam a)
 checkT934TF = _T934TF
 
--- Existential and operator constructors, and operator-named types, get their
--- top-level optic only; the classes declared below would clash with
--- generated ones.
+-- Existential and operator constructors get nothing: the classes declared
+-- below would clash with generated ones.
 data T934Edge where
   T934Ex    :: a -> T934Edge
   (:+++)    :: Int -> Int -> T934Edge
@@ -697,22 +682,16 @@ data T934Edge where
 makeConstructors ''T934Edge
 
 class AsT934Ex s a | s -> a
-
-checkT934Ex :: Review T934Edge a
-checkT934Ex = _T934EdgeT934Ex
-
-checkT934Op :: Prism' T934Edge (Int, Int)
-checkT934Op = (.:+++)
+class As s a | s -> a
 
 checkT934Plain :: AsT934Plain t a => Prism' t a
 checkT934Plain = _T934Plain
 
+-- An operator-named type is fine; only the constructor names matter
 data a :+++: b = T934InL a | T934InR b
 makeConstructors ''(:+++:)
 
-class AsT934InL s a | s -> a
-
-checkT934InL :: Prism (a :+++: b) (a' :+++: b) a a'
+checkT934InL :: Prism' (a :+++: b) a
 checkT934InL = _T934InL
 
 main :: IO ()
