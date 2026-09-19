@@ -34,6 +34,7 @@ import BigRecord ()
 import T799 ()
 import T917 ()
 import T934 (T934, AsT934One (..))
+import qualified T934
 import T972 ()
 
 data Bar a b c = Bar { _baz :: (a, b) }
@@ -693,6 +694,18 @@ makeConstructors ''(:+++:)
 
 checkT934InL :: Prism' (a :+++: b) a
 checkT934InL = _T934InL
+
+-- Two splices in one module: the class the first declares is reused by the
+-- second, for a type from a qualified import
+data T934Near = T934Shared Bool | T934NearOther
+makeConstructors ''T934Near
+makeConstructors ''T934.T934Far
+
+checkT934SharedNear :: Prism' T934Near Bool
+checkT934SharedNear = _T934Shared
+
+checkT934SharedFar :: Prism' T934.T934Far Int
+checkT934SharedFar = _T934Shared
 
 main :: IO ()
 main = putStrLn "test/templates.hs: ok"

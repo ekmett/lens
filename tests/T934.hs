@@ -17,3 +17,7 @@ checkT934One = _T934One
 
 checkT934Two :: AsT934Two t a => Prism' t a
 checkT934Two = _T934Two
+
+-- | No splice here: templates.hs applies 'makeConstructors' to this type
+-- after a type of its own with a constructor of the same name.
+data T934Far = T934Shared Int | T934FarOther
