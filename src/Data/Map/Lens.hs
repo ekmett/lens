@@ -49,6 +49,20 @@
 -- >>> preview (ix 8) $ Map.empty
 -- Nothing
 --
+-- Note that the strict and lazy @Data.Map@ modules share a single
+-- 'Data.Map.Map' type, so these optics cannot tell which one you imported:
+-- @at@, @ix@ and @(.~)@ store values lazily and may leave an unevaluated thunk
+-- in a map you meant to keep strict (the same goes for strict @HashMap@s). To
+-- store a value forced to weak head normal form, use the strict @at'@ from
+-- "Control.Lens.At". Because @ix k@ is @at k . 'Data.Traversable.traverse'@, the
+-- strict, present-key-only counterpart of @ix k .~ v@ is @at' k . traverse@:
+--
+-- >>> Map.fromList [(1, "Earth")] & at' 1 . traverse .~ "Venus"
+-- fromList [(1,"Venus")]
+--
+-- The @(!~)@ setter from "Control.Lens.Setter" is strict too, but (unlike
+-- @at' k . traverse@) forces its argument even when there is no target.
+--
 -- Additionally, 'Data.Map.Map' has 'Control.Lens.Traversal.TraverseMin' and
 -- 'Control.Lens.Traversal.TraverseMax' instances, which let us traverse over
 -- the value at the least and greatest keys, respectively.

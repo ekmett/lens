@@ -30,6 +30,7 @@ module Control.Lens.At
   (
   -- * At
     At(at)
+    , at'
     , sans
     , iat
   -- * Ixed
@@ -474,6 +475,23 @@ class Ixed m => At m where
   -- /Note:/ 'Map'-like containers form a reasonable instance, but not 'Array'-like ones, where
   -- you cannot satisfy the 'Lens' laws.
   at :: Index m -> Lens' m (Maybe (IxValue m))
+
+-- | A strict version of 'at': the value inside the resulting 'Just' is forced
+-- to weak head normal form when set. Unlike 'at', this will not stash an
+-- unevaluated thunk in a strict container such as a 'Data.Map.Strict.Map'.
+--
+-- It otherwise behaves exactly like 'at':
+--
+-- >>> Map.fromList [(1,"world")] ^. at' 1
+-- Just "world"
+--
+-- >>> at' 1 ?~ "hello" $ Map.empty
+-- fromList [(1,"hello")]
+at' :: At m => Index m -> Lens' m (Maybe (IxValue m))
+at' i f = at i (fmap forceJust . f)
+  where forceJust (Just a) = Just $! a
+        forceJust Nothing  = Nothing
+{-# INLINE at' #-}
 
 -- | Delete the value associated with a key in a 'Map'-like container
 --

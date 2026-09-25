@@ -128,6 +128,7 @@ module Control.Lens.Operators
   -- * "Control.Lens.Setter"
   , (%~)
   , (.~)
+  , (!~)
   , (?~)
   , (<.~)
   , (<?~)
