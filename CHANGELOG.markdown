@@ -1,5 +1,11 @@
 next [????.??.??]
 -----------------
+* Add `bimapped` to `Control.Lens.Setter`: a `Setter` that maps over both
+  parameters of a `Bifunctor` with the same function. Unlike `both`, it
+  requires only `Bifunctor` rather than `Bitraversable`.
+* Add `setterUnion` to `Control.Lens.Unsound`: apply the same function through
+  two `ASetter`s. Only a lawful `Setter` when the two setters touch disjoint
+  parts of the structure.
 * Add `fromMaybeOf` to `Control.Lens.Fold`: return the first target of a
   `Fold` or `Traversal`, or a caller-supplied default if there are none. This
   generalizes `fromMaybe` to any `Fold`: `fromMaybe = fromMaybeOf traverse`.

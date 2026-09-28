@@ -28,6 +28,7 @@ module Control.Lens.Unsound
     lensProduct
   , prismSum
   , adjoin
+  , setterUnion
   ) where
 
 import Control.Lens
@@ -99,3 +100,49 @@ prismSum k k' =
 adjoin :: Traversal' s a -> Traversal' s a -> Traversal' s a
 adjoin t1 t2 =
     lensProduct (partsOf t1) (partsOf t2) . both . each
+
+-- | A union of setters: apply the same function through both of them.
+--
+-- Unlike `adjoin`, this needs only 'ASetter's, so it reaches targets that
+-- cannot be traversed. In exchange the result is write-only: unlike `adjoin`
+-- there is nothing to read back through.
+--
+-- Result is only a valid t'Setter' if the input setters touch disjoint parts of
+-- the structure. Otherwise the composition law
+--
+-- @
+-- 'Control.Lens.Setter.over' l f '.' 'Control.Lens.Setter.over' l g ≡ 'Control.Lens.Setter.over' l (f '.' g)
+-- @
+--
+-- is violated, because @f@ is applied once per setter on the left but the
+-- composite is applied once per setter on the right:
+--
+-- >>> let badSetter :: Setter' Int Int; badSetter = setterUnion id id
+-- >>> over badSetter (+1) (over badSetter (*2) 1)
+-- 6
+--
+-- >>> over badSetter ((+1) . (*2)) 1
+-- 7
+--
+-- On disjoint setters it behaves as expected:
+--
+-- >>> let (f, _, g) = over (setterUnion (_1 . mapped) (_3 . mapped)) (*2) ((+1), 'x', (+10))
+-- >>> (f 1, g 1)
+-- (4,22)
+--
+-- The second setter runs first, and the structure it produces is what the first
+-- setter consumes, so the two may change the type in sequence:
+--
+-- >>> over (setterUnion _2 _1) show (1 :: Int, 2 :: Int)
+-- ("1","2")
+--
+-- @
+-- 'setterUnion' :: 'Setter'' s a -> 'Setter'' s a -> 'Setter'' s a
+-- @
+--
+-- Are you looking for 'Control.Lens.Setter.bimapped' or
+-- 'Control.Lens.Traversal.both'?
+--
+setterUnion :: ASetter x o a b -> ASetter i x a b -> IndexPreservingSetter i o a b
+setterUnion l1 l2 = setting (\f -> over l1 f . over l2 f)
+{-# INLINE setterUnion #-}

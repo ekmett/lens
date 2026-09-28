@@ -897,6 +897,9 @@ instance Monoid m => Applicative (Holes t m) where
 -- >>> ("hello","world")^.both
 -- "helloworld"
 --
+-- For a container that is only a 'Data.Bifunctor.Bifunctor', use
+-- 'Control.Lens.Setter.bimapped'.
+--
 -- @
 -- 'both' :: 'Traversal' (a, a)       (b, b)       a b
 -- 'both' :: 'Traversal' ('Either' a a) ('Either' b b) a b
