@@ -33,6 +33,7 @@ module Control.Lens.Internal.FieldTH
   , makeFieldOpticsForDec
   , makeFieldOpticsForDec'
   , makeFieldOpticExp
+  , makeClassInstance
   , HasFieldClasses
   ) where
 
@@ -410,7 +411,7 @@ makeFieldOptic rules (defName, (opticType, defType, cons)) = do
 
   def = case defName of
           TopName n      -> fun n
-          MethodName c n -> [makeFieldInstance defType c (fun n)]
+          MethodName c n -> [makeClassInstance [] c (stabToS defType) (stabToA defType) (fun n)]
 
   clauses = makeFieldClauses rules opticType cons
 
@@ -503,44 +504,41 @@ makeFieldClass defType className methodName =
   s = mkName "s"
   a = mkName "a"
 
--- | Build an instance for a field. If the field’s type contains any type
--- families, will produce an equality constraint to avoid a type family
--- application in the instance head.
-makeFieldInstance :: OpticStab -> Name -> [DecQ] -> DecQ
-makeFieldInstance defType className decs =
-  containsTypeFamilies a >>= pickInstanceDec
+-- | Build the instance @cx => className s a@ of a field or constructor
+-- class. If @a@ contains any type families, a fresh variable takes its place
+-- in the instance head, pinned by an equality constraint, to avoid a type
+-- family application there; such an instance passes only the liberal
+-- coverage condition, so its splice site needs @UndecidableInstances@.
+makeClassInstance :: Cxt -> Name -> Type -> Type -> [DecQ] -> DecQ
+makeClassInstance cx className s a decs =
+  do hasFamilies <- containsTypeFamilies a
+     (extra, a') <-
+       if hasFamilies
+         then do placeholder <- VarT <$> newName "a"
+                 return ([D.equalPred placeholder a], placeholder)
+         else return ([], a)
+     instanceD (cxt (map return (cx ++ extra)))
+               (return (className `conAppsT` [s, a']))
+               decs
+
+-- | Whether a type mentions a type family, but not a /data/ family. See #799.
+containsTypeFamilies :: Type -> Q Bool
+containsTypeFamilies = go <=< D.resolveTypeSynonyms
   where
-  s = stabToS defType
-  a = stabToA defType
+  go :: Type -> Q Bool
+  go (ConT nm) =
+    -- Note that the call to `reify` can fail if `nm` is not yet defined.
+    -- (This can actually happen if `nm` is declared in a Template Haskell
+    -- quote.) If this fails, there is no way to tell if the type contains
+    -- type families, so we recover and conservatively assume that is does not
+    -- contain any.
+    recover
+      (pure False)
+      (has (_FamilyI . _1 . _TypeFamilyD) <$> reify nm)
+  go ty = or <$> traverse go (ty ^.. plate)
 
-  containsTypeFamilies = go <=< D.resolveTypeSynonyms
-    where
-    go :: Type -> Q Bool
-    go (ConT nm) =
-      -- Note that the call to `reify` can fail if `nm` is not yet defined.
-      -- (This can actually happen if `nm` is declared in a Template Haskell
-      -- quote.) If this fails, there is no way to tell if the type contains
-      -- type families, so we recover and conservatively assume that is does not
-      -- contain any.
-      recover
-        (pure False)
-        (has (_FamilyI . _1 . _TypeFamilyD) <$> reify nm)
-    go ty = or <$> traverse go (ty ^.. plate)
-
-    -- We want to catch type families, but not *data* families. See #799.
-    _TypeFamilyD :: Getting Any Dec ()
-    _TypeFamilyD = _OpenTypeFamilyD.united <> _ClosedTypeFamilyD.united
-
-  pickInstanceDec hasFamilies
-    | hasFamilies = do
-        placeholder <- VarT <$> newName "a"
-        mkInstanceDec
-          [return (D.equalPred placeholder a)]
-          [s, placeholder]
-    | otherwise = mkInstanceDec [] [s, a]
-
-  mkInstanceDec context headTys =
-    instanceD (cxt context) (return (className `conAppsT` headTys)) decs
+  _TypeFamilyD :: Getting Any Dec ()
+  _TypeFamilyD = _OpenTypeFamilyD.united <> _ClosedTypeFamilyD.united
 
 ------------------------------------------------------------------------
 -- Optic clause generators

@@ -337,6 +337,7 @@ test-suite templates
     BigRecord
     T799
     T917
+    T934
     T972
   if impl(ghc >= 9.2)
     other-modules:

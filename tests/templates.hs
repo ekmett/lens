@@ -33,6 +33,8 @@ import Language.Haskell.TH (recover)
 import BigRecord ()
 import T799 ()
 import T917 ()
+import T934 (T934, AsT934One (..))
+import qualified T934
 import T972 ()
 
 data Bar a b c = Bar { _baz :: (a, b) }
@@ -611,6 +613,99 @@ oneOffWrap = $(makePrism 'MkT997A)
 -- ...and a 'Review' for an existentially quantified constructor.
 oneOffReview :: Review ReviewTest a
 oneOffReview = $(makePrism 'ReviewTest)
+
+-- 'makeConstructors' (#934): overloaded constructor prisms. T934One is also a
+-- constructor of T934.T934, whose AsT934One class is in scope and is reused
+-- rather than redeclared.
+data T934Other a = T934One Double | T934Poly a
+makeConstructors ''T934Other
+
+checkT934OneShared :: AsT934One t a => Prism' t a
+checkT934OneShared = _T934One
+
+checkT934OneHere :: Prism' (T934Other a) Double
+checkT934OneHere = _T934One
+
+checkT934OneThere :: Prism' T934 (Int, String)
+checkT934OneThere = _T934One
+
+-- A constructor whose field could change type still gets a simple prism
+checkT934Poly :: Prism' (T934Other a) a
+checkT934Poly = _T934Poly
+
+-- Nullary and record constructors; a type sharing its constructor's name
+data T934Rec = T934Nil | T934Rec { _t934Field :: Int, _t934Flag :: Bool }
+makeConstructors ''T934Rec
+
+checkT934Nil :: Prism' T934Rec ()
+checkT934Nil = _T934Nil
+
+checkT934Rec :: Prism' T934Rec (Int, Bool)
+checkT934Rec = _T934Rec
+
+-- A lone constructor gets a prism, not the Iso makePrisms would make
+newtype T934Lone a = T934Lone a
+makeConstructors ''T934Lone
+
+checkT934Lone :: Prism' (T934Lone a) a
+checkT934Lone = _T934Lone
+
+data T934Pair a b = T934Pair a b
+makeConstructors ''T934Pair
+
+checkT934Pair :: Prism' (T934Pair a b) (a, b)
+checkT934Pair = _T934Pair
+
+-- A GADT constructor's equality refinement goes on its instance
+data T934G a where
+  T934GI :: Int -> T934G Int
+  T934GA :: a -> T934G a
+makeConstructors ''T934G
+
+checkT934GI :: Prism' (T934G Int) Int
+checkT934GI = _T934GI
+
+-- A type-family payload is hidden behind an equality constraint in the
+-- instance head, as makeFields does (#799)
+type family T934Fam a
+data T934TF a = T934TF (T934Fam a) | T934TFOther
+makeConstructors ''T934TF
+
+checkT934TF :: Prism' (T934TF a) (T934Fam a)
+checkT934TF = _T934TF
+
+-- Existential and operator constructors get nothing: the classes declared
+-- below would clash with generated ones.
+data T934Edge where
+  T934Ex    :: a -> T934Edge
+  (:+++)    :: Int -> Int -> T934Edge
+  T934Plain :: Bool -> T934Edge
+makeConstructors ''T934Edge
+
+class AsT934Ex s a | s -> a
+class As s a | s -> a
+
+checkT934Plain :: AsT934Plain t a => Prism' t a
+checkT934Plain = _T934Plain
+
+-- An operator-named type is fine; only the constructor names matter
+data a :+++: b = T934InL a | T934InR b
+makeConstructors ''(:+++:)
+
+checkT934InL :: Prism' (a :+++: b) a
+checkT934InL = _T934InL
+
+-- Two splices in one module: the class the first declares is reused by the
+-- second, for a type from a qualified import
+data T934Near = T934Shared Bool | T934NearOther
+makeConstructors ''T934Near
+makeConstructors ''T934.T934Far
+
+checkT934SharedNear :: Prism' T934Near Bool
+checkT934SharedNear = _T934Shared
+
+checkT934SharedFar :: Prism' T934.T934Far Int
+checkT934SharedFar = _T934Shared
 
 main :: IO ()
 main = putStrLn "test/templates.hs: ok"

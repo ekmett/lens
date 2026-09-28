@@ -19,17 +19,20 @@
 module Control.Lens.Internal.PrismTH
   ( makePrisms
   , makeClassyPrisms
+  , makeConstructors
   , makeDecPrisms
   , makePrism
   ) where
 
 import Control.Applicative
 import Control.Lens.Getter
+import Control.Lens.Internal.FieldTH (makeClassInstance)
 import Control.Lens.Internal.TH
 import Control.Lens.Lens
 import Control.Monad
 import Data.Char (isUpper)
 import qualified Data.List as List
+import Data.Maybe (fromMaybe, isNothing)
 import Data.Set.Lens
 import Data.Traversable
 import Language.Haskell.TH
@@ -185,6 +188,113 @@ makePrism conName =
               Nothing  -> fail $ "makePrism: " ++ nameBase conName
                               ++ " is not a data constructor of "
                               ++ nameBase (D.datatypeName info)
+
+
+-- | Generate overloaded constructor prisms: the 'makePrisms' counterpart of
+-- 'Control.Lens.TH.makeFields'. Each constructor @Con@ gets a class @AsCon@
+-- whose one method, @_Con@, is a simple prism onto its fields, and this
+-- type's instance of the class. The class is declared only when no class of
+-- that name is in scope, so a later invocation on another type with a
+-- same-named constructor just adds an instance, and both types share the
+-- method.
+--
+-- /e.g./
+--
+-- @
+-- data Type1 = One Int String | Two String
+-- makeConstructors ''Type1
+-- @
+--
+-- will create
+--
+-- @
+-- class AsOne s a | s -> a where
+--   _One :: Prism' s a
+-- instance AsOne Type1 (Int, String) where
+--   _One = prism ...
+-- class AsTwo s a | s -> a where
+--   _Two :: Prism' s a
+-- instance AsTwo Type1 String where
+--   _Two = prism ...
+-- @
+--
+-- and then, anywhere @AsOne@ is in scope,
+--
+-- @
+-- data Type2 = One Double | More Int
+-- makeConstructors ''Type2
+-- @
+--
+-- will create
+--
+-- @
+-- instance AsOne Type2 Double where
+--   _One = prism ...
+-- class AsMore s a | s -> a where
+--   _More :: Prism' s a
+-- instance AsMore Type2 Int where
+--   _More = prism ...
+-- @
+--
+-- The methods are always simple prisms, even for a lone constructor or one
+-- whose fields could change type, where 'makePrisms' would give an @Iso@ or
+-- a type-changing @Prism@. They take the @_Con@ names 'makePrisms' would
+-- use, so apply one generator or the other to a given type, not both.
+--
+-- Nothing is generated for an existentially quantified constructor, whose
+-- payload type the functional dependency could not determine, or for an
+-- operator-named constructor, which cannot form the @AsCon@ identifier.
+--
+-- Class sharing is by name: @AsCon@ and @_Con@ must be in scope unqualified,
+-- and whatever is already named @AsCon@ gets the instance. A payload type
+-- mentioning a type family is hidden behind an equality constraint in the
+-- instance head, as 'Control.Lens.TH.makeFields' does; such an instance needs
+-- @UndecidableInstances@ at the splice site.
+--
+-- The methods inherit no constructor documentation, being shared between
+-- types.
+makeConstructors :: Name {- ^ Type constructor name -} -> DecsQ
+makeConstructors typeName =
+  do info <- D.reifyDatatype typeName
+     let t    = datatypeTypeKinded info
+         cons = map normalizeCon (D.datatypeCons info)
+     -- Constructor names are unique within a module, so unlike makeFields no
+     -- bookkeeping is needed to avoid declaring a class twice per splice.
+     fmap concat (for cons (makeConstructorDecs t cons))
+
+
+-- | The class of one constructor, unless already in scope, and this type's
+-- instance of it; nothing for a constructor that admits no overloaded
+-- @Prism'@.
+makeConstructorDecs :: Type -> [NCon] -> NCon -> DecsQ
+makeConstructorDecs t cons con =
+  do stab <- computeOpticType t cons con
+     let conName = view nconName con
+     case stabType stab of
+       PrismType | isPrefixName conName ->
+         do let Stab cx _ _ _ _ b = stab -- b: the tuple of field types
+                methodName = prismName conName
+                clsBase    = "As" ++ nameBase conName
+            mcls <- lookupTypeName clsBase
+            let className = fromMaybe (mkName clsBase) mcls
+            sequenceA
+              ( [ makeConstructorClass className methodName | isNothing mcls ]
+              ++ [ makeClassInstance cx className t b
+                     ( valD (varP methodName)
+                            (normalB (makeConOpticExp stab cons con)) []
+                     : inlinePragma methodName ) ]
+              )
+       _ -> return []
+
+
+-- | @class AsCon s a | s -> a where _Con :: Prism' s a@
+makeConstructorClass :: Name -> Name -> DecQ
+makeConstructorClass className methodName =
+  classD (cxt []) className [D.plainTV s, D.plainTV a] [FunDep [s] [a]]
+    [sigD methodName (return (prism'TypeName `conAppsT` [VarT s, VarT a]))]
+  where
+  s = mkName "s"
+  a = mkName "a"
 
 
 -- | Generate prisms for the given type, normalized constructors, and
@@ -570,12 +680,18 @@ prismName' ::
   Bool {- ^ overlapping constructor -} ->
   Name {- ^ type constructor        -} ->
   Name {- ^ prism name              -}
-prismName' sameNameAsCon n =
-  case nameBase n of
-    [] -> error "prismName: empty name base?"
-    nb@(x:_) | isUpper x -> mkName (prefix '_' nb)
-             | otherwise -> mkName (prefix '.' nb) -- operator
+prismName' sameNameAsCon n
+  | null nb        = error "prismName: empty name base?"
+  | isPrefixName n = mkName (prefix '_' nb)
+  | otherwise      = mkName (prefix '.' nb) -- operator
   where
+    nb = nameBase n
     prefix :: Char -> String -> String
     prefix char str | sameNameAsCon = char:char:str
                     | otherwise     =      char:str
+
+-- | Whether a name is spelled as an identifier rather than an operator.
+isPrefixName :: Name -> Bool
+isPrefixName n = case nameBase n of
+                   c:_ -> isUpper c
+                   []  -> False
