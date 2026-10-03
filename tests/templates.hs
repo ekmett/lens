@@ -499,22 +499,17 @@ makeLensesWith (lensRules & lensField %~ avoidNamesNamer recursiveDoKeywords) ''
 checkAvoidNames :: Lens' CheckAvoidNames Int
 checkAvoidNames = mdo_
 
+-- TransformListComp and StaticPointers are on in this module, yet generated
+-- optics may still be named by, using and static (#762).
+data T762Ext = T762Ext { _t762By :: Int, _t762Using :: Int, _t762Static :: Int }
+makeLensesFor
+  [("_t762By", "by"), ("_t762Using", "using"), ("_t762Static", "static")]
+  ''T762Ext
+
 -- The keyword check fails early in Q, so it is recoverable; GHC's own
 -- "Illegal variable name" error during splicing would not be (#762).
 data T762 = T762 { _t762Type :: Int }
 $(recover (pure []) (makeFields ''T762))
-
-#if MIN_VERSION_template_haskell(2,12,0)
--- Extension-sensitive keyword checks are recoverable too.
-data T762By = T762By { _t762By :: Int }
-$(recover (pure []) (makeLensesFor [("_t762By", "by")] ''T762By))
-
-data T762Using = T762Using { _t762Using :: Int }
-$(recover (pure []) (makeLensesFor [("_t762Using", "using")] ''T762Using))
-
-data T762Static = T762Static { _t762Static :: Int }
-$(recover (pure []) (makeLensesFor [("_t762Static", "static")] ''T762Static))
-#endif
 
 -- Same, for the classy path: makeClassy ''Where would generate a class
 -- method named "where".
