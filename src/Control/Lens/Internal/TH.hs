@@ -214,14 +214,13 @@ staticPointersKeywords :: Set String
 staticPointersKeywords = Set.fromList ["static"]
 
 -- | Identifiers that the @RoleAnnotations@ extension reserves: @role@.
---
--- This is provided for callers who want a conservative list of extension
--- keywords. 'activeKeywords' deliberately does not reject @role@, since it is
--- still valid as a generated function or class method name.
 roleAnnotationsKeywords :: Set String
 roleAnnotationsKeywords = Set.fromList ["role"]
 
 -- | Identifiers reserved by GHC language extensions.
+--
+-- Generated optics may use a name that only an extension reserves, but a
+-- module with that extension on cannot refer to it unqualified.
 ghcExtensionKeywords :: Set String
 ghcExtensionKeywords = Set.unions
   [ explicitForAllKeywords
@@ -232,30 +231,6 @@ ghcExtensionKeywords = Set.unions
   , staticPointersKeywords
   , roleAnnotationsKeywords
   ]
-
--- | Haskell keywords plus the identifiers reserved by enabled extensions that
--- would make generated functions or class methods fail to parse.
-activeKeywords :: Q (Set String)
-#if MIN_VERSION_template_haskell(2,12,0)
-activeKeywords = do
-  explicitForAll <- or <$> mapM isExtEnabled
-    [ ExplicitForAll, RankNTypes, ScopedTypeVariables ]
-  recursiveDo <- isExtEnabled RecursiveDo
-  arrows <- isExtEnabled Arrows
-  patternSynonyms <- isExtEnabled PatternSynonyms
-  transformListComp <- isExtEnabled TransformListComp
-  staticPointers <- isExtEnabled StaticPointers
-  return $ Set.unions $
-    [ haskellKeywords ]
-    ++ [ explicitForAllKeywords | explicitForAll ]
-    ++ [ recursiveDoKeywords | recursiveDo ]
-    ++ [ arrowsKeywords | arrows ]
-    ++ [ patternSynonymsKeywords | patternSynonyms ]
-    ++ [ transformListCompKeywords | transformListComp ]
-    ++ [ staticPointersKeywords | staticPointers ]
-#else
-activeKeywords = return haskellKeywords
-#endif
 
 -- | Append an underscore to a name that belongs to the given set of reserved
 -- identifiers; leave all other names untouched.

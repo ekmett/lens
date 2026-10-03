@@ -69,10 +69,6 @@ next [????.??.??]
   lists to choose from. This lets you also avoid identifiers that are only
   reserved when a particular extension is enabled, e.g.
   `avoidNamesNamer (haskellKeywords <> ghcExtensionKeywords)`.
-* When `template-haskell-2.12` or later is available, the early keyword check
-  also accounts for enabled extensions that reserve additional generated
-  function or class method names, such as `TransformListComp` and
-  `StaticPointers`.
 * Document the relationship between `filtered`, `has`/`anyOf`, and `noneOf`.
 * Add `ioverA` to `Control.Lens.Lens`, an indexed variant of `overA`. The
   supplied arrow receives the index together with the old value as a pair.
