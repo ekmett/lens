@@ -93,13 +93,12 @@ module Control.Lens.TH
   -- *** Reserved-identifier lists
   , haskellKeywords
   , ghcExtensionKeywords
-  , explicitForAllKeywords
+  , forallKeywords
   , recursiveDoKeywords
   , arrowsKeywords
   , patternSynonymsKeywords
   , transformListCompKeywords
   , staticPointersKeywords
-  , roleAnnotationsKeywords
   ) where
 
 import Prelude ()
