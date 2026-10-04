@@ -58,15 +58,17 @@ next [????.??.??]
   "Illegal variable name" error that gave no indication of which field was
   responsible.
 * Add `avoidKeywordsNamer :: FieldNamer -> FieldNamer` and
-  `avoidKeywordsClassyNamer :: ClassyNamer -> ClassyNamer`, which modify a
-  namer to append an underscore to any generated name that would otherwise
-  be a keyword (e.g., generating a `type_` method for a `_connectionType`
-  field, or a `where_` method for `makeClassy` on a type named `Where`).
+  `avoidKeywordsClassyNamer :: ClassyNamer -> ClassyNamer` to
+  `Control.Lens.TH`, which modify a namer to append an underscore to any
+  generated name that would otherwise be a keyword (e.g., generating a
+  `type_` method for a `_connectionType` field, or a `where_` method for
+  `makeClassy` on a type named `Where`).
 * Add `avoidNamesNamer :: Set String -> FieldNamer -> FieldNamer` and
-  `avoidNamesClassyNamer :: Set String -> ClassyNamer -> ClassyNamer`, which
-  generalize the above to an arbitrary set of reserved identifiers, together
-  with the `haskellKeywords`, `ghcExtensionKeywords`, and per-extension keyword
-  lists to choose from. This lets you also avoid identifiers that are only
+  `avoidNamesClassyNamer :: Set String -> ClassyNamer -> ClassyNamer` to
+  `Control.Lens.TH`, which generalize the above to an arbitrary set of
+  reserved identifiers, together with the `haskellKeywords`,
+  `ghcExtensionKeywords`, and per-extension keyword lists to choose from.
+  This lets you also avoid identifiers that are only
   reserved when a particular extension is enabled, e.g.
   `avoidNamesNamer (haskellKeywords <> ghcExtensionKeywords)`.
 * Document the relationship between `filtered`, `has`/`anyOf`, and `noneOf`.

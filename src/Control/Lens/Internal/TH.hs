@@ -173,9 +173,8 @@ isDataFamily D.TypeData        = False
 -- | Haskell's reserved identifiers, which cannot be used as names of
 -- functions or class methods.
 --
--- This mirrors the check GHC applies to spliced declarations
--- (@okVarOcc@\/@reservedIds@ in "GHC.Utils.Lexeme" from @ghc-boot@, on which
--- we do not wish to depend). GHC 9.10 and later treat @forall@ as an
+-- This mirrors @reservedIds@ in "GHC.Utils.Lexeme" from @ghc-boot@, on which
+-- we do not wish to depend. GHC 9.10 and later treat @forall@ as an
 -- unconditional keyword, so it is included when building with those GHCs.
 haskellKeywords :: Set String
 haskellKeywords = Set.fromList
