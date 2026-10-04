@@ -526,6 +526,10 @@ makeLensesWith (classyRules & lensClass %~ avoidKeywordsClassyNamer) ''Where
 checkAvoidKeywordsClassyNamer :: Lens' Where Where
 checkAvoidKeywordsClassyNamer = where_
 
+-- A field named __ yields an optic named _, which GHC accepts in a splice
+data T762Underscore = T762Underscore { __ :: Int, _t762Other :: Bool }
+makeLenses ''T762Underscore
+
 -- Ensure that `makeClassyPrisms` doesn't generate a redundant catch-all case (#866)
 data T866 = MkT866
 $(makeClassyPrisms ''T866)

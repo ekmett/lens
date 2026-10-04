@@ -185,7 +185,7 @@ haskellKeywords = Set.fromList
 #endif
   , "foreign", "if", "import", "in", "infix", "infixl", "infixr"
   , "instance", "let", "module", "newtype", "of", "then", "type"
-  , "where", "_"
+  , "where"
   ]
 
 -- | Identifiers that explicit-forall extensions reserve: @forall@.
