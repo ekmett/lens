@@ -188,9 +188,11 @@ haskellKeywords = Set.fromList
   , "where", "_"
   ]
 
--- | Identifiers that explicit-forall extensions reserve: @forall@.
-explicitForAllKeywords :: Set String
-explicitForAllKeywords = Set.fromList ["forall"]
+-- | @forall@, which GHC 9.10 and later reserve (see 'haskellKeywords') and
+-- GHC 9.4 to 9.8 warn about (@-Wforall-identifier@). Include it to rename
+-- @forall@ on older GHCs too.
+forallKeywords :: Set String
+forallKeywords = Set.fromList ["forall"]
 
 -- | Identifiers that the @RecursiveDo@ extension reserves: @mdo@ and @rec@.
 recursiveDoKeywords :: Set String
@@ -213,23 +215,19 @@ transformListCompKeywords = Set.fromList ["by", "using"]
 staticPointersKeywords :: Set String
 staticPointersKeywords = Set.fromList ["static"]
 
--- | Identifiers that the @RoleAnnotations@ extension reserves: @role@.
-roleAnnotationsKeywords :: Set String
-roleAnnotationsKeywords = Set.fromList ["role"]
-
--- | Identifiers reserved by GHC language extensions.
+-- | Identifiers reserved by GHC language extensions, plus @forall@
+-- (see 'forallKeywords').
 --
 -- Generated optics may use a name that only an extension reserves, but a
 -- module with that extension on cannot refer to it unqualified.
 ghcExtensionKeywords :: Set String
 ghcExtensionKeywords = Set.unions
-  [ explicitForAllKeywords
+  [ forallKeywords
   , recursiveDoKeywords
   , arrowsKeywords
   , patternSynonymsKeywords
   , transformListCompKeywords
   , staticPointersKeywords
-  , roleAnnotationsKeywords
   ]
 
 -- | Append an underscore to a name that belongs to the given set of reserved

@@ -463,8 +463,8 @@ makeLensesWith (classUnderscoreNoPrefixFields & lensField %~ avoidKeywordsNamer)
 checkAvoidKeywordsMethodName :: Lens' CheckAvoidKeywordsMethodName Int
 checkAvoidKeywordsMethodName = type_
 
--- ghcExtensionKeywords collects extension-reserved identifiers for callers who
--- want one broad opt-in set (#762)
+-- ghcExtensionKeywords collects extension-reserved identifiers, plus forall,
+-- for callers who want one broad opt-in set (#762). No extension reserves role.
 data CheckAvoidNamesGhcExtensions = CheckAvoidNamesGhcExtensions
   { _checkGhcExtensionBy     :: Int
   , _checkGhcExtensionUsing  :: Int
@@ -488,7 +488,7 @@ checkAvoidNamesGhcExtensionUsing = using_
 checkAvoidNamesGhcExtensionStatic :: Lens' CheckAvoidNamesGhcExtensions Int
 checkAvoidNamesGhcExtensionStatic = static_
 checkAvoidNamesGhcExtensionRole :: Lens' CheckAvoidNamesGhcExtensions Int
-checkAvoidNamesGhcExtensionRole = role_
+checkAvoidNamesGhcExtensionRole = role
 checkAvoidNamesGhcExtensionForall :: Lens' CheckAvoidNamesGhcExtensions Int
 checkAvoidNamesGhcExtensionForall = forall_
 
