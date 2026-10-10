@@ -54,7 +54,7 @@ description:
   With some signatures simplified, the core of the hierarchy of lens-like constructions looks like:
   .
   .
-  <<https://raw.githubusercontent.com/ekmett/lens/v5.3.7/images/Hierarchy.png>>
+  <<https://hackage.haskell.org/package/lens-5.4/src/images/Hierarchy.png>>
   .
   You can compose any two elements of the hierarchy above using @(.)@ from the @Prelude@, and you can
   use any element of the hierarchy as any type it linked to above it.
@@ -110,6 +110,13 @@ extra-source-files:
   examples/.hlint.yaml
   include/*.h
   images/*.dot
+  lens-partial-iso/.hlint.yaml
+  lens-partial-iso/CHANGELOG.markdown
+  lens-partial-iso/LICENSE
+  lens-partial-iso/Setup.hs
+  lens-partial-iso/lens-partial-iso.cabal
+  lens-partial-iso/src/Control/Lens/*.hs
+  lens-partial-iso/tests/*.hs
   lens-properties/.hlint.yaml
   lens-properties/CHANGELOG.markdown
   lens-properties/LICENSE
