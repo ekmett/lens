@@ -31,6 +31,7 @@ import Control.Lens
 import Language.Haskell.TH (recover)
 -- import Test.QuickCheck (quickCheck)
 import BigRecord ()
+import qualified T603
 import T799 ()
 import T917 ()
 import T934 (T934, AsT934One (..))
@@ -703,4 +704,6 @@ checkT934SharedFar :: Prism' T934.T934Far Int
 checkT934SharedFar = _T934Shared
 
 main :: IO ()
-main = putStrLn "test/templates.hs: ok"
+main = do
+  T603.runChecks
+  putStrLn "test/templates.hs: ok"

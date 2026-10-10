@@ -82,6 +82,11 @@ next [????.??.??]
   `makeFields`. Each constructor `Con` gets a class `AsCon s a | s -> a` with
   method `_Con :: Prism' s a` and an instance of it; the class is declared
   only if not already in scope, so types with same-named constructors share it.
+* Add `makeHListPrisms` and `makeHListClassyPrisms` to `Control.Lens.TH`. They
+  work like `makePrisms` and `makeClassyPrisms`, but the fields of a
+  constructor become an `HList` instead of a tuple. A constructor with no
+  field or one field also gets an `HList`. The new `Control.Lens.HList` module
+  defines the `HList` type. `Control.Lens` does not re-export it.
 
 5.3.6 [2026.01.10]
 ------------------

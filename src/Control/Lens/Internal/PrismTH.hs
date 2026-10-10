@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE TemplateHaskellQuotes #-}
 #ifdef TRUSTWORTHY
 {-# LANGUAGE Trustworthy #-}
 #endif
@@ -20,12 +21,15 @@ module Control.Lens.Internal.PrismTH
   ( makePrisms
   , makeClassyPrisms
   , makeConstructors
+  , makeHListPrisms
+  , makeHListClassyPrisms
   , makeDecPrisms
   , makePrism
   ) where
 
 import Control.Applicative
 import Control.Lens.Getter
+import Control.Lens.HList (HList(..))
 import Control.Lens.Internal.FieldTH (makeClassInstance)
 import Control.Lens.Internal.TH
 import Control.Lens.Lens
@@ -71,7 +75,7 @@ import Prelude
 -- constructor's Haddock documentation, as 'Control.Lens.TH.makeLenses'
 -- does for fields.
 makePrisms :: Name {- ^ Type constructor name -} -> DecsQ
-makePrisms = makePrisms' True
+makePrisms = makePrisms' tupleBuilders True
 
 
 -- | Generate a 'Prism' for each constructor of a data type
@@ -137,17 +141,84 @@ makePrisms = makePrisms' True
 -- The class methods inherit their constructor's Haddock documentation, as
 -- with 'makePrisms'.
 makeClassyPrisms :: Name {- ^ Type constructor name -} -> DecsQ
-makeClassyPrisms = makePrisms' False
+makeClassyPrisms = makePrisms' tupleBuilders False
+
+
+-- | Like 'makePrisms', but the fields of each constructor become a
+-- 'Control.Lens.HList.HList' instead of a tuple.
+--
+-- A constructor with no field or one field also gets an 'HList': it focuses
+-- @HList '[]@ or @HList '[a]@, not @()@ or @a@. To write these types, import
+-- "Control.Lens.HList" and enable @DataKinds@.
+--
+-- /e.g./
+--
+-- @
+-- data FooBarBaz a
+--   = Foo Int
+--   | Bar a
+--   | Baz Int Char
+-- makeHListPrisms ''FooBarBaz
+-- @
+--
+-- will create
+--
+-- @
+-- _Foo :: Prism' (FooBarBaz a) (HList '[Int])
+-- _Bar :: Prism (FooBarBaz a) (FooBarBaz b) (HList '[a]) (HList '[b])
+-- _Baz :: Prism' (FooBarBaz a) (HList '[Int, Char])
+-- @
+makeHListPrisms :: Name {- ^ Type constructor name -} -> DecsQ
+makeHListPrisms = makePrisms' hlistBuilders True
+
+
+-- | Like 'makeClassyPrisms', but the fields of each constructor become a
+-- 'Control.Lens.HList.HList' instead of a tuple. See 'makeHListPrisms'.
+makeHListClassyPrisms :: Name {- ^ Type constructor name -} -> DecsQ
+makeHListClassyPrisms = makePrisms' hlistBuilders False
+
+
+-- | How to bundle the fields of one constructor.
+--
+-- The comments below show tuples, such as @(x,y,z)@. With 'hlistBuilders' the
+-- same place holds @x :# y :# z :# HNil@.
+data FieldBuilders = FieldBuilders
+  { fbType :: [TypeQ] -> TypeQ -- ^ the type of the fields (the optic's focus)
+  , fbExp  :: [ExpQ]  -> ExpQ  -- ^ the fields as a value (the reviewer)
+  , fbPat  :: [PatQ]  -> PatQ  -- ^ the fields as a pattern (the remitter)
+  }
+
+-- | Bundle the fields into a tuple, as 'makePrisms' does.
+tupleBuilders :: FieldBuilders
+tupleBuilders = FieldBuilders toTupleT toTupleE toTupleP
+
+-- | Bundle the fields into an 'HList', as 'makeHListPrisms' does. Unlike a
+-- tuple, 0 and 1 fields are not special cases.
+hlistBuilders :: FieldBuilders
+hlistBuilders = FieldBuilders toHListT toHListE toHListP
+
+-- | @[a,b]@ becomes @HList '[a,b]@.
+toHListT :: [TypeQ] -> TypeQ
+toHListT ts = conT ''HList `appT` foldr cons promotedNilT ts
+  where cons t acc = promotedConsT `appT` t `appT` acc
+
+-- | @[x,y]@ becomes @x :# y :# HNil@.
+toHListE :: [ExpQ] -> ExpQ
+toHListE = foldr (\x acc -> appsE1 (conE '(:#)) [x, acc]) (conE 'HNil)
+
+-- | @[x,y]@ becomes the pattern @x :# y :# HNil@.
+toHListP :: [PatQ] -> PatQ
+toHListP = foldr (\p acc -> conP '(:#) [p, acc]) (conP 'HNil [])
 
 
 -- | Main entry point into Prism generation for a given type constructor name.
-makePrisms' :: Bool -> Name -> DecsQ
-makePrisms' normal typeName =
+makePrisms' :: FieldBuilders -> Bool -> Name -> DecsQ
+makePrisms' fb normal typeName =
   do info <- D.reifyDatatype typeName
      let cls | normal    = Nothing
              | otherwise = Just (D.datatypeName info)
          cons = D.datatypeCons info
-     makeConsPrisms (datatypeTypeKinded info) (map normalizeCon cons) cls
+     makeConsPrisms fb (datatypeTypeKinded info) (map normalizeCon cons) cls
 
 
 -- | Generate prisms for the given 'Dec'
@@ -157,7 +228,7 @@ makeDecPrisms normal dec =
      let cls | normal    = Nothing
              | otherwise = Just (D.datatypeName info)
          cons = D.datatypeCons info
-     makeConsPrisms (datatypeTypeKinded info) (map normalizeCon cons) cls
+     makeConsPrisms tupleBuilders (datatypeTypeKinded info) (map normalizeCon cons) cls
 
 
 -- | Build a single optic for one data constructor, as an /expression/.
@@ -181,10 +252,10 @@ makePrism conName =
      case cons of
        -- A type with a single, non-existential constructor yields an Iso,
        -- exactly as the special case in 'makeConsPrisms' does.
-       [con@(NCon _ [] [] _)] -> makeConIsoExp con
+       [con@(NCon _ [] [] _)] -> makeConIsoExp tupleBuilders con
        _ -> case List.find (\con -> view nconName con == conName) cons of
-              Just con -> do stab <- computeOpticType t cons con
-                             makeConOpticExp stab cons con
+              Just con -> do stab <- computeOpticType tupleBuilders t cons con
+                             makeConOpticExp tupleBuilders stab cons con
               Nothing  -> fail $ "makePrism: " ++ nameBase conName
                               ++ " is not a data constructor of "
                               ++ nameBase (D.datatypeName info)
@@ -268,7 +339,7 @@ makeConstructors typeName =
 -- @Prism'@.
 makeConstructorDecs :: Type -> [NCon] -> NCon -> DecsQ
 makeConstructorDecs t cons con =
-  do stab <- computeOpticType t cons con
+  do stab <- computeOpticType tupleBuilders t cons con
      let conName = view nconName con
      case stabType stab of
        PrismType | isPrefixName conName ->
@@ -281,7 +352,7 @@ makeConstructorDecs t cons con =
               ( [ makeConstructorClass className methodName | isNothing mcls ]
               ++ [ makeClassInstance cx className t b
                      ( valD (varP methodName)
-                            (normalB (makeConOpticExp stab cons con)) []
+                            (normalB (makeConOpticExp tupleBuilders stab cons con)) []
                      : inlinePragma methodName ) ]
               )
        _ -> return []
@@ -301,33 +372,33 @@ makeConstructorClass className methodName =
 -- an optional name to be used for generating a prism class.
 -- This function dispatches between Iso generation, normal top-level
 -- prisms, and classy prisms.
-makeConsPrisms :: Type -> [NCon] -> Maybe Name -> DecsQ
+makeConsPrisms :: FieldBuilders -> Type -> [NCon] -> Maybe Name -> DecsQ
 
 -- special case: single constructor, not classy -> make iso
 -- ('makePrism' has the corresponding single-constructor Iso case; keep the two
 -- in sync.)
-makeConsPrisms t [con@(NCon _ [] [] _)] Nothing = makeConIso t con
+makeConsPrisms fb t [con@(NCon _ [] [] _)] Nothing = makeConIso fb t con
 
 -- top-level definitions
-makeConsPrisms t cons Nothing =
+makeConsPrisms fb t cons Nothing =
   fmap concat $ for cons $ \con ->
     do let conName = view nconName con
-       stab <- computeOpticType t cons con
+       stab <- computeOpticType fb t cons con
        let n = prismName conName
        copyDocs [conName] n
        sequenceA
          ( [ sigD n (return (quantifyType [] (stabToType Set.empty stab)))
-           , valD (varP n) (normalB (makeConOpticExp stab cons con)) []
+           , valD (varP n) (normalB (makeConOpticExp fb stab cons con)) []
            ]
            ++ inlinePragma n
          )
 
 
 -- classy prism class and instance
-makeConsPrisms t cons (Just typeName) =
+makeConsPrisms fb t cons (Just typeName) =
   sequenceA
-    [ makeClassyPrismClass t className methodName cons
-    , makeClassyPrismInstance t className methodName cons
+    [ makeClassyPrismClass fb t className methodName cons
+    , makeClassyPrismInstance fb t className methodName cons
     ]
   where
   typeNameBase = nameBase typeName
@@ -360,44 +431,44 @@ stabToType clsTVBNames stab@(Stab cx ty s t a b) =
 stabType :: Stab -> OpticType
 stabType (Stab _ o _ _ _ _) = o
 
-computeOpticType :: Type -> [NCon] -> NCon -> Q Stab
-computeOpticType t cons con =
+computeOpticType :: FieldBuilders -> Type -> [NCon] -> NCon -> Q Stab
+computeOpticType fb t cons con =
   do let cons' = List.delete con cons
      if null (_nconVars con)
-         then computePrismType t (view nconCxt con) cons' con
-         else computeReviewType t (view nconCxt con) (view nconTypes con)
+         then computePrismType fb t (view nconCxt con) cons' con
+         else computeReviewType fb t (view nconCxt con) (view nconTypes con)
 
 
-computeReviewType :: Type -> Cxt -> [Type] -> Q Stab
-computeReviewType s' cx tys =
+computeReviewType :: FieldBuilders -> Type -> Cxt -> [Type] -> Q Stab
+computeReviewType fb s' cx tys =
   do let t = s'
      s <- fmap VarT (newName "s")
      a <- fmap VarT (newName "a")
-     b <- toTupleT (map return tys)
+     b <- fbType fb (map return tys)
      return (Stab cx ReviewType s t a b)
 
 
 -- | Compute the full type-changing Prism type given an outer type,
 -- list of constructors, and target constructor name. Additionally
 -- return 'True' if the resulting type is a "simple" prism.
-computePrismType :: Type -> Cxt -> [NCon] -> NCon -> Q Stab
-computePrismType t cx cons con =
+computePrismType :: FieldBuilders -> Type -> Cxt -> [NCon] -> NCon -> Q Stab
+computePrismType fb t cx cons con =
   do let ts      = view nconTypes con
          unbound = setOf typeVars t Set.\\ setOf typeVars cons
      sub <- sequenceA (Map.fromSet (newName . nameBase) unbound)
-     b   <- toTupleT (map return ts)
-     a   <- toTupleT (map return (substTypeVars sub ts))
+     b   <- fbType fb (map return ts)
+     a   <- fbType fb (map return (substTypeVars sub ts))
      let s = substTypeVars sub t
      return (Stab cx PrismType s t a b)
 
 
-computeIsoType :: Type -> [Type] -> TypeQ
-computeIsoType t' fields =
+computeIsoType :: FieldBuilders -> Type -> [Type] -> TypeQ
+computeIsoType fb t' fields =
   do sub <- sequenceA (Map.fromSet (newName . nameBase) (setOf typeVars t'))
      let t = return                    t'
          s = return (substTypeVars sub t')
-         b = toTupleT (map return                    fields)
-         a = toTupleT (map return (substTypeVars sub fields))
+         b = fbType fb (map return                    fields)
+         a = fbType fb (map return (substTypeVars sub fields))
 
          ty | Map.null sub = appsT (conT iso'TypeName) [t,b]
             | otherwise    = appsT (conT isoTypeName) [s,t,a,b]
@@ -407,22 +478,22 @@ computeIsoType t' fields =
 
 
 -- | Construct either a Review or Prism as appropriate
-makeConOpticExp :: Stab -> [NCon] -> NCon -> ExpQ
-makeConOpticExp stab cons con =
+makeConOpticExp :: FieldBuilders -> Stab -> [NCon] -> NCon -> ExpQ
+makeConOpticExp fb stab cons con =
   case stabType stab of
-    PrismType  -> makeConPrismExp stab cons con
-    ReviewType -> makeConReviewExp con
+    PrismType  -> makeConPrismExp fb stab cons con
+    ReviewType -> makeConReviewExp fb con
 
 
 -- | Construct an iso declaration
-makeConIso :: Type -> NCon -> DecsQ
-makeConIso s con =
-  do let ty      = computeIsoType s (view nconTypes con)
+makeConIso :: FieldBuilders -> Type -> NCon -> DecsQ
+makeConIso fb s con =
+  do let ty      = computeIsoType fb s (view nconTypes con)
          defName = prismName (view nconName con)
      copyDocs [view nconName con] defName
      sequenceA
        ( [ sigD       defName  ty
-         , valD (varP defName) (normalB (makeConIsoExp con)) []
+         , valD (varP defName) (normalB (makeConIsoExp fb con)) []
          ] ++
          inlinePragma defName
        )
@@ -432,44 +503,45 @@ makeConIso s con =
 --
 -- prism <<reviewer>> <<remitter>>
 makeConPrismExp ::
+  FieldBuilders ->
   Stab ->
   [NCon] {- ^ constructors       -} ->
   NCon   {- ^ target constructor -} ->
   ExpQ
-makeConPrismExp stab cons con = appsE [varE prismValName, reviewer, remitter]
+makeConPrismExp fb stab cons con = appsE [varE prismValName, reviewer, remitter]
   where
   ts = view nconTypes con
   fields  = length ts
   conName = view nconName con
 
-  reviewer                   = makeReviewer       conName fields
-  remitter | stabSimple stab = makeSimpleRemitter conName (length cons) fields
-           | otherwise       = makeFullRemitter cons conName
+  reviewer                   = makeReviewer       fb conName fields
+  remitter | stabSimple stab = makeSimpleRemitter fb conName (length cons) fields
+           | otherwise       = makeFullRemitter fb cons conName
 
 
 -- | Construct an Iso expression
 --
 -- iso <<reviewer>> <<remitter>>
-makeConIsoExp :: NCon -> ExpQ
-makeConIsoExp con = appsE [varE isoValName, remitter, reviewer]
+makeConIsoExp :: FieldBuilders -> NCon -> ExpQ
+makeConIsoExp fb con = appsE [varE isoValName, remitter, reviewer]
   where
   conName = view nconName con
   fields  = length (view nconTypes con)
 
-  reviewer = makeReviewer    conName fields
-  remitter = makeIsoRemitter conName fields
+  reviewer = makeReviewer    fb conName fields
+  remitter = makeIsoRemitter fb conName fields
 
 
 -- | Construct a Review expression
 --
 -- unto (\(x,y,z) -> Con x y z)
-makeConReviewExp :: NCon -> ExpQ
-makeConReviewExp con = appE (varE untoValName) reviewer
+makeConReviewExp :: FieldBuilders -> NCon -> ExpQ
+makeConReviewExp fb con = appE (varE untoValName) reviewer
   where
   conName = view nconName con
   fields  = length (view nconTypes con)
 
-  reviewer = makeReviewer conName fields
+  reviewer = makeReviewer fb conName fields
 
 
 ------------------------------------------------------------------------
@@ -480,10 +552,10 @@ makeConReviewExp con = appE (varE untoValName) reviewer
 -- | Construct the review portion of a prism.
 --
 -- (\(x,y,z) -> Con x y z) :: b -> t
-makeReviewer :: Name -> Int -> ExpQ
-makeReviewer conName fields =
+makeReviewer :: FieldBuilders -> Name -> Int -> ExpQ
+makeReviewer fb conName fields =
   do xs <- newNames "x" fields
-     lam1E (toTupleP (map varP xs))
+     lam1E (fbPat fb (map varP xs))
            (conE conName `appsE1` map varE xs)
 
 
@@ -495,16 +567,17 @@ makeReviewer conName fields =
 --          _         -> Left x
 -- ) :: s -> Either s a
 makeSimpleRemitter ::
+  FieldBuilders ->
   Name {- The name of the constructor on which this prism focuses -} ->
   Int  {- The number of constructors the parent data type has     -} ->
   Int  {- The number of fields the constructor has                -} ->
   ExpQ
-makeSimpleRemitter conName numCons fields =
+makeSimpleRemitter fb conName numCons fields =
   do x  <- newName "x"
      xs <- newNames "y" fields
      let matches =
            [ match (conP conName (map varP xs))
-                   (normalB (appE (conE rightDataName) (toTupleE (map varE xs))))
+                   (normalB (appE (conE rightDataName) (fbExp fb (map varE xs))))
                    []
            ] ++
            [ match wildP (normalB (appE (conE leftDataName) (varE x))) []
@@ -520,8 +593,8 @@ makeSimpleRemitter conName numCons fields =
 --          Con x y z -> Right (x,y,z)
 --          Other_n w   -> Left (Other_n w)
 -- ) :: s -> Either t a
-makeFullRemitter :: [NCon] -> Name -> ExpQ
-makeFullRemitter cons target =
+makeFullRemitter :: FieldBuilders -> [NCon] -> Name -> ExpQ
+makeFullRemitter fb cons target =
   do x <- newName "x"
      lam1E (varP x) (caseE (varE x) (map mkMatch cons))
   where
@@ -530,7 +603,7 @@ makeFullRemitter cons target =
        match (conP conName (map varP xs))
              (normalB
                (if conName == target
-                  then appE (conE rightDataName) (toTupleE (map varE xs))
+                  then appE (conE rightDataName) (fbExp fb (map varE xs))
                   else appE (conE leftDataName) (conE conName `appsE1` map varE xs)))
              []
 
@@ -538,11 +611,11 @@ makeFullRemitter cons target =
 -- | Construct the remitter suitable for use in an 'Iso'
 --
 -- (\(Con x y z) -> (x,y,z)) :: s -> a
-makeIsoRemitter :: Name -> Int -> ExpQ
-makeIsoRemitter conName fields =
+makeIsoRemitter :: FieldBuilders -> Name -> Int -> ExpQ
+makeIsoRemitter fb conName fields =
   do xs <- newNames "x" fields
      lam1E (conP conName (map varP xs))
-           (toTupleE (map varE xs))
+           (fbExp fb (map varE xs))
 
 
 ------------------------------------------------------------------------
@@ -557,12 +630,13 @@ makeIsoRemitter conName fields =
 --   conMethodName_n :: Prism' r conTypes_n
 --   conMethodName_n = topMethodName . conMethodName_n
 makeClassyPrismClass ::
+  FieldBuilders ->
   Type   {- Outer type      -} ->
   Name   {- Class name      -} ->
   Name   {- Top method name -} ->
   [NCon] {- Constructors    -} ->
   DecQ
-makeClassyPrismClass t className methodName cons =
+makeClassyPrismClass fb t className methodName cons =
   do r <- newName "r"
      let methodType = appsT (conT prism'TypeName) [varT r,return t]
      methodss <- traverse (mkMethod r) cons
@@ -573,7 +647,7 @@ makeClassyPrismClass t className methodName cons =
 
   where
   mkMethod r con =
-    do Stab cx o _ _ _ b <- computeOpticType t cons con
+    do Stab cx o _ _ _ b <- computeOpticType fb t cons con
        let rTy     = VarT r
            stab'   = Stab cx o rTy rTy b b
            conName = view nconName con
@@ -599,22 +673,23 @@ makeClassyPrismClass t className methodName cons =
 --   topMethodName = id
 --   conMethodName_n = <<prism>>
 makeClassyPrismInstance ::
+  FieldBuilders ->
   Type ->
   Name     {- Class name      -} ->
   Name     {- Top method name -} ->
   [NCon] {- Constructors    -} ->
   DecQ
-makeClassyPrismInstance s className methodName cons =
+makeClassyPrismInstance fb s className methodName cons =
   do let vs = D.freeVariablesWellScoped [s]
          cls = className `conAppsT` (s : map tvbToType vs)
 
      instanceD (cxt[]) (return cls)
        (   valD (varP methodName)
                 (normalB (varE idValName)) []
-       : [ do stab <- computeOpticType s cons con
+       : [ do stab <- computeOpticType fb s cons con
               let stab' = simplifyStab stab
               valD (varP (prismName conName))
-                (normalB (makeConOpticExp stab' cons con)) []
+                (normalB (makeConOpticExp fb stab' cons con)) []
            | con <- cons
            , let conName = view nconName con
            ]
