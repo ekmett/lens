@@ -41,13 +41,14 @@ extra-source-files:
 source-repository head
   type: git
   location: https://github.com/ekmett/lens.git
+  subdir: lens-partial-iso
 
 library
   build-depends:
     base       >= 4.9   && < 5,
     lens       >= 5     && < 6,
     tagged     >= 0.8.6 && < 1,
-    witherable >= 0.3.5 && < 0.6
+    witherable >= 0.4   && < 0.6
 
   exposed-modules:
     Control.Lens.PartialIso
