@@ -33,6 +33,8 @@ module Control.Lens.TH
   , makePrisms
   , makeClassyPrisms
   , makeConstructors
+  , makeHListPrisms
+  , makeHListClassyPrisms
   -- ** Wrapped
   , makeWrapped
   -- * Constructing a Single Optic as an Expression

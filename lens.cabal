@@ -228,6 +228,7 @@ library
     Control.Lens.Extras
     Control.Lens.Fold
     Control.Lens.Getter
+    Control.Lens.HList
     Control.Lens.Indexed
     Control.Lens.Internal
     Control.Lens.Internal.Bazaar
@@ -335,6 +336,7 @@ test-suite templates
   main-is: templates.hs
   other-modules:
     BigRecord
+    T603
     T799
     T917
     T934
