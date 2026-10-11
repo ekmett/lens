@@ -1,13 +1,13 @@
--- | Regression test for the lazy-'ByteString' space leak in 'lastOf' /
--- 'Rightmost' folds (see "Control.Lens.Internal.ByteString"; lens issue #233).
+-- | Regression test for the space leak of 'lastOf' over a lazy 'ByteString'
+-- (lens issue #233). The fix is in 'Rightmost' in "Control.Lens.Internal.Fold".
 --
 -- 'lastOf' over a lazy 'ByteString' must run in /constant/ space. A leaking
--- traversal retains roughly one thunk per chunk, so peak residency grows with
--- the chunk count. We fold a lazy 'ByteString' at two sizes (16x apart) and
--- assert that peak residency (from "GHC.Stats") does not grow: a streaming fold
--- stays flat, a leaking one jumps by megabytes. The input is built from a fixed
--- chunk size so the leak's magnitude is independent of bytestring's internal
--- chunking heuristics (which have varied across releases).
+-- fold retains memory per chunk (or per byte), so peak residency grows with
+-- the input. We fold a lazy 'ByteString' at two sizes (16x apart) and
+-- check that peak residency (from "GHC.Stats") stays flat. 'growthOk' gives
+-- the limit. The input is built from a fixed chunk size so the leak's
+-- magnitude is independent of bytestring's internal chunking heuristics
+-- (which have varied across releases).
 --
 -- The peak is transient (it only exists during the fold), so it is sampled
 -- reliably only if GCs are frequent: the cabal stanza bakes in a small nursery
@@ -18,11 +18,12 @@
 module Main (main) where
 
 import           Control.Exception (evaluate)
-import           Control.Lens (lastOf)
-import           Control.Monad (unless, when)
+import           Control.Lens (filtered, folded, lastOf, to)
+import           Control.Monad (unless)
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
 import           Data.ByteString.Lazy.Lens (bytes)
+import           Data.Word (Word8)
 import           GHC.RTS.Flags (getGCFlags, minAllocAreaSize)
 import           GHC.Stats (getRTSStats, getRTSStatsEnabled, max_live_bytes)
 import           System.Exit (exitFailure)
@@ -30,17 +31,11 @@ import           System.IO (hPutStrLn, stderr)
 import           System.Mem (performMajorGC)
 import           Text.Printf (printf)
 
--- | A lazy 'ByteString' of @n@ fixed-size chunks. 'lastOf' must reach the end,
--- so the whole spine is traversed; the leak (if present) retains ~one thunk per
--- chunk, so its size scales with @n@.
-chunked :: Int -> BL.ByteString
-chunked n = BL.fromChunks (replicate n chunk)
-  where chunk = B.replicate 4096 7
-
-forceLast :: Int -> IO ()
-forceLast n = do
-  r <- evaluate (lastOf bytes (chunked n))
-  unless (r == Just 7) (error ("space: unexpected lastOf result " ++ show r))
+-- | A lazy 'ByteString' of @n@ chunks of @size@ bytes, all 7s. 'lastOf' must
+-- reach the end, so the whole spine is traversed.
+chunked :: Int -> Int -> BL.ByteString
+chunked size n = BL.fromChunks (replicate n chunk)
+  where chunk = B.replicate size 7
 
 -- | Peak live bytes observed so far (max over all major GCs).
 peakBytes :: IO Integer
@@ -66,23 +61,49 @@ checkRtsOpts = do
                      \ test's build directory forces a correct relink.)"
     exitFailure
 
+-- | Check that the peak residency of one fold grows by at most 256 KB from
+-- @small@ to @big@ chunks of @size@ bytes. Streaming grows by a few KB; a
+-- leak grows by hundreds of KB or more. 'peakBytes' is a running maximum, so
+-- a case can only show growth above the peaks of the cases before it: run
+-- the cases with the smaller leaks first.
+growthOk :: String -> (BL.ByteString -> Maybe Word8) -> Maybe Word8 -> Int -> Int -> Int -> IO Bool
+growthOk name fold expected size small big = do
+  let run n = do
+        r <- evaluate (fold (chunked size n))
+        unless (r == expected) (error ("space: unexpected " ++ name ++ " result " ++ show r))
+      cap = 256 * 1024
+  run small
+  p1 <- peakBytes
+  run big
+  p2 <- peakBytes
+  let growth = p2 - p1
+  printf "%s, %d-byte chunks: peak residency %d B (%d chunks) -> %d B (%d chunks), growth %d B\n"
+         name size p1 small p2 big growth
+  pure (growth <= cap)
+-- NOINLINE: so GHC does not float the input out of 'run' and keep it alive.
+{-# NOINLINE growthOk #-}
+
+-- | The folds under test. 'lastNone' and 'lastNested' give 'Rightmost' values
+-- other than 'RLeaf'. A fold can leak on these when 'lastBytes' does not.
+lastBytes, lastNone, lastNested :: BL.ByteString -> Maybe Word8
+lastBytes = lastOf bytes
+-- No byte is a target, so each byte gives 'RPure'.
+lastNone = lastOf (bytes . filtered (/= 7))
+-- Each byte gives an 'RStep', not an 'RLeaf'.
+lastNested = lastOf (bytes . to (: []) . folded)
+
 main :: IO ()
 main = do
   checkRtsOpts
-  let small =   8 * 1000   --   8k chunks (~32 MB)
-      big   = 128 * 1000   -- 128k chunks (16x; ~512 MB)
-      -- Streaming grows by a few KB; the leak grows by ~3 MB. 256 KB sits
-      -- well inside that gap, with plenty of margin on both sides.
-      cap   = 256 * 1000
-  forceLast small
-  p1 <- peakBytes
-  forceLast big
-  p2 <- peakBytes
-  let growth = p2 - p1
-  printf "lastOf bytes peak residency: %d B (8k chunks) -> %d B (128k chunks), growth %d B\n"
-         p1 p2 growth
-  when (growth > cap) $ do
-    printf "FAIL: residency grew %d B over a 16x input increase; lastOf over a lazy ByteString is leaking (issue #233).\n"
-           growth
+  -- A leak per byte shows on small inputs (128 KB -> 2 MB).
+  ok1 <- growthOk "lastOf (bytes . filtered (/= 7))" lastNone Nothing 4096 32 512
+  ok2 <- growthOk "lastOf (bytes . to (:[]) . folded)" lastNested (Just 7) 4096 32 512
+  -- A leak per chunk needs many chunks. With no target, chunks of 256 B or
+  -- less hide the leak, so this case uses 1 KB chunks. Its leak is smaller
+  -- than the next case's leak, so it runs first.
+  ok3 <- growthOk "lastOf (bytes . filtered (/= 7))" lastNone Nothing 1024 8000 128000
+  ok4 <- growthOk "lastOf bytes" lastBytes (Just 7) 4096 8000 128000
+  unless (ok1 && ok2 && ok3 && ok4) $ do
+    putStrLn "FAIL: lastOf over a lazy ByteString is leaking (issue #233)."
     exitFailure
   putStrLn "OK: lastOf over a lazy ByteString streams in constant space."

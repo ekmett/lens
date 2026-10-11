@@ -393,7 +393,27 @@ case_upon_view_upon_value =
 
 -- 10 seconds (mkTimeout takes microseconds), so a non-termination regression
 -- fails fast instead of hanging CI. Increase if slower machines need headroom.
-uponTimeout = mkTimeout (10 * 1000000)
+loopTimeout = mkTimeout (10 * 1000000)
+
+-- lastOf can give Just before it reads all of the input. So has _Just works
+-- on infinite input.
+case_lastOf_infinite_list =
+  has _Just (lastOf folded [1 :: Int ..]) @?= True
+
+case_lastOf_infinite_lazy_bytestring =
+  has _Just (lastOf each (LazyB.cycle (LazyB.pack [1]))) @?= True
+
+-- Here lastOf gives Just without running the predicate on the two 0 bytes.
+case_lastOf_lazy_predicate =
+  has _Just (lastOf (each . filtered p) (LazyB.pack [1, 0, 0])) @?= True
+  where p n = n == 1 || error "predicate ran on 0"
+
+-- The second list has a target. So lastOf does not run the predicate on
+-- the first list. This needs '<>' of 'Rightmost' to look inside an 'RSkip'
+-- on the right.
+case_lastOf_lazy_left =
+  lastOf (both . folded . filtered p) ([0, 1], [5 :: Int]) @?= Just 5
+  where p n = n /= 0 || error "predicate ran on 0"
 
 -- One-off optic construction (#710): the spliced optics behave as expected.
 case_oneoff_lens_view =
@@ -543,10 +563,16 @@ main = defaultMain $
   , testCase "correct indexing lazy text" case_correct_indexing_lazy_text
   , testCase "correct indexing strict bytestring" case_correct_indexing_strict_bytestring
   , testCase "correct indexing lazy bytestring" case_correct_indexing_lazy_bytestring
-  , localOption uponTimeout $
+  , localOption loopTimeout $
       testCase "upon.view.upon matches upon tail" case_upon_view_upon_matches_upon_tail
-  , localOption uponTimeout $
+  , localOption loopTimeout $
       testCase "upon.view.upon value" case_upon_view_upon_value
+  , localOption loopTimeout $
+      testCase "lastOf infinite list" case_lastOf_infinite_list
+  , localOption loopTimeout $
+      testCase "lastOf infinite lazy bytestring" case_lastOf_infinite_lazy_bytestring
+  , testCase "lastOf lazy predicate" case_lastOf_lazy_predicate
+  , testCase "lastOf lazy left" case_lastOf_lazy_left
   , testCase "one-off lens view" case_oneoff_lens_view
   , testCase "one-off lens set" case_oneoff_lens_set
   , testCase "one-off prism preview hit" case_oneoff_prism_preview_hit
