@@ -102,7 +102,6 @@ extra-source-files:
   .gitignore
   .hlint.yaml
   .vim.custom
-  cabal.project
   examples/LICENSE
   examples/lens-examples.cabal
   examples/*.hs
@@ -110,18 +109,6 @@ extra-source-files:
   examples/.hlint.yaml
   include/*.h
   images/*.dot
-  lens-partial-iso/.hlint.yaml
-  lens-partial-iso/CHANGELOG.markdown
-  lens-partial-iso/LICENSE
-  lens-partial-iso/Setup.hs
-  lens-partial-iso/lens-partial-iso.cabal
-  lens-partial-iso/src/Control/Lens/*.hs
-  lens-partial-iso/tests/*.hs
-  lens-properties/.hlint.yaml
-  lens-properties/CHANGELOG.markdown
-  lens-properties/LICENSE
-  lens-properties/Setup.hs
-  lens-properties/lens-properties.cabal
   AUTHORS.markdown
   CHANGELOG.markdown
   README.markdown
