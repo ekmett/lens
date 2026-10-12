@@ -183,6 +183,10 @@ data Rightmost a
 -- fields, so 'lastFrom' can read them in a loop. '<>' looks inside an 'RSkip'
 -- in @y@. So @x '<>' y@ does not force @x@ when @y@ is an 'RLeaf' or an
 -- 'RFound', with or without 'RSkip' around it.
+--
+-- 'Leftmost' does not have these constructors yet. Its '<>' can still keep
+-- a stack frame for each '<>' on left-nested folds, for example 'firstOf'
+-- over 'backwards'. See lens issue #1142.
 instance Semigroup (Rightmost a) where
   x <> y = RStep (appendRightmost x y)
 

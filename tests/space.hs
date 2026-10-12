@@ -77,9 +77,10 @@ growthOk name fold expected size small big = do
   run big
   p2 <- peakBytes
   let growth = p2 - p1
-  printf "%s, %d-byte chunks: peak residency %d B (%d chunks) -> %d B (%d chunks), growth %d B\n"
-         name size p1 small p2 big growth
-  pure (growth <= cap)
+      ok = growth <= cap
+  printf "%s, %d-byte chunks: peak residency %d B (%d chunks) -> %d B (%d chunks), growth %d B: %s\n"
+         name size p1 small p2 big growth (if ok then "OK" else "FAIL")
+  pure ok
 -- NOINLINE: so GHC does not float the input out of 'run' and keep it alive.
 {-# NOINLINE growthOk #-}
 
@@ -104,6 +105,6 @@ main = do
   ok3 <- growthOk "lastOf (bytes . filtered (/= 7))" lastNone Nothing 1024 8000 128000
   ok4 <- growthOk "lastOf bytes" lastBytes (Just 7) 4096 8000 128000
   unless (ok1 && ok2 && ok3 && ok4) $ do
-    putStrLn "FAIL: lastOf over a lazy ByteString is leaking (issue #233)."
+    putStrLn "FAIL: lastOf over a lazy ByteString is leaking; see the cases marked FAIL above (issue #233)."
     exitFailure
   putStrLn "OK: lastOf over a lazy ByteString streams in constant space."
