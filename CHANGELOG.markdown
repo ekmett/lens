@@ -41,9 +41,10 @@ next [????.??.??]
   strict folds in 5.3.4 (see the `NOTE: [Inlining and arity]` in
   `Control.Lens.Fold`). On a benchmark applying a partially-applied `set _1` in a
   tight loop, this improves performance by ~19x.
-* Fix a space leak in `lastOf` over lazy `ByteString`s, which previously
-  retained memory proportional to the number of chunks; it now runs in constant
-  space.
+* Fix a space leak in `lastOf`. It kept memory for each chunk of a lazy
+  `ByteString`, and for each strict `ByteString` in `traverse . bytes` over a
+  list. `Rightmost` in `Control.Lens.Internal.Fold` has two new constructors,
+  `RFound` and `RSkip`.
 * Add `makeLens` and `makePrism` to `Control.Lens.TH`. These build a single
   optic, as an expression, for one record field or one data constructor (e.g.
   `over $(makeLens '_field) f x` or `preview $(makePrism 'Ctor) x`), rather than
