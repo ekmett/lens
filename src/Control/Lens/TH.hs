@@ -308,6 +308,8 @@ classyRules_
 -- fields gain none, and definitions merging several fields (e.g. via
 -- 'makeLensesFor') inherit nothing.
 --
+-- See 'makeLens' to build the optic of a single field as an expression.
+--
 -- @
 -- 'makeLenses' = 'makeLensesWith' 'lensRules'
 -- @
@@ -320,7 +322,7 @@ makeLenses = makeFieldOptics lensRules
 -- the one for the named field, with its type inferred at the use site.
 --
 -- The kind of optic produced matches what 'makeLenses' would declare for that
--- field: an 'Lens' in the usual case, a 'Traversal' for a field that is absent
+-- field: a 'Lens' in the usual case, a 'Traversal' for a field that is absent
 -- from some constructors, and an 'Iso' for a type's sole single-field
 -- constructor.
 --
@@ -339,6 +341,10 @@ makeLenses = makeFieldOptics lensRules
 --
 -- The argument must name a record field (not a positional one), since that is
 -- how the focused field is identified.
+--
+-- The type must be in an earlier declaration group than the splice: declare
+-- it in another module, or put a top-level splice such as @$(pure [])@
+-- between the type and the splice.
 makeLens :: Name {- ^ Record field selector name -} -> ExpQ
 makeLens = makeFieldOpticExp lensRules
 
@@ -855,19 +861,16 @@ abbreviatedNamer _ fields field = maybeToList $ do
 -- will create
 --
 -- @
--- _fooXLens :: Lens' (Foo a) Int
--- _fooYLens :: Lens (Foo a) (Foo b) a b
 -- class HasX s a | s -> a where
 --   x :: Lens' s a
 -- instance HasX (Foo a) Int where
---   x = _fooXLens
+--   x = ...
 -- class HasY s a | s -> a where
 --   y :: Lens' s a
 -- instance HasY (Foo a) a where
---   y = _fooYLens
--- _barXLens :: Iso' Bar Char
+--   y = ...
 -- instance HasX Bar Char where
---   x = _barXLens
+--   x = ...
 -- @
 --
 -- For details, see 'camelCaseFields'.

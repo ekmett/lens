@@ -46,8 +46,7 @@ import Prelude
 
 -- | Generate a 'Prism' for each constructor of a data type.
 -- Isos generated when possible.
--- Reviews are created for constructors with existentially
--- quantified constructors and GADTs.
+-- Reviews are created for existentially quantified constructors.
 --
 -- /e.g./
 --
@@ -70,14 +69,16 @@ import Prelude
 -- On GHC 9.2 and later, with @-haddock@, each generated prism inherits its
 -- constructor's Haddock documentation, as 'Control.Lens.TH.makeLenses'
 -- does for fields.
+--
+-- See 'makePrism' to build the optic of a single constructor as an
+-- expression, and 'makeConstructors' for overloaded constructor prisms.
 makePrisms :: Name {- ^ Type constructor name -} -> DecsQ
 makePrisms = makePrisms' True
 
 
 -- | Generate a 'Prism' for each constructor of a data type
 -- and combine them into a single class. No Isos are created.
--- Reviews are created for constructors with existentially
--- quantified constructors and GADTs.
+-- Reviews are created for existentially quantified constructors.
 --
 -- /e.g./
 --
@@ -170,9 +171,13 @@ makeDecPrisms normal dec =
 --
 -- * a 'Control.Lens.Iso.Iso' when the constructor is the type's /only/
 --   constructor (and is not existential\/GADT-like);
--- * a 'Control.Lens.Review.Review' for an existentially quantified or GADT
+-- * a 'Control.Lens.Review.Review' for an existentially quantified
 --   constructor; and
 -- * a 'Control.Lens.Prism.Prism' otherwise.
+--
+-- The type must be in an earlier declaration group than the splice: declare
+-- it in another module, or put a top-level splice such as @$(pure [])@
+-- between the type and the splice.
 makePrism :: Name {- ^ Data constructor name -} -> ExpQ
 makePrism conName =
   do info <- D.reifyDatatype conName

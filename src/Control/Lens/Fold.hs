@@ -337,9 +337,9 @@ iterated f g = go where
 -- >>> [1..10]^..folded.filtered even
 -- [2,4,6,8,10]
 --
--- Composing 'filtered' with the 'Fold'-consuming combinator 'has' turns it into a
--- predicate test: @'has' (l '.' 'filtered' p)@ asks whether /any/ target of @l@
--- satisfies @p@ (the same as @'anyOf' l p@), and 'noneOf' is its negation.
+-- Applying 'has' to @l '.' 'filtered' p@ gives a predicate test: it asks whether
+-- /any/ target of @l@ satisfies @p@ (the same as @'anyOf' l p@), and 'noneOf' is
+-- its negation.
 --
 -- @
 -- 'has' (l '.' 'filtered' p) ≡ 'anyOf' l p
