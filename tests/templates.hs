@@ -609,6 +609,13 @@ oneOffWrap = $(makePrism 'MkT997A)
 oneOffReview :: Review ReviewTest a
 oneOffReview = $(makePrism 'ReviewTest)
 
+-- 'makePrism' rejects a name that is not a data constructor, also for a
+-- single-constructor type: here a type name and a record field.
+$(do let rejected n = recover (pure True) (False <$ makePrism n)
+     ok <- and <$> traverse rejected [''Bar, '_baz]
+     if ok then pure []
+           else fail "makePrism accepted a name that is not a data constructor")
+
 -- 'makeConstructors' (#934): overloaded constructor prisms. T934One is also a
 -- constructor of T934.T934, whose AsT934One class is in scope and is reused
 -- rather than redeclared.

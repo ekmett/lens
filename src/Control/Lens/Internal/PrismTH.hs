@@ -185,8 +185,9 @@ makePrism conName =
          cons = map normalizeCon (D.datatypeCons info)
      case cons of
        -- A type with a single, non-existential constructor yields an Iso,
-       -- exactly as the special case in 'makeConsPrisms' does.
-       [con@(NCon _ [] [] _)] -> makeConIsoExp con
+       -- exactly as the special case in 'makeConsPrisms' does. Any other
+       -- name falls through to the error below.
+       [con@(NCon n [] [] _)] | n == conName -> makeConIsoExp con
        _ -> case List.find (\con -> view nconName con == conName) cons of
               Just con -> do stab <- computeOpticType t cons con
                              makeConOpticExp stab cons con
@@ -286,7 +287,7 @@ makeConstructorDecs t cons con =
               ( [ makeConstructorClass className methodName | isNothing mcls ]
               ++ [ makeClassInstance cx className t b
                      ( valD (varP methodName)
-                            (normalB (makeConOpticExp stab cons con)) []
+                            (normalB (makeConOpticExp (simplifyStab stab) cons con)) []
                      : inlinePragma methodName ) ]
               )
        _ -> return []
