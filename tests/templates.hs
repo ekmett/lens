@@ -28,7 +28,7 @@
 module Main where
 
 import Control.Lens
-import Language.Haskell.TH (recover)
+import Language.Haskell.TH (mkName, recover)
 -- import Test.QuickCheck (quickCheck)
 import BigRecord ()
 import T799 ()
@@ -609,12 +609,15 @@ oneOffWrap = $(makePrism 'MkT997A)
 oneOffReview :: Review ReviewTest a
 oneOffReview = $(makePrism 'ReviewTest)
 
--- 'makePrism' rejects a name that is not a data constructor, also for a
--- single-constructor type: here a type name and a record field.
-$(do let rejected n = recover (pure True) (False <$ makePrism n)
-     ok <- and <$> traverse rejected [''Bar, '_baz]
-     if ok then pure []
-           else fail "makePrism accepted a name that is not a data constructor")
+-- 'makePrism' accepts a data constructor, also as a 'mkName' name, and rejects
+-- any other name, even for a single-constructor type. Bar shares its name with
+-- its constructor, so ''Bar must not be taken for 'Bar.
+$(do let accepted n = recover (pure False) (True <$ makePrism n)
+         names = ['Bar, mkName "MkT997A", ''Bar, '_baz]
+     rs <- traverse accepted names
+     if rs == [True, True, False, False] then pure []
+       else fail ("makePrism: expected [True,True,False,False] for "
+                  ++ show names ++ ", got " ++ show rs))
 
 -- 'makeConstructors' (#934): overloaded constructor prisms. T934One is also a
 -- constructor of T934.T934, whose AsT934One class is in scope and is reused

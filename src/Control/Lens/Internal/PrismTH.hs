@@ -46,7 +46,9 @@ import Prelude
 
 -- | Generate a 'Prism' for each constructor of a data type.
 -- Isos generated when possible.
--- Reviews are created for existentially quantified constructors.
+-- Reviews are created for existentially quantified constructors, and for
+-- GADT constructors with a type variable that appears only inside an index
+-- of the result type (e.g. @b@ in @G (b, c)@).
 --
 -- /e.g./
 --
@@ -78,7 +80,9 @@ makePrisms = makePrisms' True
 
 -- | Generate a 'Prism' for each constructor of a data type
 -- and combine them into a single class. No Isos are created.
--- Reviews are created for existentially quantified constructors.
+-- Reviews are created for existentially quantified constructors, and for
+-- GADT constructors with a type variable that appears only inside an index
+-- of the result type (e.g. @b@ in @G (b, c)@).
 --
 -- /e.g./
 --
@@ -172,22 +176,29 @@ makeDecPrisms normal dec =
 -- * a 'Control.Lens.Iso.Iso' when the constructor is the type's /only/
 --   constructor (and is not existential\/GADT-like);
 -- * a 'Control.Lens.Review.Review' for an existentially quantified
---   constructor; and
+--   constructor, or a GADT constructor with a type variable that appears
+--   only inside an index of the result type (e.g. @b@ in @G (b, c)@); and
 -- * a 'Control.Lens.Prism.Prism' otherwise.
 --
 -- The type must be in an earlier declaration group than the splice: declare
 -- it in another module, or put a top-level splice such as @$(pure [])@
 -- between the type and the splice.
 makePrism :: Name {- ^ Data constructor name -} -> ExpQ
-makePrism conName =
-  do info <- D.reifyDatatype conName
+makePrism given =
+  do -- Resolve the name first: this rejects a type or field name, and makes a
+     -- 'mkName' name equal to the constructor names of the reified type.
+     conName <- do i <- reify given
+                   case i of
+                     DataConI n _ _ -> return n
+                     _ -> fail $ "makePrism: " ++ nameBase given
+                              ++ " is not a data constructor"
+     info <- D.reifyDatatype conName
      let t    = datatypeTypeKinded info
          cons = map normalizeCon (D.datatypeCons info)
      case cons of
        -- A type with a single, non-existential constructor yields an Iso,
-       -- exactly as the special case in 'makeConsPrisms' does. Any other
-       -- name falls through to the error below.
-       [con@(NCon n [] [] _)] | n == conName -> makeConIsoExp con
+       -- exactly as the special case in 'makeConsPrisms' does.
+       [con@(NCon _ [] [] _)] -> makeConIsoExp con
        _ -> case List.find (\con -> view nconName con == conName) cons of
               Just con -> do stab <- computeOpticType t cons con
                              makeConOpticExp stab cons con
@@ -274,7 +285,8 @@ makeConstructors typeName =
 -- @Prism'@.
 makeConstructorDecs :: Type -> [NCon] -> NCon -> DecsQ
 makeConstructorDecs t cons con =
-  do stab <- computeOpticType t cons con
+  do -- The method is always a Prism', so the optic need not change types.
+     stab <- simplifyStab <$> computeOpticType t cons con
      let conName = view nconName con
      case stabType stab of
        PrismType | isPrefixName conName ->
@@ -287,7 +299,7 @@ makeConstructorDecs t cons con =
               ( [ makeConstructorClass className methodName | isNothing mcls ]
               ++ [ makeClassInstance cx className t b
                      ( valD (varP methodName)
-                            (normalB (makeConOpticExp (simplifyStab stab) cons con)) []
+                            (normalB (makeConOpticExp stab cons con)) []
                      : inlinePragma methodName ) ]
               )
        _ -> return []
