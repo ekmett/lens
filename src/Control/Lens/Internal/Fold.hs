@@ -33,7 +33,6 @@ import Prelude ()
 import Control.Lens.Internal.Getter
 import Control.Lens.Internal.Prelude
 import Data.Functor.Bind
-import Data.Maybe (fromMaybe)
 import Data.Reflection
 
 import qualified Data.List.NonEmpty as NonEmpty
@@ -138,20 +137,40 @@ instance Semigroup (NonEmptyDList a) where
 ------------------------------------------------------------------------------
 
 -- | Used for 'Control.Lens.Fold.firstOf'.
-data Leftmost a = LPure | LLeaf a | LStep (Leftmost a)
+data Leftmost a
+  = LPure                 -- ^ No element.
+  | LLeaf a               -- ^ One element.
+  | LStep (Leftmost a)    -- ^ The result of '<>'.
+  | LFound (Leftmost a) a -- ^ The elements of the first field, then an element.
+  | LSkip (Leftmost a)    -- ^ The same elements as the field.
 
+-- The mirror image of the 'Semigroup' instance of 'Rightmost' below. See the
+-- comment there. Here '<>' looks inside an 'LSkip' in @x@. So @x '<>' y@
+-- does not force @y@ when @x@ is an 'LLeaf' or an 'LFound', with or without
+-- 'LSkip' around it.
 instance Semigroup (Leftmost a) where
-  x <> y = LStep $ case x of
-    LPure    -> y
-    LLeaf _  -> x
-    LStep x' -> case y of
-      -- The last two cases make firstOf produce a Just as soon as any element
-      -- is encountered, and possibly serve as a micro-optimisation; this
-      -- behaviour can be disabled by replacing them with _ -> x <> y'.
-      -- Note that this means that firstOf (backwards folded) [1..] is Just _|_.
-      LPure    -> x'
-      LLeaf a  -> LLeaf $ fromMaybe a (getLeftmost x')
-      LStep y' -> mappend x' y'
+  x <> y = LStep (appendLeftmost x y)
+
+-- | The field of the 'LStep' of @x '<>' y@. When @x@ is 'LPure', it returns
+-- @'LSkip' y@, not @y@, so that it never ends by evaluating @y@.
+appendLeftmost :: Leftmost a -> Leftmost a -> Leftmost a
+appendLeftmost x y = case x of
+  LSkip x'   -> appendLeftmost x' y
+  LPure      -> LSkip y
+  LLeaf _    -> x
+  LFound _ _ -> x
+  LStep x'   -> appendLeftmostStep x' y
+
+-- | 'appendLeftmost' when @x@ is @'LStep' x'@.
+appendLeftmostStep :: Leftmost a -> Leftmost a -> Leftmost a
+appendLeftmostStep x' y = case y of
+  LSkip y'    -> appendLeftmostStep x' y'
+  LPure       -> LSkip x'
+  -- These two cases give Just as soon as there is an element,
+  -- so firstOf (backwards folded) [1..] is Just _|_.
+  LLeaf a     -> LFound x' a
+  LFound y' a -> LFound x' (firstFrom y' a)
+  LStep y'    -> x' <> y'
 
 instance Monoid (Leftmost a) where
   mempty = LPure
@@ -161,11 +180,21 @@ instance Monoid (Leftmost a) where
   {-# INLINE mappend #-}
 #endif
 
+-- | The first element of the first argument, or the second argument if it has none.
+firstFrom :: Leftmost a -> a -> a
+firstFrom LPure        a = a
+firstFrom (LLeaf b)    _ = b
+firstFrom (LFound l b) _ = firstFrom l b
+firstFrom (LSkip l)    a = firstFrom l a
+firstFrom (LStep l)    a = firstFrom l a
+
 -- | Extract the 'Leftmost' element. This will fairly eagerly determine that it can return 'Just'
 -- the moment it sees any element at all.
 getLeftmost :: Leftmost a -> Maybe a
 getLeftmost LPure = Nothing
 getLeftmost (LLeaf a) = Just a
+getLeftmost (LFound l a) = Just (firstFrom l a)
+getLeftmost (LSkip x) = getLeftmost x
 getLeftmost (LStep x) = getLeftmost x
 
 -- | Used for 'Control.Lens.Fold.lastOf'.
@@ -183,10 +212,6 @@ data Rightmost a
 -- fields, so 'lastFrom' can read them in a loop. '<>' looks inside an 'RSkip'
 -- in @y@. So @x '<>' y@ does not force @x@ when @y@ is an 'RLeaf' or an
 -- 'RFound', with or without 'RSkip' around it.
---
--- 'Leftmost' does not have these constructors yet. Its '<>' can still keep
--- a stack frame for each '<>' on left-nested folds, for example 'firstOf'
--- over 'backwards'. See lens issue #1142.
 instance Semigroup (Rightmost a) where
   x <> y = RStep (appendRightmost x y)
 

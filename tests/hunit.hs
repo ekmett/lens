@@ -415,6 +415,23 @@ case_lastOf_lazy_left =
   lastOf (both . folded . filtered p) ([0, 1], [5 :: Int]) @?= Just 5
   where p n = n /= 0 || error "predicate ran on 0"
 
+-- The mirror images of the four tests above, for 'Leftmost'. 'backwards'
+-- reverses the fold, so firstOf over backwards must be as lazy as lastOf.
+case_firstOf_backwards_infinite_list =
+  has _Just (firstOf (backwards folded) [1 :: Int ..]) @?= True
+
+case_firstOf_backwards_infinite_lazy_bytestring =
+  has _Just (firstOf (backwards each) (LazyB.cycle (LazyB.pack [1]))) @?= True
+
+case_firstOf_backwards_lazy_predicate =
+  has _Just (firstOf (backwards (each . filtered p)) (LazyB.pack [1, 0, 0])) @?= True
+  where p n = n == 1 || error "predicate ran on 0"
+
+-- This needs '<>' of 'Leftmost' to look inside an 'LSkip' on the left.
+case_firstOf_backwards_lazy_right =
+  firstOf (backwards (both . folded . filtered p)) ([0, 1], [5 :: Int]) @?= Just 5
+  where p n = n /= 0 || error "predicate ran on 0"
+
 -- One-off optic construction (#710): the spliced optics behave as expected.
 case_oneoff_lens_view =
   view $(makeLens '_x) (Point 3 4) @?= 3
@@ -573,6 +590,12 @@ main = defaultMain $
       testCase "lastOf infinite lazy bytestring" case_lastOf_infinite_lazy_bytestring
   , testCase "lastOf lazy predicate" case_lastOf_lazy_predicate
   , testCase "lastOf lazy left" case_lastOf_lazy_left
+  , localOption loopTimeout $
+      testCase "firstOf backwards infinite list" case_firstOf_backwards_infinite_list
+  , localOption loopTimeout $
+      testCase "firstOf backwards infinite lazy bytestring" case_firstOf_backwards_infinite_lazy_bytestring
+  , testCase "firstOf backwards lazy predicate" case_firstOf_backwards_lazy_predicate
+  , testCase "firstOf backwards lazy right" case_firstOf_backwards_lazy_right
   , testCase "one-off lens view" case_oneoff_lens_view
   , testCase "one-off lens set" case_oneoff_lens_set
   , testCase "one-off prism preview hit" case_oneoff_prism_preview_hit
