@@ -190,10 +190,6 @@ mapped = sets fmap
 
 -- | This 'setter' can be used to modify all of the values in a 'Monad'.
 --
--- /Deprecated:/ use 'mapped' instead. This existed only because 'Functor'
--- was not a superclass of 'Monad' before GHC 7.10; now that it is, 'mapped'
--- works for any 'Monad' and subsumes 'lifted'.
---
 -- @
 -- 'liftM' ≡ 'over' 'lifted'
 -- @
@@ -230,7 +226,7 @@ lifted = sets liftM
 -- Left (-3)
 --
 -- @
--- 'bimapped' :: 'Setter' (a, a)         (b, b)         a b
+-- 'bimapped' :: 'Setter' (a, a)       (b, b)       a b
 -- 'bimapped' :: 'Setter' ('Either' a a) ('Either' b b) a b
 -- @
 --
