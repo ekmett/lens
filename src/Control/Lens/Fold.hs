@@ -1381,10 +1381,7 @@ fromMaybeOf l = foldrOf l const
 -- | Retrieve the 'First' entry of a 'Fold' or 'Traversal' or retrieve 'Just' the result
 -- from a 'Getter' or 'Lens'.
 --
--- The answer is computed in a manner that leaks space less than @'preview'@ or @^?'@
--- and gives you back access to the outermost 'Just' constructor more quickly, but does so
--- in a way that builds an intermediate structure, and thus may have worse
--- constant factors. This also means that it can not be used in any 'Control.Monad.Reader.MonadReader',
+-- It can not be used in any 'Control.Monad.Reader.MonadReader',
 -- but must instead have 's' passed as its last argument, unlike 'preview'.
 --
 -- Note: this could been named `headOf`.
@@ -1437,10 +1434,6 @@ first1Of l = Semi.getFirst . foldMapOf l Semi.First
 
 -- | Retrieve the 'Last' entry of a 'Fold' or 'Traversal' or retrieve 'Just' the result
 -- from a 'Getter' or 'Lens'.
---
--- The answer is computed in a manner that leaks space less than @'ala' 'Last' '.' 'foldMapOf'@
--- and gives you back access to the outermost 'Just' constructor more quickly, but may have worse
--- constant factors.
 --
 -- >>> lastOf traverse [1..10]
 -- Just 10
@@ -2090,8 +2083,8 @@ ipre l = dimap (getFirst . getConst #. l (Indexed $ \i a -> Const (First (Just (
 -- 'preview' uses a monoidal value to obtain the result.
 -- This means that it generally has good performance, but can occasionally cause space leaks
 -- or even stack overflows on some data types.
--- There is another function, 'firstOf', which avoids these issues at the cost of
--- a slight constant performance cost and a little less flexibility.
+-- There is another function, 'firstOf', which can deal more gracefully with
+-- heavily left-biased trees, but is a little less flexible.
 --
 -- It may be helpful to think of 'preview' as having one of the following
 -- more specialized types:
