@@ -24,7 +24,7 @@
 --
 -- The @unsafe*@ conversions in "Control.Monad.Primitive" are deliberately
 -- omitted: they coerce between monads with different 'PrimState' tokens,
--- and so do not form lawful 'Iso's.
+-- which is unsafe.
 ----------------------------------------------------------------------------
 module Control.Monad.Primitive.Lens
   ( prim

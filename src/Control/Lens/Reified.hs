@@ -48,6 +48,7 @@ import Data.Semigroup
 -- $setup
 -- >>> import Control.Lens
 -- >>> import Control.Applicative
+-- >>> import Data.Semigroup (Semigroup (..))
 
 ------------------------------------------------------------------------------
 -- Lens
@@ -543,6 +544,9 @@ type ReifiedPrism' s a = ReifiedPrism s s a a
 ------------------------------------------------------------------------------
 
 -- | Reify a t'Review' so it can be stored safely in a container.
+--
+-- >>> review (runReview (Review (unto show) <> Review (unto (const "!")))) 5
+-- "5!"
 newtype ReifiedReview t b = Review { runReview :: Review t b }
 
 instance Contravariant (ReifiedReview t) where
