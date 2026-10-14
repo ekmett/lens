@@ -398,7 +398,8 @@ test-suite hunit
       tasty >= 1.4 && < 1.6,
       tasty-hunit >= 0.10 && < 0.11
 
--- Regression test for the lazy-ByteString space leak in lastOf (issue #233).
+-- Regression test for the lazy-ByteString space leaks in lastOf (issue #233)
+-- and in firstOf over backwards (issue #1142).
 -- Uses GHC.Stats (base >= 4.10 / GHC >= 8.2). -O2, so that the test checks
 -- the most optimised code.
 test-suite space

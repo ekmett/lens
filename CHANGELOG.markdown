@@ -43,8 +43,10 @@ next [????.??.??]
   tight loop, this improves performance by ~19x.
 * Fix a space leak in `lastOf`. It kept memory for each chunk of a lazy
   `ByteString`, and for each strict `ByteString` in `traverse . bytes` over a
-  list. `Rightmost` in `Control.Lens.Internal.Fold` has two new constructors,
-  `RFound` and `RSkip`.
+  list. `firstOf` had the same leak, for example `firstOf (backwards bytes)`
+  over a lazy `ByteString`. `Rightmost` in `Control.Lens.Internal.Fold` has
+  two new constructors, `RFound` and `RSkip`, and `Leftmost` has `LFound` and
+  `LSkip`.
 * Add `makeLens` and `makePrism` to `Control.Lens.TH`. These build a single
   optic, as an expression, for one record field or one data constructor (e.g.
   `over $(makeLens '_field) f x` or `preview $(makePrism 'Ctor) x`), rather than
