@@ -104,8 +104,7 @@ adjoin t1 t2 =
 -- | A union of setters: apply the same function through both of them.
 --
 -- Unlike `adjoin`, this needs only 'ASetter's, so it reaches targets that
--- cannot be traversed. In exchange the result is write-only: unlike `adjoin`
--- there is nothing to read back through.
+-- cannot be traversed. In exchange the result is write-only.
 --
 -- Result is only a valid t'Setter' if the input setters touch disjoint parts of
 -- the structure. Otherwise the composition law
@@ -114,8 +113,7 @@ adjoin t1 t2 =
 -- 'Control.Lens.Setter.over' l f '.' 'Control.Lens.Setter.over' l g ≡ 'Control.Lens.Setter.over' l (f '.' g)
 -- @
 --
--- is violated, because @f@ is applied once per setter on the left but the
--- composite is applied once per setter on the right:
+-- is violated:
 --
 -- >>> let badSetter :: Setter' Int Int; badSetter = setterUnion id id
 -- >>> over badSetter (+1) (over badSetter (*2) 1)
@@ -143,6 +141,6 @@ adjoin t1 t2 =
 -- Are you looking for 'Control.Lens.Setter.bimapped' or
 -- 'Control.Lens.Traversal.both'?
 --
-setterUnion :: ASetter x o a b -> ASetter i x a b -> IndexPreservingSetter i o a b
+setterUnion :: ASetter x t a b -> ASetter s x a b -> IndexPreservingSetter s t a b
 setterUnion l1 l2 = setting (\f -> over l1 f . over l2 f)
 {-# INLINE setterUnion #-}
