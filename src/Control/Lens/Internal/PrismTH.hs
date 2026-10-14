@@ -46,9 +46,7 @@ import Prelude
 
 -- | Generate a 'Prism' for each constructor of a data type.
 -- Isos generated when possible.
--- Reviews are created for existentially quantified constructors, and for
--- GADT constructors with a type variable that appears only inside an index
--- of the result type (e.g. @b@ in @G (b, c)@).
+-- Reviews are created for existentially quantified constructors.
 --
 -- /e.g./
 --
@@ -80,9 +78,7 @@ makePrisms = makePrisms' True
 
 -- | Generate a 'Prism' for each constructor of a data type
 -- and combine them into a single class. No Isos are created.
--- Reviews are created for existentially quantified constructors, and for
--- GADT constructors with a type variable that appears only inside an index
--- of the result type (e.g. @b@ in @G (b, c)@).
+-- Reviews are created for existentially quantified constructors.
 --
 -- /e.g./
 --
@@ -176,8 +172,7 @@ makeDecPrisms normal dec =
 -- * a 'Control.Lens.Iso.Iso' when the constructor is the type's /only/
 --   constructor (and is not existential\/GADT-like);
 -- * a 'Control.Lens.Review.Review' for an existentially quantified
---   constructor, or a GADT constructor with a type variable that appears
---   only inside an index of the result type (e.g. @b@ in @G (b, c)@); and
+--   constructor; and
 -- * a 'Control.Lens.Prism.Prism' otherwise.
 --
 -- The type must be in an earlier declaration group than the splice: declare
@@ -185,8 +180,9 @@ makeDecPrisms normal dec =
 -- between the type and the splice.
 makePrism :: Name {- ^ Data constructor name -} -> ExpQ
 makePrism given =
-  do -- Resolve the name first: this rejects a type or field name, and makes a
-     -- 'mkName' name equal to the constructor names of the reified type.
+  do -- Resolve the name first. This rejects a type or field name, and turns
+     -- a name made with 'mkName' into the global name that the reified
+     -- constructors have.
      conName <- do i <- reify given
                    case i of
                      DataConI n _ _ -> return n

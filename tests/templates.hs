@@ -28,6 +28,7 @@
 module Main where
 
 import Control.Lens
+import Control.Monad (unless)
 import Language.Haskell.TH (mkName, recover)
 -- import Test.QuickCheck (quickCheck)
 import BigRecord ()
@@ -609,15 +610,18 @@ oneOffWrap = $(makePrism 'MkT997A)
 oneOffReview :: Review ReviewTest a
 oneOffReview = $(makePrism 'ReviewTest)
 
--- 'makePrism' accepts a data constructor, also as a 'mkName' name, and rejects
--- any other name, even for a single-constructor type. Bar shares its name with
--- its constructor, so ''Bar must not be taken for 'Bar.
+-- 'makePrism' accepts a data constructor, also when the name is made with
+-- 'mkName', and rejects any other name, even for a single-constructor type.
+-- Bar shares its name with its constructor, so ''Bar must not be taken for
+-- 'Bar.
 $(do let accepted n = recover (pure False) (True <$ makePrism n)
-         names = ['Bar, mkName "MkT997A", ''Bar, '_baz]
-     rs <- traverse accepted names
-     if rs == [True, True, False, False] then pure []
-       else fail ("makePrism: expected [True,True,False,False] for "
-                  ++ show names ++ ", got " ++ show rs))
+         names    = ['Bar, mkName "MkT997A", ''Bar, '_baz]
+         expected = [True, True, False, False]
+     actual <- traverse accepted names
+     unless (expected == actual) $
+       fail $ "makePrism: expected " ++ show expected ++ " for " ++ show names
+              ++ ", got " ++ show actual
+     pure [])
 
 -- 'makeConstructors' (#934): overloaded constructor prisms. T934One is also a
 -- constructor of T934.T934, whose AsT934One class is in scope and is reused
