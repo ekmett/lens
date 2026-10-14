@@ -96,7 +96,7 @@ lastNone = lastOf (bytes . filtered (/= 7))
 lastNested = lastOf (bytes . to (: []) . folded)
 
 -- | 'backwards' makes the fold nest to the left, so these folds test
--- 'Leftmost' as 'lastBytes' and 'lastNone' test 'Rightmost'.
+-- 'Leftmost'. See also 'lastBytes' and 'lastNone', which test 'Rightmost'.
 firstBack, firstBackNone :: BL.ByteString -> Maybe Word8
 firstBack = firstOf (backwards bytes)
 -- No byte is a target, so each byte gives 'LPure'.

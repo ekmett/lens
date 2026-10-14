@@ -1381,7 +1381,7 @@ fromMaybeOf l = foldrOf l const
 -- | Retrieve the 'First' entry of a 'Fold' or 'Traversal' or retrieve 'Just' the result
 -- from a 'Getter' or 'Lens'.
 --
--- It can not be used in any 'Control.Monad.Reader.MonadReader',
+-- 'firstOf' can not be used in any 'Control.Monad.Reader.MonadReader',
 -- but must instead have 's' passed as its last argument, unlike 'preview'.
 --
 -- Note: this could been named `headOf`.
