@@ -41,12 +41,18 @@ next [????.??.??]
   strict folds in 5.3.4 (see the `NOTE: [Inlining and arity]` in
   `Control.Lens.Fold`). On a benchmark applying a partially-applied `set _1` in a
   tight loop, this improves performance by ~19x.
-* Fix a space leak in `lastOf`. It kept memory for each chunk of a lazy
-  `ByteString`, and for each strict `ByteString` in `traverse . bytes` over a
-  list. `firstOf` had the same leak, for example `firstOf (backwards bytes)`
-  over a lazy `ByteString`. `Rightmost` in `Control.Lens.Internal.Fold` has
-  two new constructors, `RFound` and `RSkip`, and `Leftmost` has `LFound` and
-  `LSkip`.
+* Fix space leaks in `firstOf` and `lastOf`. `lastOf` kept memory for each
+  chunk of a lazy `ByteString`, and for each strict `ByteString` in
+  `traverse . bytes` over a list, and `firstOf` did the same under
+  `backwards`. Over a balanced fold, such as `bytes` on a strict `ByteString`
+  or `traverse . filtered p` on a `Map`, both kept memory for a whole level of
+  the fold. Now they keep memory for a bounded number of chunks, and for about
+  one path of a balanced fold. The search order changed. On finite folds
+  without undefined elements the results are the same. On infinite folds and
+  on folds with an undefined element, they can now fail or not finish where
+  they gave a result before, and the other way round. `Leftmost` and
+  `Rightmost` in `Control.Lens.Internal.Fold` are now plain trees, with the
+  constructors `LPure`, `LLeaf` and `LNode`, and `RPure`, `RLeaf` and `RNode`.
 * Add `makeLens` and `makePrism` to `Control.Lens.TH`. These build a single
   optic, as an expression, for one record field or one data constructor (e.g.
   `over $(makeLens '_field) f x` or `preview $(makePrism 'Ctor) x`), rather than
