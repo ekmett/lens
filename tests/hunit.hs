@@ -409,8 +409,7 @@ case_lastOf_lazy_predicate =
   where p n = n == 1 || error "predicate ran on 0"
 
 -- The second list has a target. So lastOf does not run the predicate on
--- the first list. This needs '<>' of 'Rightmost' to look inside an 'RSkip'
--- on the right.
+-- the first list.
 case_lastOf_lazy_left =
   lastOf (both . folded . filtered p) ([0, 1], [5 :: Int]) @?= Just 5
   where p n = n /= 0 || error "predicate ran on 0"
@@ -427,10 +426,119 @@ case_firstOf_backwards_lazy_predicate =
   has _Just (firstOf (backwards (each . filtered p)) (LazyB.pack [1, 0, 0])) @?= True
   where p n = n == 1 || error "predicate ran on 0"
 
--- This needs '<>' of 'Leftmost' to look inside an 'LSkip' on the left.
 case_firstOf_backwards_lazy_right =
   firstOf (backwards (both . folded . filtered p)) ([0, 1], [5 :: Int]) @?= Just 5
   where p n = n /= 0 || error "predicate ran on 0"
+
+-- The search goes near side first, but it must still find an element on the
+-- far side when the near side is an endless run of empty lists.
+case_lastOf_infinite_empty_run =
+  has _Just (lastOf (folded . folded) ([[5]] ++ repeat [] :: [[Int]])) @?= True
+
+case_firstOf_backwards_infinite_empty_run =
+  has _Just (firstOf (backwards (folded . folded)) ([[5]] ++ repeat [] :: [[Int]])) @?= True
+
+-- The search forces the far child of a node only when the near child is not
+-- an element. So it does not force the undefined rest of the inner list.
+case_firstOf_partial_inner_list =
+  firstOf (folded . folded) [1 : undefined :: [Int]] @?= Just 1
+
+case_lastOf_backwards_partial_inner_list =
+  lastOf (backwards (folded . folded)) [1 : undefined :: [Int]] @?= Just 1
+
+-- A balanced fold of 2^48 elements with no data. The search goes near side
+-- first, so it finds the first and the last element at once.
+balancedFold :: Fold Int Int
+balancedFold f n = go 1 n
+  where
+    go lo hi
+      | lo >= hi  = f lo
+      | otherwise = let mid = (lo + hi) `div` 2 in go lo mid *> go (mid + 1) hi
+
+bigBalanced :: Int
+bigBalanced = 2 ^ (48 :: Int)
+
+case_firstOf_deep_balanced =
+  firstOf (balancedFold . filtered (== 1)) bigBalanced @?= Just 1
+
+case_lastOf_deep_balanced =
+  lastOf (balancedFold . filtered (== bigBalanced)) bigBalanced @?= Just bigBalanced
+
+-- After one round of the search, a payment to the far side finds the 7. The
+-- nearer 5 is more than one round ('roundWork' in
+-- Control.Lens.Internal.Fold) of work away, but it is still the answer.
+paidFarInput :: [[Int]]
+paidFarInput = [[7], replicate 10000 0 ++ [5]]
+
+case_lastOf_paid_far_element =
+  lastOf (folded . folded . filtered (/= 0)) paidFarInput @?= Just 5
+
+case_firstOf_backwards_paid_far_element =
+  firstOf (backwards (folded . folded . filtered (/= 0))) paidFarInput @?= Just 5
+
+-- The search pays the far side a share of its work, and here a part of the
+-- far side that is being paid finds the element 2 in its own far side. The
+-- answer must still be the nearer 1. The 200000 elements before it give
+-- enough work for that with the constants in Control.Lens.Internal.Fold.
+farShareInput :: [[Maybe Int]]
+farShareInput = [replicate 200000 Nothing, replicate 300 Nothing ++ [Just 1], [Just 2]]
+
+case_firstOf_far_share_element =
+  firstOf (folded . folded . _Just) farShareInput @?= Just 1
+
+case_lastOf_backwards_far_share_element =
+  lastOf (backwards (folded . folded . _Just)) farShareInput @?= Just 1
+
+-- A node with enough unfinished far children above it works in reverse: its
+-- far child gets the work first, and its near child gets a share. Here the
+-- 32 lists of 1000 elements stay unfinished ('depthBound' in
+-- Control.Lens.Internal.Fold is 32), and the next far child is larger than
+-- one round of the search, so the near child is paid while it runs. The near
+-- child has no element in the first case, and has the answer in the second.
+reverseInput :: [Int] -> [[Int]]
+reverseInput end = replicate 32 (replicate 1000 0) ++ [replicate 100000 0 ++ [5], end]
+
+case_lastOf_reverse_near_empty =
+  lastOf (folded . folded . filtered (/= 0)) (reverseInput [0]) @?= Just 5
+
+case_lastOf_reverse_near_element =
+  lastOf (folded . folded . filtered (/= 0)) (reverseInput [7]) @?= Just 7
+
+case_firstOf_backwards_reverse_near_empty =
+  firstOf (backwards (folded . folded . filtered (/= 0))) (reverseInput [0]) @?= Just 5
+
+case_firstOf_backwards_reverse_near_element =
+  firstOf (backwards (folded . folded . filtered (/= 0))) (reverseInput [7]) @?= Just 7
+
+-- In reverse, the far child here never ends, and the near child has the
+-- answer, so the near child must still get its share.
+reverseEndlessFar :: [[Int]]
+reverseEndlessFar = replicate 32 (repeat 0) ++ [repeat 0, [7]]
+
+case_lastOf_reverse_endless_far =
+  lastOf (folded . folded . filtered (/= 0)) reverseEndlessFar @?= Just 7
+
+case_firstOf_backwards_reverse_endless_far =
+  firstOf (backwards (folded . folded . filtered (/= 0))) reverseEndlessFar @?= Just 7
+
+-- In reverse, the far child finds the 9 first, but the near child has the
+-- nearer 7.
+reverseFarElement :: [[Int]]
+reverseFarElement = replicate 32 (replicate 1000 0) ++ [[9], replicate 100000 0 ++ [7]]
+
+case_lastOf_reverse_far_element =
+  lastOf (folded . folded . filtered (/= 0)) reverseFarElement @?= Just 7
+
+-- The element is in the far side of a far side, behind endless empty runs,
+-- so the search must also pay inside a far side.
+nestedEmptyRuns :: [[[Int]]]
+nestedEmptyRuns = [[[5]] ++ repeat []] ++ repeat []
+
+case_lastOf_nested_empty_runs =
+  has _Just (lastOf (folded . folded . folded) nestedEmptyRuns) @?= True
+
+case_firstOf_backwards_nested_empty_runs =
+  has _Just (firstOf (backwards (folded . folded . folded)) nestedEmptyRuns) @?= True
 
 -- One-off optic construction (#710): the spliced optics behave as expected.
 case_oneoff_lens_view =
@@ -596,6 +704,33 @@ main = defaultMain $
       testCase "firstOf backwards infinite lazy bytestring" case_firstOf_backwards_infinite_lazy_bytestring
   , testCase "firstOf backwards lazy predicate" case_firstOf_backwards_lazy_predicate
   , testCase "firstOf backwards lazy right" case_firstOf_backwards_lazy_right
+  , localOption loopTimeout $
+      testCase "lastOf infinite empty run" case_lastOf_infinite_empty_run
+  , localOption loopTimeout $
+      testCase "firstOf backwards infinite empty run" case_firstOf_backwards_infinite_empty_run
+  , testCase "firstOf partial inner list" case_firstOf_partial_inner_list
+  , testCase "lastOf backwards partial inner list" case_lastOf_backwards_partial_inner_list
+  , localOption loopTimeout $
+      testCase "firstOf deep balanced fold" case_firstOf_deep_balanced
+  , localOption loopTimeout $
+      testCase "lastOf deep balanced fold" case_lastOf_deep_balanced
+  , testCase "lastOf element in a paid far side, nearer one later" case_lastOf_paid_far_element
+  , testCase "firstOf backwards element in a paid far side, nearer one later" case_firstOf_backwards_paid_far_element
+  , testCase "firstOf element in a paid far side" case_firstOf_far_share_element
+  , testCase "lastOf backwards element in a paid far side" case_lastOf_backwards_far_share_element
+  , testCase "lastOf in reverse, near side empty" case_lastOf_reverse_near_empty
+  , testCase "lastOf in reverse, element in near side" case_lastOf_reverse_near_element
+  , testCase "firstOf backwards in reverse, near side empty" case_firstOf_backwards_reverse_near_empty
+  , testCase "firstOf backwards in reverse, element in near side" case_firstOf_backwards_reverse_near_element
+  , localOption loopTimeout $
+      testCase "lastOf in reverse, endless far side" case_lastOf_reverse_endless_far
+  , localOption loopTimeout $
+      testCase "firstOf backwards in reverse, endless far side" case_firstOf_backwards_reverse_endless_far
+  , testCase "lastOf in reverse, element in far side" case_lastOf_reverse_far_element
+  , localOption loopTimeout $
+      testCase "lastOf nested empty runs" case_lastOf_nested_empty_runs
+  , localOption loopTimeout $
+      testCase "firstOf backwards nested empty runs" case_firstOf_backwards_nested_empty_runs
   , testCase "one-off lens view" case_oneoff_lens_view
   , testCase "one-off lens set" case_oneoff_lens_set
   , testCase "one-off prism preview hit" case_oneoff_prism_preview_hit

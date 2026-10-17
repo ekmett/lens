@@ -10,6 +10,7 @@
 {-# LANGUAGE PolyKinds #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE DeriveTraversable #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Main (properties)
@@ -26,9 +27,11 @@ module Main where
 
 import Control.Lens
 import Test.QuickCheck
-import Test.Tasty (defaultMain, testGroup)
-import Test.Tasty.QuickCheck (testProperty)
+import Test.Tasty (defaultMain, localOption, testGroup)
+import Test.Tasty.QuickCheck (QuickCheckTests (..), testProperty)
 import Data.Char (isAlphaNum, isAscii, toUpper)
+import Data.Foldable (toList)
+import Data.Maybe (listToMaybe)
 import qualified Data.Text.Strict.Lens as Text
 import GHC.Exts (Constraint)
 import Numeric (showHex, showOct, showSigned)
@@ -147,6 +150,51 @@ prop_base_readFail (s :: String) =
     sPos = case s of { ('-':s') -> s'; _ -> s }
     isValidChar c = isAscii c && isAlphaNum c
 
+-- Control.Lens.Fold: firstOf and lastOf on folds of any shape. 'traverse'
+-- over a 'Shape' joins the two parts of each 'Join' with '<>'.
+data Shape a = None | Single a | Join (Shape a) (Shape a)
+  deriving (Show, Functor, Foldable, Traversable)
+
+instance Arbitrary a => Arbitrary (Shape a) where
+  arbitrary = sized go
+    where
+      go n
+        | n <= 1 = oneof [pure None, Single <$> arbitrary]
+        | otherwise = oneof
+            [ choose (1, n - 1) >>= \k -> Join <$> go k <*> go (n - k)
+            , Join <$> go 1 <*> go (n - 1) -- a chain to the right
+            , Join <$> go (n - 1) <*> go 1 -- a chain to the left
+            -- Chains of small trees, so the search path gets deep enough
+            -- to work in reverse ('depthBound' in Control.Lens.Internal.Fold).
+            , pieces n >>= fmap (foldr1 Join) . mapM go
+            , pieces n >>= fmap (foldl1 Join) . mapM go
+            ]
+      pieces n
+        | n <= 100 = pure [n]
+        | otherwise = choose (2, 100) >>= \k -> (k :) <$> pieces (n - k)
+  shrink None       = []
+  shrink (Single a) = None : map Single (shrink a)
+  shrink (Join l r) = [l, r] ++ [Join l' r | l' <- shrink l] ++ [Join l r' | r' <- shrink r]
+
+-- | Shapes of up to about 5000 nodes, so the search in 'firstOf' and
+-- 'lastOf' runs for many rounds.
+bigShape :: Gen (Shape Int)
+bigShape = sized (\n -> resize (50 * n) arbitrary)
+
+prop_firstOf_shape, prop_lastOf_shape :: Property
+prop_firstOf_shape = forAllShrink bigShape shrink $ \s ->
+  conjoin [ firstOf (traverse . filtered p) s === listToMaybe (filter p (toList s)) | p <- shapeTargets ]
+prop_lastOf_shape = forAllShrink bigShape shrink $ \s ->
+  conjoin [ lastOf (traverse . filtered p) s === lastMaybe (filter p (toList s)) | p <- shapeTargets ]
+
+-- | Many targets, and few.
+shapeTargets :: [Int -> Bool]
+shapeTargets = [even, \x -> x `mod` 37 == 0]
+
+lastMaybe :: [a] -> Maybe a
+lastMaybe [] = Nothing
+lastMaybe xs = Just (last xs)
+
 -- Things that should typecheck but that we don't need to run
 data Foo (a :: Constraint) (b :: Constraint) where
   Foo :: Foo (Num Int) b
@@ -218,4 +266,8 @@ main = defaultMain $
   , testProperty "base show" prop_base_show
   , testProperty "base read" prop_base_read
   , testProperty "base readFail" prop_base_readFail
+  -- 1000 cases, so that every run has many shapes deep enough for the
+  -- reverse mode of the search. They take under a second.
+  , localOption (QuickCheckTests 1000) $ testProperty "firstOf shape" prop_firstOf_shape
+  , localOption (QuickCheckTests 1000) $ testProperty "lastOf shape" prop_lastOf_shape
   ]
