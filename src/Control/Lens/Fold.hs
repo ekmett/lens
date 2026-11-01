@@ -57,6 +57,7 @@ module Control.Lens.Fold
   -- ** Building Folds
   , folding, ifolding
   , foldring, ifoldring
+  , folding1, ifolding1
   , folded
   , folded64
   , unfolded
@@ -121,7 +122,7 @@ module Control.Lens.Fold
   , ifoldlOf'
   , ifoldrMOf
   , ifoldlMOf
-  , itoListOf
+  , itoListOf, itoNonEmptyOf
   , elemIndexOf
   , elemIndicesOf
   , findIndexOf
@@ -160,6 +161,7 @@ import Control.Monad as Monad
 import Control.Monad.Reader
 import Control.Monad.State
 import Data.CallStack
+import Data.Semigroup.Foldable(Foldable1, traverse1_)
 import Data.Functor.Apply hiding ((<.))
 import Data.Int (Int64)
 import Data.List (intercalate)
@@ -176,6 +178,7 @@ import qualified Data.Semigroup as Semi
 -- >>> import Data.Function
 -- >>> import Data.List.Lens
 -- >>> import Data.List.NonEmpty (NonEmpty (..))
+-- >>> import qualified Data.List.NonEmpty as NonEmpty
 -- >>> import Debug.SimpleReflect.Expr
 -- >>> import Debug.SimpleReflect.Vars as Vars hiding (f,g)
 -- >>> import Control.DeepSeq (NFData (..), force)
@@ -204,9 +207,23 @@ folding :: Foldable f => (s -> f a) -> Fold s a
 folding sfa agb = phantom . traverse_ agb . sfa
 {-# INLINE folding #-}
 
+-- | construct a Fold1 from a function that produces a Foldable1
+--
+-- >>> toNonEmptyOf folding1 reverse (1 :| [2,3,4])
+-- (4 :| [3,2,1])
+folding1         :: Foldable1 f => (s -> f a) -> Fold1 s a
+folding1 sfa agb = phantom . traverse1_ agb . sfa
+{-# INLINE folding1 #-}
+
 ifolding :: (Foldable f, Indexable i p, Contravariant g, Applicative g) => (s -> f (i, a)) -> Over p g s t a b
 ifolding sfa f = phantom . traverse_ (phantom . uncurry (indexed f)) . sfa
 {-# INLINE ifolding #-}
+
+-- | Version of ifolding to build an 'IndexedFold1'
+ifolding1       :: (Foldable1 f, Indexable i p, Contravariant g, Apply g)
+                => (s -> f (i, a)) -> Over p g s t a b
+ifolding1 sfa f = phantom . traverse1_ (phantom . uncurry (indexed f)) . sfa
+{-# INLINE ifolding1 #-}
 
 -- | Obtain a 'Fold' by lifting 'foldr' like function.
 --
@@ -661,6 +678,14 @@ toListOf l = foldrOf l (:) []
 -- @
 toNonEmptyOf :: Getting (NonEmptyDList a) s a -> s -> NonEmpty a
 toNonEmptyOf l = flip getNonEmptyDList [] . foldMapOf l (NonEmptyDList #. (:|))
+
+-- | indexed version of 'toNonEmptyOf'
+--
+-- >>> itoNonEmptyOf traverse1 $ "hello" :| ["world"]
+-- (0,"hello") :| [(1,"world")]
+itoNonEmptyOf   :: IndexedGetting i (NonEmptyDList (i,a)) s a -> s -> NonEmpty (i,a)
+itoNonEmptyOf l = flip getNonEmptyDList [] . ifoldMapOf l (\i a -> NonEmptyDList $ ((i,a) :|))
+{-# INLINE itoNonEmptyOf #-}
 
 -- | Calls 'pure' on the target of a 'Lens', 'Getter', or 'Iso'.
 --
