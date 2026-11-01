@@ -60,6 +60,7 @@ import           Data.Kind
 import           Data.Strict           (Pair (..))
 import           GHC.Generics          ((:*:) (..), Generic (..), K1 (..),
                                         M1 (..), U1 (..))
+import           GHC.Tuple             (Unit)
 
 -- $setup
 -- >>> :set -XNoOverloadedStrings
@@ -102,6 +103,9 @@ class Field1 s t a b | s -> a, t -> b, s b -> t, t a -> s where
 
 instance Field1 (Identity a) (Identity b) a b where
   _1 f (Identity a) = Identity <$> f a
+
+instance Field1 (Unit a) (Unit b) a b where
+  _1 f (Unit a) = Unit <$> f a
 
 instance Field1 (Product f g a) (Product f' g a) (f a) (f' a) where
   _1 f (Pair a b) = flip Pair b <$> f a
