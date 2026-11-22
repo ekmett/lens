@@ -1,5 +1,12 @@
 next [????.??.??]
 -----------------
+* Change `fromLens`, `fromIso`, and `fromPrism` in `Control.Lens.Profunctor` to
+  accept the canonical monomorphic optic types `ALens`, `AnIso`, and `APrism`,
+  matching `fromSetter`/`fromTraversal` which already take `ASetter`/`ATraversal`.
+  Fully polymorphic `Lens`/`Iso`/`Prism` values are still accepted unchanged.
+  `fromIso` now accepts only an `Iso`, and `fromPrism` only a `Prism` or an
+  `Iso`. For a `Lens`, `Traversal`, or `Setter`, use `fromLens`,
+  `fromTraversal`, or `fromSetter`.
 * Add `bimapped` to `Control.Lens.Setter`: a `Setter` that maps over both
   parameters of a `Bifunctor` with the same function. Unlike `both`, it
   requires only `Bifunctor` rather than `Bitraversable`.
@@ -14,45 +21,41 @@ next [????.??.??]
   other generators that reify a type by name now inherit the Haddock
   documentation of the record field or data constructor they focus.
   Existing documentation is never overwritten. Definitions merging several
-  fields, shared field-class methods (`makeFields` and relatives), and the
-  quote-based `declare*` variants inherit nothing; see the `makeLenses` and
-  `makeLensesWith` documentation for details.
-* Change `fromLens`, `fromIso`, and `fromPrism` in `Control.Lens.Profunctor` to
-  accept the canonical monomorphic optic types `ALens`, `AnIso`, and `APrism`,
-  matching `fromSetter`/`fromTraversal` which already take `ASetter`/`ATraversal`.
-  Full polymorphic `Lens`/`Iso`/`Prism` values are still accepted unchanged; only
-  code that relied on the previous ad-hoc representations needs adjusting.
+  fields, shared class methods (`makeFields`, `makeConstructors`, and
+  relatives), and the quote-based `declare*` variants inherit nothing; see the
+  `makeLenses` and `makeLensesWith` documentation for details.
 * Re-add the `Control.Monad.Primitive.Lens` module, which was removed in
   `lens` 4.9. It offers `Iso`s for the conversions in
   `Control.Monad.Primitive`: `prim` (between a `PrimBase` monad and its
   underlying `State#` representation, now type-changing), and the new `st`
-  and `io` (between a `PrimBase` monad and `ST`/`IO`, respectively).
+  and `io` (between a `PrimBase` monad and `ST`/`IO`, respectively). `lens`
+  now depends on `primitive` directly.
 * Deprecate `lifted` in `Control.Lens.Setter`. Use `mapped` instead, which
   works for any `Monad` now that `Functor` is a superclass of `Monad`.
-* Add `ReifiedReview` to `Control.Lens.Reified`.
+* Add `ReifiedReview` (constructor `Review`) to `Control.Lens.Reified`.
 * Fix `Data.Data.Lens.upon` (and its variants) looping forever when nested,
   e.g. `(upon.view.upon) tail`.
 * Add `Prefixed` and `Suffixed` instances for `ZipList`, `Seq`, and the boxed,
-  strict, storable, primitive, and unboxed `Vector` types, bringing them to
-  parity with the existing `Cons`/`Snoc` instances.
+  strict, storable, primitive, and unboxed `Vector` types.
 * Reduce the arity of `set`, `set'`, `partsOf`, `partsOf'`, `unsafePartsOf`,
   `unsafePartsOf'`, `mapAccumLOf`, `imapAccumLOf`, `auf`, `both`, and `both1` so
-  that GHC is more eager to inline them, following up on the same change to the
-  strict folds in 5.3.4 (see the `NOTE: [Inlining and arity]` in
+  that GHC is more eager to inline them, following up on the same change to
+  several folds in 5.3.4 (see the `NOTE: [Inlining and arity]` in
   `Control.Lens.Fold`). On a benchmark applying a partially-applied `set _1` in a
-  tight loop, this improves performance by ~19x.
-* Fix a space leak in `lastOf`. It kept memory for each chunk of a lazy
-  `ByteString`, and for each strict `ByteString` in `traverse . bytes` over a
-  list. `firstOf` had the same leak, for example `firstOf (backwards bytes)`
-  over a lazy `ByteString`. `Rightmost` in `Control.Lens.Internal.Fold` has
-  two new constructors, `RFound` and `RSkip`, and `Leftmost` has `LFound` and
-  `LSkip`.
+  tight loop, this improves performance by ~19x. `auf` is now strict in its
+  `Iso` argument, like `au` and `under`.
+* Fix space leaks in `lastOf` and `firstOf`. `lastOf` kept memory for each
+  chunk of a lazy `ByteString`, and for each strict `ByteString` in
+  `traverse . bytes` over a list. `firstOf` had the same leak, for example
+  `firstOf (backwards bytes)` over a lazy `ByteString`. `Rightmost` in
+  `Control.Lens.Internal.Fold` has two new constructors, `RFound` and `RSkip`,
+  and `Leftmost` has `LFound` and `LSkip`.
 * Add `makeLens` and `makePrism` to `Control.Lens.TH`. These build a single
   optic, as an expression, for one record field or one data constructor (e.g.
   `over $(makeLens '_field) f x` or `preview $(makePrism 'Ctor) x`), rather than
   declaring optics for an entire type as `makeLenses`/`makePrisms` do. The optic
   produced matches what the corresponding bulk generator would declare for that
-  field or constructor. (#710)
+  field or constructor.
 * `makeLenses`, `makeFields`, `makeClassy`, and the other field optic
   generators now fail early with an error message naming the offending field
   and data type when a field namer generates a Haskell keyword (for example,
@@ -85,6 +88,7 @@ next [????.??.??]
   `makeFields`. Each constructor `Con` gets a class `AsCon s a | s -> a` with
   method `_Con :: Prism' s a` and an instance of it; the class is declared
   only if not already in scope, so types with same-named constructors share it.
+  Existential and operator-named constructors are skipped.
 
 5.3.6 [2026.01.10]
 ------------------
