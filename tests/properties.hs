@@ -34,6 +34,7 @@ import GHC.Exts (Constraint)
 import Numeric (showHex, showOct, showSigned)
 import Numeric.Lens
 import Control.Lens.Properties (isIso, isLens, isPrism, isSetter, isTraversal)
+import Control.Lens.Unsound (setterUnion)
 import Data.Sequence (Seq)
 import Test.QuickCheck.Instances ()
 #if MIN_VERSION_quickcheck_instances(0,3,32)
@@ -77,6 +78,8 @@ prop_2_2                             = isLens (_2._2 :: Lens' (Int,(Int,Bool),Do
 -- Control.Lens.Setter
 prop_mapped                          = isSetter (mapped :: Setter' [Int] Int)
 prop_mapped_mapped                   = isSetter (mapped.mapped :: Setter' [Maybe Int] Int)
+prop_bimapped_pair                   = isSetter (bimapped :: Setter' (Int,Int) Int)
+prop_bimapped_either                 = isSetter (bimapped :: Setter' (Either Int Int) Int)
 
 prop_both                            = isTraversal (both           :: Traversal' (Int,Int) Int)
 prop_traverseLeft                    = isTraversal (_Left          :: Traversal' (Either Int Bool) Int)
@@ -88,6 +91,11 @@ prop_simple                          = isIso (simple :: Iso' Int Int)
 prop__Left                           = isPrism (_Left :: Prism' (Either Int Bool) Int)
 prop__Right                          = isPrism (_Right :: Prism' (Either Int Bool) Bool)
 prop__Just                           = isPrism (_Just :: Prism' (Maybe Int) Int)
+
+-- Control.Lens.Unsound
+-- setterUnion is only lawful on disjoint setters; the overlapping case is
+-- documented as broken in its Haddock and is deliberately not asserted here.
+prop_setterUnion_disjoint            = isSetter (setterUnion _1 _2 :: Setter' (Int,Int) Int)
 
 -- Data.List.Lens
 prop_prefixed s                      = isPrism (prefixed s :: Prism' String String)
@@ -178,6 +186,8 @@ main = defaultMain $
   , testProperty "2 2" prop_2_2
   , testProperty "mapped" prop_mapped
   , testProperty "mapped mapped" prop_mapped_mapped
+  , testProperty "bimapped pair" prop_bimapped_pair
+  , testProperty "bimapped either" prop_bimapped_either
   , testProperty "both" prop_both
   , testProperty "traverseLeft" prop_traverseLeft
   , testProperty "traverseRight" prop_traverseRight
@@ -185,6 +195,7 @@ main = defaultMain $
   , testProperty " Left" prop__Left
   , testProperty " Right" prop__Right
   , testProperty " Just" prop__Just
+  , testProperty "setterUnion disjoint" prop_setterUnion_disjoint
   , testProperty "prefixed" prop_prefixed
   , testProperty "suffixed" prop_suffixed
   , testProperty "prefixed seq" prop_prefixed_seq

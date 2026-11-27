@@ -1,6 +1,6 @@
 name:          lens
 category:      Data, Lenses, Generics
-version:       5.3.7
+version:       5.4
 license:       BSD2
 cabal-version: 1.18
 license-file:  LICENSE
@@ -54,7 +54,7 @@ description:
   With some signatures simplified, the core of the hierarchy of lens-like constructions looks like:
   .
   .
-  <<https://raw.githubusercontent.com/ekmett/lens/v5.3.7/images/Hierarchy.png>>
+  <<https://hackage.haskell.org/package/lens-5.4/src/images/Hierarchy.png>>
   .
   You can compose any two elements of the hierarchy above using @(.)@ from the @Prelude@, and you can
   use any element of the hierarchy as any type it linked to above it.
@@ -102,7 +102,6 @@ extra-source-files:
   .gitignore
   .hlint.yaml
   .vim.custom
-  cabal.project
   examples/LICENSE
   examples/lens-examples.cabal
   examples/*.hs
@@ -110,11 +109,6 @@ extra-source-files:
   examples/.hlint.yaml
   include/*.h
   images/*.dot
-  lens-properties/.hlint.yaml
-  lens-properties/CHANGELOG.markdown
-  lens-properties/LICENSE
-  lens-properties/Setup.hs
-  lens-properties/lens-properties.cabal
   AUTHORS.markdown
   CHANGELOG.markdown
   README.markdown
@@ -337,10 +331,15 @@ test-suite templates
     BigRecord
     T799
     T917
+    T934
     T972
   if impl(ghc >= 9.2)
     other-modules:
       T1024
+      T614
+      T614Check
+    -- T614 needs the doc comments retained to test Haddock inheritance
+    ghc-options: -haddock
   ghc-options: -Wall -threaded
   hs-source-dirs: tests
   default-language: Haskell2010
@@ -351,7 +350,7 @@ test-suite templates
   if !flag(test-templates)
     buildable: False
   else
-    build-depends: base, lens
+    build-depends: base, lens, template-haskell
 
 -- Verify the properties of lenses with QuickCheck
 test-suite properties
@@ -399,8 +398,10 @@ test-suite hunit
       tasty >= 1.4 && < 1.6,
       tasty-hunit >= 0.10 && < 0.11
 
--- Regression test for the lazy-ByteString space leak in lastOf (issue #233).
--- Uses GHC.Stats (base >= 4.10 / GHC >= 8.2); -O2 so the rewrite rule fires.
+-- Regression test for the lazy-ByteString space leaks in lastOf (issue #233)
+-- and in firstOf over backwards (issue #1142).
+-- Uses GHC.Stats (base >= 4.10 / GHC >= 8.2). -O2, so that the test checks
+-- the most optimised code.
 test-suite space
   type: exitcode-stdio-1.0
   main-is: space.hs

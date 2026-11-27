@@ -23,6 +23,7 @@ module Main (main) where
 
 import Control.Arrow (Kleisli (..))
 import Control.Lens
+import Control.Lens.Profunctor (fromLens, fromIso, fromPrism, fromSetter, fromTraversal)
 import Data.Data.Lens (upon)
 import Control.Applicative (ZipList(..))
 import Control.Monad.State
@@ -440,7 +441,44 @@ case_upon_view_upon_value =
 
 -- 10 seconds (mkTimeout takes microseconds), so a non-termination regression
 -- fails fast instead of hanging CI. Increase if slower machines need headroom.
-uponTimeout = mkTimeout (10 * 1000000)
+loopTimeout = mkTimeout (10 * 1000000)
+
+-- lastOf can give Just before it reads all of the input. So has _Just works
+-- on infinite input.
+case_lastOf_infinite_list =
+  has _Just (lastOf folded [1 :: Int ..]) @?= True
+
+case_lastOf_infinite_lazy_bytestring =
+  has _Just (lastOf each (LazyB.cycle (LazyB.pack [1]))) @?= True
+
+-- Here lastOf gives Just without running the predicate on the two 0 bytes.
+case_lastOf_lazy_predicate =
+  has _Just (lastOf (each . filtered p) (LazyB.pack [1, 0, 0])) @?= True
+  where p n = n == 1 || error "predicate ran on 0"
+
+-- The second list has a target. So lastOf does not run the predicate on
+-- the first list. This needs '<>' of 'Rightmost' to look inside an 'RSkip'
+-- on the right.
+case_lastOf_lazy_left =
+  lastOf (both . folded . filtered p) ([0, 1], [5 :: Int]) @?= Just 5
+  where p n = n /= 0 || error "predicate ran on 0"
+
+-- The mirror images of the four tests above, for 'Leftmost'. 'backwards'
+-- reverses the fold, so firstOf over backwards must be as lazy as lastOf.
+case_firstOf_backwards_infinite_list =
+  has _Just (firstOf (backwards folded) [1 :: Int ..]) @?= True
+
+case_firstOf_backwards_infinite_lazy_bytestring =
+  has _Just (firstOf (backwards each) (LazyB.cycle (LazyB.pack [1]))) @?= True
+
+case_firstOf_backwards_lazy_predicate =
+  has _Just (firstOf (backwards (each . filtered p)) (LazyB.pack [1, 0, 0])) @?= True
+  where p n = n == 1 || error "predicate ran on 0"
+
+-- This needs '<>' of 'Leftmost' to look inside an 'LSkip' on the left.
+case_firstOf_backwards_lazy_right =
+  firstOf (backwards (both . folded . filtered p)) ([0, 1], [5 :: Int]) @?= Just 5
+  where p n = n /= 0 || error "predicate ran on 0"
 
 -- One-off optic construction (#710): the spliced optics behave as expected.
 case_oneoff_lens_view =
@@ -463,6 +501,43 @@ case_oneoff_prism_review_roundtrip =
 case_oneoff_prism_nullary =
   (has $(makePrism 'SVoid) SVoid, has $(makePrism 'SVoid) (SCircle origin 1))
     @?= (True, False)
+
+-- Control.Lens.Profunctor (#971): the from* conversions all take the canonical
+-- monomorphic optics, bound here with explicit A-types. For the three that #971
+-- changed -- fromLens, fromIso, fromPrism -- the A-type is one that their old
+-- signatures would have rejected, so these cases guard the change;
+-- fromSetter/fromTraversal already accepted ASetter/ATraversal. Exercised at the
+-- function profunctor (->), where an @OpticP (->) s t a b@ is @(a -> b) -> s -> t@
+-- (i.e. 'over').
+case_profunctor_fromLens =
+  fromLens l (+1) (3, "x") @?= (4, "x")
+  where l :: ALens (Int, String) (Int, String) Int Int
+        l = _1
+
+case_profunctor_fromIso =
+  fromIso i succ 'a' @?= 'b'
+  where i :: AnIso Char Char Int Int
+        i = iso fromEnum toEnum
+
+case_profunctor_fromPrism_match =
+  fromPrism p (+1) (Just 3) @?= Just 4
+  where p :: APrism (Maybe Int) (Maybe Int) Int Int
+        p = _Just
+
+case_profunctor_fromPrism_miss =
+  fromPrism p (+1) Nothing @?= Nothing
+  where p :: APrism (Maybe Int) (Maybe Int) Int Int
+        p = _Just
+
+case_profunctor_fromSetter =
+  fromSetter s (+1) [1,2,3] @?= [2,3,4]
+  where s :: ASetter [Int] [Int] Int Int
+        s = mapped
+
+case_profunctor_fromTraversal =
+  fromTraversal t (+1) [1,2,3] @?= [2,3,4]
+  where t :: ATraversal [Int] [Int] Int Int
+        t = traversed
 
 -- ZipList has no QuickCheck Arbitrary/CoArbitrary/Function instances, so its
 -- Prefixed/Suffixed instances are exercised here rather than in properties.hs.
@@ -561,16 +636,34 @@ main = defaultMain $
   , testCase "correct indexing lazy text" case_correct_indexing_lazy_text
   , testCase "correct indexing strict bytestring" case_correct_indexing_strict_bytestring
   , testCase "correct indexing lazy bytestring" case_correct_indexing_lazy_bytestring
-  , localOption uponTimeout $
+  , localOption loopTimeout $
       testCase "upon.view.upon matches upon tail" case_upon_view_upon_matches_upon_tail
-  , localOption uponTimeout $
+  , localOption loopTimeout $
       testCase "upon.view.upon value" case_upon_view_upon_value
+  , localOption loopTimeout $
+      testCase "lastOf infinite list" case_lastOf_infinite_list
+  , localOption loopTimeout $
+      testCase "lastOf infinite lazy bytestring" case_lastOf_infinite_lazy_bytestring
+  , testCase "lastOf lazy predicate" case_lastOf_lazy_predicate
+  , testCase "lastOf lazy left" case_lastOf_lazy_left
+  , localOption loopTimeout $
+      testCase "firstOf backwards infinite list" case_firstOf_backwards_infinite_list
+  , localOption loopTimeout $
+      testCase "firstOf backwards infinite lazy bytestring" case_firstOf_backwards_infinite_lazy_bytestring
+  , testCase "firstOf backwards lazy predicate" case_firstOf_backwards_lazy_predicate
+  , testCase "firstOf backwards lazy right" case_firstOf_backwards_lazy_right
   , testCase "one-off lens view" case_oneoff_lens_view
   , testCase "one-off lens set" case_oneoff_lens_set
   , testCase "one-off prism preview hit" case_oneoff_prism_preview_hit
   , testCase "one-off prism preview miss" case_oneoff_prism_preview_miss
   , testCase "one-off prism review round-trip" case_oneoff_prism_review_roundtrip
   , testCase "one-off prism nullary" case_oneoff_prism_nullary
+  , testCase "profunctor fromLens" case_profunctor_fromLens
+  , testCase "profunctor fromIso" case_profunctor_fromIso
+  , testCase "profunctor fromPrism (match)" case_profunctor_fromPrism_match
+  , testCase "profunctor fromPrism (miss)" case_profunctor_fromPrism_miss
+  , testCase "profunctor fromSetter" case_profunctor_fromSetter
+  , testCase "profunctor fromTraversal" case_profunctor_fromTraversal
   , testCase "prefixed ziplist" case_prefixed_ziplist
   , testCase "prefixed ziplist miss" case_prefixed_ziplist_miss
   , testCase "prefixed ziplist review" case_prefixed_ziplist_review

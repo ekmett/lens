@@ -63,7 +63,7 @@
   table, so correcting or adding a signature is a one-line edit. Re-run
   `scripts/hierarchy` and commit the regenerated `images/Hierarchy.png` together
   with the `.dot` change.
-* Release note: the Hackage package description (`description:` in `lens.cabal`)
-  embeds this PNG from a release-tagged raw URL (e.g. `.../v5.3.7/...`), since
-  Hackage can't render a repo-relative image there. Bump that tag in lockstep
-  with `version:` at release time so each release's page shows its own diagram.
+* Release note: `description:` in `lens.cabal` embeds this PNG from the release
+  tarball on Hackage (`.../package/lens-5.4/src/images/Hierarchy.png`), since
+  Hackage can't render a repo-relative image there. Change the version in that
+  URL together with `version:`, so each release's page shows its own diagram.
