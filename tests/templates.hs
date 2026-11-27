@@ -29,7 +29,7 @@ module Main where
 
 import Control.Lens
 import Control.Monad (unless)
-import Language.Haskell.TH (mkName, recover)
+import Language.Haskell.TH (lookupValueName, mkName, recover)
 -- import Test.QuickCheck (quickCheck)
 import BigRecord ()
 import T799 ()
@@ -715,6 +715,41 @@ checkT934SharedNear = _T934Shared
 
 checkT934SharedFar :: Prism' T934.T934Far Int
 checkT934SharedFar = _T934Shared
+
+-- 'declareLensesFor' and 'declareClassyFor' honour their field mapping
+-- (#1137): only mapped fields get lenses, under the mapped names. The record
+-- syntax is stripped, so an unmapped field gets neither a lens nor a selector.
+declareLensesFor [("_t1137X", "t1137Renamed"), ("_t1137Z", "_t1137Z")] [d|
+  data T1137 = T1137 { _t1137X :: Int, _t1137Y :: Bool, _t1137Z :: Char }
+  |]
+-- data T1137 = T1137 Int Bool Char
+
+checkT1137Renamed :: Lens' T1137 Int
+checkT1137Renamed = t1137Renamed
+
+-- A field mapped to its own name still gets a lens
+checkT1137Z :: Lens' T1137 Char
+checkT1137Z = _t1137Z
+
+declareClassyFor [("T1137C", ("T1137CLike", "t1137CWhole"))]
+                 [("_t1137CX", "t1137CRenamed")] [d|
+  data T1137C = T1137C { _t1137CX :: Int, _t1137CY :: Bool }
+  |]
+-- data T1137C = T1137C Int Bool
+-- class T1137CLike t where t1137CWhole :: Lens' t T1137C
+
+checkT1137CWhole :: T1137CLike t => Lens' t T1137C
+checkT1137CWhole = t1137CWhole
+
+checkT1137CRenamed :: T1137CLike t => Lens' t Int
+checkT1137CRenamed = t1137CRenamed
+
+$(do let absent = ["_t1137X", "_t1137Y", "_t1137CX", "_t1137CY"]
+     found <- traverse lookupValueName absent
+     unless (all (== Nothing) found) $
+       fail $ "declare*For: expected no definitions for " ++ show absent
+              ++ ", got " ++ show found
+     pure [])
 
 main :: IO ()
 main = putStrLn "test/templates.hs: ok"

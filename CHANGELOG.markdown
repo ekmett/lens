@@ -85,6 +85,15 @@ next [????.??.??]
   `makeFields`. Each constructor `Con` gets a class `AsCon s a | s -> a` with
   method `_Con :: Prism' s a` and an instance of it; the class is declared
   only if not already in scope, so types with same-named constructors share it.
+* Fix `declareLensesFor` and `declareClassyFor` ignoring their field mapping
+  (#1137). They now behave like `makeLensesFor` and `makeClassyFor`: only the
+  fields named in the mapping get lenses, under the mapped names. Before, every
+  field got a lens named after the field itself, as with `declareLenses`; this
+  has been the case since the functions were added in `lens` 4.0. This changes
+  the generated names for existing callers. Because the quote's record syntax
+  is stripped, a field left out of the mapping now gets neither a lens nor a
+  record selector. To keep the old names, map each field to its own name, or
+  use `declareLenses` in place of `declareLensesFor`.
 
 5.3.6 [2026.01.10]
 ------------------
