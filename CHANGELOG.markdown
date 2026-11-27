@@ -85,6 +85,11 @@ next [????.??.??]
   `makeFields`. Each constructor `Con` gets a class `AsCon s a | s -> a` with
   method `_Con :: Prism' s a` and an instance of it; the class is declared
   only if not already in scope, so types with same-named constructors share it.
+* Add `at'`, a strict version of `at` that forces the new value to weak head
+  normal form, so it can be used to update strict containers such as
+  `Data.Map.Strict.Map` without leaving a thunk behind.
+* Add `(!~)`, a strict version of `(.~)` that forces the new value to weak head
+  normal form.
 
 5.3.6 [2026.01.10]
 ------------------
