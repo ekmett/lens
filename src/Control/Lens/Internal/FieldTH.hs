@@ -32,6 +32,8 @@ module Control.Lens.Internal.FieldTH
   , makeFieldOptics
   , makeFieldOpticsForDec
   , makeFieldOpticsForDec'
+  , makeFieldOpticExp
+  , makeClassInstance
   , HasFieldClasses
   ) where
 
@@ -56,7 +58,7 @@ import Language.Haskell.TH
 import qualified Language.Haskell.TH.Datatype as D
 import qualified Language.Haskell.TH.Datatype.TyVarBndr as D
 import Data.Maybe (fromMaybe,isJust,maybeToList)
-import Data.List (nub)
+import Data.List (intercalate, nub)
 import Data.Either (partitionEithers)
 import Data.Semigroup (Any (..))
 import Data.Set.Lens
@@ -82,6 +84,37 @@ makeFieldOpticsForDec rules = (`evalStateT` Set.empty) . makeFieldOpticsForDec' 
 makeFieldOpticsForDec' :: LensRules -> Dec -> HasFieldClasses [Dec]
 makeFieldOpticsForDec' rules = makeFieldOpticsForDatatype rules <=< lift . D.normalizeDec
 
+-- | Build the field optic for a single record field as an /expression/, given
+-- that field's selector name. This is the engine behind
+-- 'Control.Lens.TH.makeLens'. It reuses the very same scaffold and clause
+-- generator as 'makeFieldOptics'\/'makeLenses', so the optic it produces is the
+-- one 'makeLenses' would declare for that field: an 'Control.Lens.Iso.Iso' for
+-- a sole single-field constructor, a 'Control.Lens.Traversal.Traversal' for a
+-- field absent from some constructors, and a 'Control.Lens.Lens' otherwise.
+--
+-- The generated clauses are bound in a @let@ so the result is an anonymous
+-- optic expression rather than a top-level declaration. Its type is left to be
+-- inferred at the splice site.
+makeFieldOpticExp :: LensRules -> Name {- ^ record field selector -} -> ExpQ
+makeFieldOpticExp rules fieldName =
+  do info <- D.reifyDatatype fieldName
+     let s    = datatypeTypeKinded info
+         cons = D.datatypeCons     info
+     fieldCons <- traverse normalizeConstructor cons
+     let allFields = toListOf (folded . _2 . folded . _1 . folded) fieldCons
+     unless (any sameField allFields) $
+       fail $ "makeLens: " ++ nameBase fieldName
+           ++ " is not a record field of " ++ nameBase (D.datatypeName info)
+     funNm <- newName "optic"
+     let defName = TopName funNm
+         assignDef mName | maybe False sameField mName = [(defName, mName)]
+                         | otherwise                   = []
+         defCons = over (traverse . _2 . traverse . _1) assignDef fieldCons
+     (opticType, _stab, scaffolds) <- buildScaffold rules s defCons defName
+     letE [funD funNm (makeFieldClauses rules opticType scaffolds)] (varE funNm)
+  where
+  sameField n = nameBase n == nameBase fieldName
+
 -- | Compute the field optics for a deconstructed datatype Dec
 -- When possible build an Iso otherwise build one optic per field.
 makeFieldOpticsForDatatype :: LensRules -> D.DatatypeInfo -> HasFieldClasses [Dec]
@@ -91,12 +124,14 @@ makeFieldOpticsForDatatype rules info =
        let allFields  = toListOf (folded . _2 . folded . _1 . folded) fieldCons
        let defCons    = over normFieldLabels (expandName allFields) fieldCons
            allDefs    = setOf (normFieldLabels . folded . _1) defCons
+       mapM_ (checkDefName tyName) (toListOf (normFieldLabels . folded) defCons)
        T.sequenceA (Map.fromSet (buildScaffold rules s defCons) allDefs)
 
      let defs = Map.toList perDef
      case _classyLenses rules tyName of
        Just (className, methodName) ->
-         makeClassyDriver rules className methodName s defs
+         do lift $ checkClassyName tyName methodName
+            makeClassyDriver rules className methodName s defs
        Nothing -> do decss <- traverse (makeFieldOptic rules) defs
                      return (concat decss)
 
@@ -112,6 +147,42 @@ makeFieldOpticsForDatatype rules info =
   -- Map a (possibly missing) field's name to zero-to-many optic definitions
   expandName :: [Name] -> Maybe Name -> [(DefName, Maybe Name)]
   expandName allFields mName = (\x -> (x, mName)) <$> (maybeToList mName >>= _fieldToDef rules tyName allFields)
+
+-- | Fail early, in 'Q', when a 'FieldNamer' generates a definition or method
+-- name that is a Haskell keyword. Without this check GHC rejects the generated
+-- declarations with an "Illegal variable name" error that does not name the
+-- field responsible. See issue #762.
+checkDefName :: Name -> (DefName, Maybe Name) -> Q ()
+checkDefName tyName (defName, field) =
+  when (nameBase n `Set.member` haskellKeywords) $ failLines
+    [ "Cannot generate an optic named '" ++ nameBase n ++ "' for the field"
+      ++ fieldMsg ++ " of '" ++ nameBase tyName ++ "':"
+    , "'" ++ nameBase n ++ "' is a Haskell keyword."
+    , "Possible fixes: rename the field, or use a 'lensField' naming rule that"
+    , "avoids keywords, e.g. by wrapping the namer with 'avoidKeywordsNamer'."
+    ]
+  where
+  n = case defName of
+        TopName x      -> x
+        MethodName _ x -> x
+  fieldMsg = maybe "" (\f -> " '" ++ nameBase f ++ "'") field
+
+-- | As 'checkDefName', but for the class method generated by a 'ClassyNamer'
+-- (e.g. 'makeClassy' on a type named @Where@).
+checkClassyName :: Name -> Name -> Q ()
+checkClassyName tyName methodName =
+  when (nameBase methodName `Set.member` haskellKeywords) $ failLines
+    [ "Cannot generate a classy lens method named '" ++ nameBase methodName
+      ++ "' for '" ++ nameBase tyName ++ "':"
+    , "'" ++ nameBase methodName ++ "' is a Haskell keyword."
+    , "Possible fixes: rename the data type, or use a 'lensClass' naming rule that"
+    , "avoids keywords, e.g. by wrapping the namer with 'avoidKeywordsClassyNamer'."
+    ]
+
+-- | 'fail' with a multi-line message. GHC indents only the first line, so
+-- indent the rest to match.
+failLines :: [String] -> Q a
+failLines = fail . intercalate "\n    "
 
 -- | Normalized the Con type into a uniform positional representation,
 -- eliminating the variance between records, infix constructors, and normal
@@ -311,8 +382,17 @@ makeFieldOptic rules (defName, (opticType, defType, cons)) = do
   locals <- get
   addName
   lift $ do cls <- mkCls locals
+            copyTopDocs
             T.sequenceA (cls ++ sig ++ def)
   where
+  docSources = [ f | (_, _, fields) <- cons, (Just f, _) <- fields ]
+
+  -- Shared field-class methods (MethodName) inherit nothing; makeClassy
+  -- methods arrive here as TopNames via makeClassyInstance.
+  copyTopDocs = case defName of
+                  TopName n    -> copyDocs docSources n
+                  MethodName{} -> return ()
+
   mkCls locals = case defName of
                  MethodName c n | _generateClasses rules ->
                   do classExists <- isJust <$> lookupTypeName (show c)
@@ -332,7 +412,7 @@ makeFieldOptic rules (defName, (opticType, defType, cons)) = do
 
   def = case defName of
           TopName n      -> fun n
-          MethodName c n -> [makeFieldInstance defType c (fun n)]
+          MethodName c n -> [makeClassInstance [] c (stabToS defType) (stabToA defType) (fun n)]
 
   clauses = makeFieldClauses rules opticType cons
 
@@ -425,44 +505,41 @@ makeFieldClass defType className methodName =
   s = mkName "s"
   a = mkName "a"
 
--- | Build an instance for a field. If the field’s type contains any type
--- families, will produce an equality constraint to avoid a type family
--- application in the instance head.
-makeFieldInstance :: OpticStab -> Name -> [DecQ] -> DecQ
-makeFieldInstance defType className decs =
-  containsTypeFamilies a >>= pickInstanceDec
+-- | Build the instance @cx => className s a@ of a field or constructor
+-- class. If @a@ contains any type families, a fresh variable takes its place
+-- in the instance head, pinned by an equality constraint, to avoid a type
+-- family application there; such an instance passes only the liberal
+-- coverage condition, so its splice site needs @UndecidableInstances@.
+makeClassInstance :: Cxt -> Name -> Type -> Type -> [DecQ] -> DecQ
+makeClassInstance cx className s a decs =
+  do hasFamilies <- containsTypeFamilies a
+     (extra, a') <-
+       if hasFamilies
+         then do placeholder <- VarT <$> newName "a"
+                 return ([D.equalPred placeholder a], placeholder)
+         else return ([], a)
+     instanceD (cxt (map return (cx ++ extra)))
+               (return (className `conAppsT` [s, a']))
+               decs
+
+-- | Whether a type mentions a type family, but not a /data/ family. See #799.
+containsTypeFamilies :: Type -> Q Bool
+containsTypeFamilies = go <=< D.resolveTypeSynonyms
   where
-  s = stabToS defType
-  a = stabToA defType
+  go :: Type -> Q Bool
+  go (ConT nm) =
+    -- Note that the call to `reify` can fail if `nm` is not yet defined.
+    -- (This can actually happen if `nm` is declared in a Template Haskell
+    -- quote.) If this fails, there is no way to tell if the type contains
+    -- type families, so we recover and conservatively assume that is does not
+    -- contain any.
+    recover
+      (pure False)
+      (has (_FamilyI . _1 . _TypeFamilyD) <$> reify nm)
+  go ty = or <$> traverse go (ty ^.. plate)
 
-  containsTypeFamilies = go <=< D.resolveTypeSynonyms
-    where
-    go :: Type -> Q Bool
-    go (ConT nm) =
-      -- Note that the call to `reify` can fail if `nm` is not yet defined.
-      -- (This can actually happen if `nm` is declared in a Template Haskell
-      -- quote.) If this fails, there is no way to tell if the type contains
-      -- type families, so we recover and conservatively assume that is does not
-      -- contain any.
-      recover
-        (pure False)
-        (has (_FamilyI . _1 . _TypeFamilyD) <$> reify nm)
-    go ty = or <$> traverse go (ty ^.. plate)
-
-    -- We want to catch type families, but not *data* families. See #799.
-    _TypeFamilyD :: Getting Any Dec ()
-    _TypeFamilyD = _OpenTypeFamilyD.united <> _ClosedTypeFamilyD.united
-
-  pickInstanceDec hasFamilies
-    | hasFamilies = do
-        placeholder <- VarT <$> newName "a"
-        mkInstanceDec
-          [return (D.equalPred placeholder a)]
-          [s, placeholder]
-    | otherwise = mkInstanceDec [] [s, a]
-
-  mkInstanceDec context headTys =
-    instanceD (cxt context) (return (className `conAppsT` headTys)) decs
+  _TypeFamilyD :: Getting Any Dec ()
+  _TypeFamilyD = _OpenTypeFamilyD.united <> _ClosedTypeFamilyD.united
 
 ------------------------------------------------------------------------
 -- Optic clause generators
@@ -671,8 +748,10 @@ type FieldNamer = Name -- ^ Name of the data type that lenses are being generate
 
 -- | Name to give to generated field optics.
 data DefName
-  = TopName Name -- ^ Simple top-level definition name
-  | MethodName Name Name -- ^ makeFields-style class name and method name
+  = TopName Name -- ^ Simple top-level definition name; inherits the
+                 -- field's Haddock documentation.
+  | MethodName Name Name -- ^ makeFields-style class name and method name;
+                         -- never inherits field documentation.
   deriving (Show, Eq, Ord)
 
 -- | The optional rule to create a class and method around a

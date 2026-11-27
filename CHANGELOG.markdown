@@ -1,6 +1,90 @@
 next [????.??.??]
 -----------------
+* Add `bimapped` to `Control.Lens.Setter`: a `Setter` that maps over both
+  parameters of a `Bifunctor` with the same function. Unlike `both`, it
+  requires only `Bifunctor` rather than `Bitraversable`.
+* Add `setterUnion` to `Control.Lens.Unsound`: apply the same function through
+  two `ASetter`s. Only a lawful `Setter` when the two setters touch disjoint
+  parts of the structure.
+* Add `fromMaybeOf` to `Control.Lens.Fold`: return the first target of a
+  `Fold` or `Traversal`, or a caller-supplied default if there are none. This
+  generalizes `fromMaybe` to any `Fold`: `fromMaybe = fromMaybeOf traverse`.
+* On GHC 9.2 or later, when compiled with `-haddock`, the optics generated
+  by `makeLenses`, `makeClassy`, `makePrisms`, `makeClassyPrisms`, and the
+  other generators that reify a type by name now inherit the Haddock
+  documentation of the record field or data constructor they focus.
+  Existing documentation is never overwritten. Definitions merging several
+  fields, shared field-class methods (`makeFields` and relatives), and the
+  quote-based `declare*` variants inherit nothing; see the `makeLenses` and
+  `makeLensesWith` documentation for details.
+* Change `fromLens`, `fromIso`, and `fromPrism` in `Control.Lens.Profunctor` to
+  accept the canonical monomorphic optic types `ALens`, `AnIso`, and `APrism`,
+  matching `fromSetter`/`fromTraversal` which already take `ASetter`/`ATraversal`.
+  Full polymorphic `Lens`/`Iso`/`Prism` values are still accepted unchanged; only
+  code that relied on the previous ad-hoc representations needs adjusting.
+* Re-add the `Control.Monad.Primitive.Lens` module, which was removed in
+  `lens` 4.9. It offers `Iso`s for the conversions in
+  `Control.Monad.Primitive`: `prim` (between a `PrimBase` monad and its
+  underlying `State#` representation, now type-changing), and the new `st`
+  and `io` (between a `PrimBase` monad and `ST`/`IO`, respectively).
+* Deprecate `lifted` in `Control.Lens.Setter`. Use `mapped` instead, which
+  works for any `Monad` now that `Functor` is a superclass of `Monad`.
 * Add `ReifiedReview` to `Control.Lens.Reified`.
+* Fix `Data.Data.Lens.upon` (and its variants) looping forever when nested,
+  e.g. `(upon.view.upon) tail`.
+* Add `Prefixed` and `Suffixed` instances for `ZipList`, `Seq`, and the boxed,
+  strict, storable, primitive, and unboxed `Vector` types, bringing them to
+  parity with the existing `Cons`/`Snoc` instances.
+* Reduce the arity of `set`, `set'`, `partsOf`, `partsOf'`, `unsafePartsOf`,
+  `unsafePartsOf'`, `mapAccumLOf`, `imapAccumLOf`, `auf`, `both`, and `both1` so
+  that GHC is more eager to inline them, following up on the same change to the
+  strict folds in 5.3.4 (see the `NOTE: [Inlining and arity]` in
+  `Control.Lens.Fold`). On a benchmark applying a partially-applied `set _1` in a
+  tight loop, this improves performance by ~19x.
+* Fix a space leak in `lastOf`. It kept memory for each chunk of a lazy
+  `ByteString`, and for each strict `ByteString` in `traverse . bytes` over a
+  list. `firstOf` had the same leak, for example `firstOf (backwards bytes)`
+  over a lazy `ByteString`. `Rightmost` in `Control.Lens.Internal.Fold` has
+  two new constructors, `RFound` and `RSkip`, and `Leftmost` has `LFound` and
+  `LSkip`.
+* Add `makeLens` and `makePrism` to `Control.Lens.TH`. These build a single
+  optic, as an expression, for one record field or one data constructor (e.g.
+  `over $(makeLens '_field) f x` or `preview $(makePrism 'Ctor) x`), rather than
+  declaring optics for an entire type as `makeLenses`/`makePrisms` do. The optic
+  produced matches what the corresponding bulk generator would declare for that
+  field or constructor. (#710)
+* `makeLenses`, `makeFields`, `makeClassy`, and the other field optic
+  generators now fail early with an error message naming the offending field
+  and data type when a field namer generates a Haskell keyword (for example,
+  a `_connectionType` field with `makeFields` would generate a class method
+  named `type`). Previously, GHC rejected the generated declarations with an
+  "Illegal variable name" error that gave no indication of which field was
+  responsible.
+* Add `avoidKeywordsNamer :: FieldNamer -> FieldNamer` and
+  `avoidKeywordsClassyNamer :: ClassyNamer -> ClassyNamer` to
+  `Control.Lens.TH`, which modify a namer to append an underscore to any
+  generated name that would otherwise be a keyword (e.g., generating a
+  `type_` method for a `_connectionType` field, or a `where_` method for
+  `makeClassy` on a type named `Where`).
+* Add `avoidNamesNamer :: Set String -> FieldNamer -> FieldNamer` and
+  `avoidNamesClassyNamer :: Set String -> ClassyNamer -> ClassyNamer` to
+  `Control.Lens.TH`, which generalize the above to an arbitrary set of
+  reserved identifiers, together with the `haskellKeywords`,
+  `ghcExtensionKeywords`, and per-extension keyword lists to choose from.
+  This lets you also avoid identifiers that are only
+  reserved when a particular extension is enabled, e.g.
+  `avoidNamesNamer (haskellKeywords <> ghcExtensionKeywords)`.
+* Document the relationship between `filtered`, `has`/`anyOf`, and `noneOf`.
+* Add `ioverA` to `Control.Lens.Lens`, an indexed variant of `overA`. The
+  supplied arrow receives the index together with the old value as a pair.
+* Correct several stale type signatures in the lens hierarchy diagram — most
+  visibly the `Review` box, which still used the long-removed four-parameter
+  form — and add `images/Hierarchy.dot` as an editable Graphviz source for the
+  diagram (regenerated via `scripts/hierarchy`).
+* Add `makeConstructors` to `Control.Lens.TH`: the `makePrisms` counterpart of
+  `makeFields`. Each constructor `Con` gets a class `AsCon s a | s -> a` with
+  method `_Con :: Prism' s a` and an instance of it; the class is declared
+  only if not already in scope, so types with same-named constructors share it.
 
 5.3.6 [2026.01.10]
 ------------------

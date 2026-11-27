@@ -8,6 +8,8 @@
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE StaticPointers #-}
+{-# LANGUAGE TransformListComp #-}
 {-# LANGUAGE CPP #-}
 -----------------------------------------------------------------------------
 -- |
@@ -26,10 +28,14 @@
 module Main where
 
 import Control.Lens
+import Control.Monad (unless)
+import Language.Haskell.TH (mkName, recover)
 -- import Test.QuickCheck (quickCheck)
 import BigRecord ()
 import T799 ()
 import T917 ()
+import T934 (T934, AsT934One (..))
+import qualified T934
 import T972 ()
 
 data Bar a b c = Bar { _baz :: (a, b) }
@@ -440,6 +446,82 @@ makeLensesWith (defaultFieldRules & lensField .~ abbreviatedNamer ) ''CheckAbbre
 checkAbbreviatedNamer :: Lens' CheckAbbreviatedNamer Int
 checkAbbreviatedNamer = fieldAbbreviatedNamer
 
+data CheckClassUnderscoreNoPrefixNamer = CheckClassUnderscoreNoPrefixNamer
+                                         { _fieldClassUnderscoreNoPrefix :: Int }
+makeLensesWith (defaultFieldRules & lensField .~ classUnderscoreNoPrefixNamer) ''CheckClassUnderscoreNoPrefixNamer
+checkClassUnderscoreNoPrefixNamer :: Lens' CheckClassUnderscoreNoPrefixNamer Int
+checkClassUnderscoreNoPrefixNamer = fieldClassUnderscoreNoPrefix
+
+-- avoidKeywordsNamer appends an underscore to generated names that would
+-- otherwise be Haskell keywords (#762)
+data CheckAvoidKeywordsTopName = CheckAvoidKeywordsTopName { _data :: Int }
+makeLensesWith (lensRules & lensField %~ avoidKeywordsNamer) ''CheckAvoidKeywordsTopName
+checkAvoidKeywordsTopName :: Lens' CheckAvoidKeywordsTopName Int
+checkAvoidKeywordsTopName = data_
+
+data CheckAvoidKeywordsMethodName = CheckAvoidKeywordsMethodName { _type :: Int }
+makeLensesWith (classUnderscoreNoPrefixFields & lensField %~ avoidKeywordsNamer) ''CheckAvoidKeywordsMethodName
+checkAvoidKeywordsMethodName :: Lens' CheckAvoidKeywordsMethodName Int
+checkAvoidKeywordsMethodName = type_
+
+-- ghcExtensionKeywords collects extension-reserved identifiers, plus forall,
+-- for callers who want one broad opt-in set (#762). No extension reserves role.
+data CheckAvoidNamesGhcExtensions = CheckAvoidNamesGhcExtensions
+  { _checkGhcExtensionBy     :: Int
+  , _checkGhcExtensionUsing  :: Int
+  , _checkGhcExtensionStatic :: Int
+  , _checkGhcExtensionRole   :: Int
+  , _checkGhcExtensionForall :: Int
+  }
+makeLensesWith
+  (lensRulesFor
+    [ ("_checkGhcExtensionBy", "by")
+    , ("_checkGhcExtensionUsing", "using")
+    , ("_checkGhcExtensionStatic", "static")
+    , ("_checkGhcExtensionRole", "role")
+    , ("_checkGhcExtensionForall", "forall")
+    ] & lensField %~ avoidNamesNamer ghcExtensionKeywords)
+  ''CheckAvoidNamesGhcExtensions
+checkAvoidNamesGhcExtensionBy :: Lens' CheckAvoidNamesGhcExtensions Int
+checkAvoidNamesGhcExtensionBy = by_
+checkAvoidNamesGhcExtensionUsing :: Lens' CheckAvoidNamesGhcExtensions Int
+checkAvoidNamesGhcExtensionUsing = using_
+checkAvoidNamesGhcExtensionStatic :: Lens' CheckAvoidNamesGhcExtensions Int
+checkAvoidNamesGhcExtensionStatic = static_
+checkAvoidNamesGhcExtensionRole :: Lens' CheckAvoidNamesGhcExtensions Int
+checkAvoidNamesGhcExtensionRole = role
+checkAvoidNamesGhcExtensionForall :: Lens' CheckAvoidNamesGhcExtensions Int
+checkAvoidNamesGhcExtensionForall = forall_
+
+-- avoidNamesNamer mangles names from a user-supplied set, e.g. identifiers
+-- reserved only under an extension such as RecursiveDo (#762)
+data CheckAvoidNames = CheckAvoidNames { _mdo :: Int }
+makeLensesWith (lensRules & lensField %~ avoidNamesNamer recursiveDoKeywords) ''CheckAvoidNames
+checkAvoidNames :: Lens' CheckAvoidNames Int
+checkAvoidNames = mdo_
+
+-- TransformListComp and StaticPointers are on in this module, yet generated
+-- optics may still be named by, using and static (#762).
+data T762Ext = T762Ext { _t762By :: Int, _t762Using :: Int, _t762Static :: Int }
+makeLensesFor
+  [("_t762By", "by"), ("_t762Using", "using"), ("_t762Static", "static")]
+  ''T762Ext
+
+-- The keyword check fails early in Q, so it is recoverable; GHC's own
+-- "Illegal variable name" error during splicing would not be (#762).
+data T762 = T762 { _t762Type :: Int }
+$(recover (pure []) (makeFields ''T762))
+
+-- Same, for the classy path: makeClassy ''Where would generate a class
+-- method named "where".
+data Where = Where { _whereX :: Int }
+$(recover (pure []) (makeClassy ''Where))
+
+-- ...and avoidKeywordsClassyNamer appends an underscore there likewise
+makeLensesWith (classyRules & lensClass %~ avoidKeywordsClassyNamer) ''Where
+checkAvoidKeywordsClassyNamer :: Lens' Where Where
+checkAvoidKeywordsClassyNamer = where_
+
 -- Ensure that `makeClassyPrisms` doesn't generate a redundant catch-all case (#866)
 data T866 = MkT866
 $(makeClassyPrisms ''T866)
@@ -475,6 +557,164 @@ declareFields [d|
     data T1032A = T1032A { t1032ASubB :: T1032B }
     data T1032B = T1032B { t1032BB :: Int }
   |]
+
+-- One-off optic construction as expressions (#710) -------------------------
+-- Both 'makeLens' and 'makePrism' reify their argument, so each focused data
+-- type must already be in the type environment (i.e. defined above an
+-- intervening top-level splice) before the expression splice below reifies it.
+
+-- 'makeLens' agrees with 'makeLenses': a sole single-field constructor is an
+-- 'Iso'...
+oneOffBaz :: Iso (Bar a b c) (Bar a' b' c') (a, b) (a', b')
+oneOffBaz = $(makeLens '_baz)
+
+-- ...an ordinary field is a (type-changing) 'Lens'...
+oneOffQuaffle :: Lens (Quux a b) (Quux a' b') Int Int
+oneOffQuaffle = $(makeLens '_quaffle)
+
+-- ...a field shared by every constructor is a 'Lens''...
+oneOffGaffer :: Lens' (Quark a) a
+oneOffGaffer = $(makeLens '_gaffer)
+
+-- ...and a field absent from some constructors is a 'Traversal''.
+oneOffTape :: Traversal' (Quark a) a
+oneOffTape = $(makeLens '_tape)
+
+-- 'makePrism' agrees with 'makePrisms': type-changing 'Prism's for a sum...
+data Sum710 a b = L710 a | R710 b
+$(pure [])
+
+oneOffL :: Prism (Sum710 a b) (Sum710 c b) a c
+oneOffL = $(makePrism 'L710)
+
+oneOffR :: Prism (Sum710 a b) (Sum710 a c) b c
+oneOffR = $(makePrism 'R710)
+
+-- ...a simple (non-type-changing) 'Prism'' for a monomorphic constructor, and a
+-- multi-field constructor focusing a tuple. (The polymorphic 'Poly710' pins
+-- @a@ so the other two constructors stay simple.)
+data Tri710 a = Mono710 Int | Multi710 Char Bool | Poly710 a
+$(pure [])
+
+oneOffMono :: Prism' (Tri710 a) Int
+oneOffMono = $(makePrism 'Mono710)
+
+oneOffMulti :: Prism' (Tri710 a) (Char, Bool)
+oneOffMulti = $(makePrism 'Multi710)
+
+-- ...an 'Iso' for a single-constructor type...
+oneOffWrap :: Iso (T997A a) (T997A b) a b
+oneOffWrap = $(makePrism 'MkT997A)
+
+-- ...and a 'Review' for an existentially quantified constructor.
+oneOffReview :: Review ReviewTest a
+oneOffReview = $(makePrism 'ReviewTest)
+
+-- 'makePrism' accepts a data constructor, also when the name is made with
+-- 'mkName', and rejects any other name, even for a single-constructor type.
+-- Bar shares its name with its constructor, so ''Bar must not be taken for
+-- 'Bar.
+$(do let accepted n = recover (pure False) (True <$ makePrism n)
+         names    = ['Bar, mkName "MkT997A", ''Bar, '_baz]
+         expected = [True, True, False, False]
+     actual <- traverse accepted names
+     unless (expected == actual) $
+       fail $ "makePrism: expected " ++ show expected ++ " for " ++ show names
+              ++ ", got " ++ show actual
+     pure [])
+
+-- 'makeConstructors' (#934): overloaded constructor prisms. T934One is also a
+-- constructor of T934.T934, whose AsT934One class is in scope and is reused
+-- rather than redeclared.
+data T934Other a = T934One Double | T934Poly a
+makeConstructors ''T934Other
+
+checkT934OneShared :: AsT934One t a => Prism' t a
+checkT934OneShared = _T934One
+
+checkT934OneHere :: Prism' (T934Other a) Double
+checkT934OneHere = _T934One
+
+checkT934OneThere :: Prism' T934 (Int, String)
+checkT934OneThere = _T934One
+
+-- A constructor whose field could change type still gets a simple prism
+checkT934Poly :: Prism' (T934Other a) a
+checkT934Poly = _T934Poly
+
+-- Nullary and record constructors; a type sharing its constructor's name
+data T934Rec = T934Nil | T934Rec { _t934Field :: Int, _t934Flag :: Bool }
+makeConstructors ''T934Rec
+
+checkT934Nil :: Prism' T934Rec ()
+checkT934Nil = _T934Nil
+
+checkT934Rec :: Prism' T934Rec (Int, Bool)
+checkT934Rec = _T934Rec
+
+-- A lone constructor gets a prism, not the Iso makePrisms would make
+newtype T934Lone a = T934Lone a
+makeConstructors ''T934Lone
+
+checkT934Lone :: Prism' (T934Lone a) a
+checkT934Lone = _T934Lone
+
+data T934Pair a b = T934Pair a b
+makeConstructors ''T934Pair
+
+checkT934Pair :: Prism' (T934Pair a b) (a, b)
+checkT934Pair = _T934Pair
+
+-- A GADT constructor's equality refinement goes on its instance
+data T934G a where
+  T934GI :: Int -> T934G Int
+  T934GA :: a -> T934G a
+makeConstructors ''T934G
+
+checkT934GI :: Prism' (T934G Int) Int
+checkT934GI = _T934GI
+
+-- A type-family payload is hidden behind an equality constraint in the
+-- instance head, as makeFields does (#799)
+type family T934Fam a
+data T934TF a = T934TF (T934Fam a) | T934TFOther
+makeConstructors ''T934TF
+
+checkT934TF :: Prism' (T934TF a) (T934Fam a)
+checkT934TF = _T934TF
+
+-- Existential and operator constructors get nothing: the classes declared
+-- below would clash with generated ones.
+data T934Edge where
+  T934Ex    :: a -> T934Edge
+  (:+++)    :: Int -> Int -> T934Edge
+  T934Plain :: Bool -> T934Edge
+makeConstructors ''T934Edge
+
+class AsT934Ex s a | s -> a
+class As s a | s -> a
+
+checkT934Plain :: AsT934Plain t a => Prism' t a
+checkT934Plain = _T934Plain
+
+-- An operator-named type is fine; only the constructor names matter
+data a :+++: b = T934InL a | T934InR b
+makeConstructors ''(:+++:)
+
+checkT934InL :: Prism' (a :+++: b) a
+checkT934InL = _T934InL
+
+-- Two splices in one module: the class the first declares is reused by the
+-- second, for a type from a qualified import
+data T934Near = T934Shared Bool | T934NearOther
+makeConstructors ''T934Near
+makeConstructors ''T934.T934Far
+
+checkT934SharedNear :: Prism' T934Near Bool
+checkT934SharedNear = _T934Shared
+
+checkT934SharedFar :: Prism' T934.T934Far Int
+checkT934SharedFar = _T934Shared
 
 main :: IO ()
 main = putStrLn "test/templates.hs: ok"

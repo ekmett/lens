@@ -39,6 +39,12 @@ import Data.Set (Set)
 import Language.Haskell.TH
 import qualified Language.Haskell.TH.Datatype as D
 import qualified Language.Haskell.TH.Datatype.TyVarBndr as D
+#if MIN_VERSION_template_haskell(2,18,0)
+import Control.Monad (when)
+import Data.Foldable (for_)
+import Data.Maybe (isNothing)
+import Language.Haskell.TH.Syntax (addModFinalizer)
+#endif
 
 -- | Apply arguments to a type constructor
 appsT :: TypeQ -> [TypeQ] -> TypeQ
@@ -164,6 +170,72 @@ isDataFamily D.NewtypeInstance = True
 isDataFamily D.TypeData        = False
 #endif
 
+-- | Haskell's reserved identifiers, which cannot be used as names of
+-- functions or class methods.
+--
+-- This mirrors @reservedIds@ in "GHC.Utils.Lexeme" from @ghc-boot@, on which
+-- we do not wish to depend. GHC 9.10 and later treat @forall@ as an
+-- unconditional keyword, so it is included when building with those GHCs.
+haskellKeywords :: Set String
+haskellKeywords = Set.fromList
+  [ "case", "class", "data", "default", "deriving", "do", "else"
+#if __GLASGOW_HASKELL__ >= 910
+  , "forall"
+#endif
+  , "foreign", "if", "import", "in", "infix", "infixl", "infixr"
+  , "instance", "let", "module", "newtype", "of", "then", "type"
+  , "where", "_"
+  ]
+
+-- | @forall@, which GHC 9.10 and later reserve (see 'haskellKeywords') and
+-- GHC 9.4 to 9.8 warn about (@-Wforall-identifier@). Include it to rename
+-- @forall@ on older GHCs too.
+forallKeywords :: Set String
+forallKeywords = Set.fromList ["forall"]
+
+-- | Identifiers that the @RecursiveDo@ extension reserves: @mdo@ and @rec@.
+recursiveDoKeywords :: Set String
+recursiveDoKeywords = Set.fromList ["mdo", "rec"]
+
+-- | Identifiers that the @Arrows@ extension reserves: @proc@ and @rec@.
+arrowsKeywords :: Set String
+arrowsKeywords = Set.fromList ["proc", "rec"]
+
+-- | Identifiers that the @PatternSynonyms@ extension reserves: @pattern@.
+patternSynonymsKeywords :: Set String
+patternSynonymsKeywords = Set.fromList ["pattern"]
+
+-- | Identifiers that the @TransformListComp@ extension reserves:
+-- @by@ and @using@.
+transformListCompKeywords :: Set String
+transformListCompKeywords = Set.fromList ["by", "using"]
+
+-- | Identifiers that the @StaticPointers@ extension reserves: @static@.
+staticPointersKeywords :: Set String
+staticPointersKeywords = Set.fromList ["static"]
+
+-- | Identifiers reserved by GHC language extensions, plus @forall@
+-- (see 'forallKeywords').
+--
+-- Generated optics may use a name that only an extension reserves, but a
+-- module with that extension on cannot refer to it unqualified.
+ghcExtensionKeywords :: Set String
+ghcExtensionKeywords = Set.unions
+  [ forallKeywords
+  , recursiveDoKeywords
+  , arrowsKeywords
+  , patternSynonymsKeywords
+  , transformListCompKeywords
+  , staticPointersKeywords
+  ]
+
+-- | Append an underscore to a name that belongs to the given set of reserved
+-- identifiers; leave all other names untouched.
+avoidName :: Set String -> Name -> Name
+avoidName names n
+  | nameBase n `Set.member` names = mkName (nameBase n ++ "_")
+  | otherwise                     = n
+
 #if !(MIN_VERSION_template_haskell(2,21,0)) && !(MIN_VERSION_th_abstraction(0,6,0))
 type TyVarBndrVis = D.TyVarBndr_ ()
 
@@ -266,3 +338,39 @@ leftDataName             = 'Left
 
 inlinePragma :: Name -> [DecQ]
 inlinePragma methodName = [pragInlD methodName Inline FunLike AllPhases]
+
+------------------------------------------------------------------------
+-- Haddock documentation inheritance
+------------------------------------------------------------------------
+
+-- | Arrange for the optic declared under the given 'Name' to inherit the
+-- Haddock documentation of the record field or data constructor it focuses.
+-- Copies nothing if the sources name more than one distinct declaration, if
+-- the target already has documentation (handwritten docs win), or if the
+-- target is not declared in the current module. Runs as a module finalizer,
+-- since the target does not exist at splice time. Requires @-haddock@;
+-- no-op before template-haskell-2.18.
+copyDocs :: [Name] {- ^ sources: field selectors or data constructors -} ->
+            Name   {- ^ target: name the optic is declared under      -} ->
+            Q ()
+#if MIN_VERSION_template_haskell(2,18,0)
+copyDocs sources target =
+  case Set.toList (Set.fromList sources) of
+    [source] -> do
+      thisMod <- loc_module <$> location
+      addModFinalizer $ do
+        -- getDoc fails on nonexistent Names (e.g. selectors stripped by
+        -- declareLenses), hence the recovers
+        mdoc <- recover (return Nothing) (getDoc (DeclDoc source))
+        for_ mdoc $ \doc -> do
+          -- qualified lookup: dodges clashes with imports (GHC #26817) and
+          -- fails for targets not declared here, where putDoc would error
+          mtarget <- recover (return Nothing) $
+                       lookupValueName (thisMod ++ "." ++ nameBase target)
+          for_ mtarget $ \target' -> do
+            mexisting <- recover (return Nothing) (getDoc (DeclDoc target'))
+            when (isNothing mexisting) (putDoc (DeclDoc target') doc)
+    _ -> return ()
+#else
+copyDocs _ _ = return ()
+#endif

@@ -42,7 +42,8 @@ module Control.Lens.Setter
   , cloneIndexPreservingSetter
   , cloneIndexedSetter
   -- * Common Setters
-  , mapped, lifted
+  , mapped
+  , bimapped
   , contramapped
   , argument
   -- * Functional Combinators
@@ -73,6 +74,7 @@ module Control.Lens.Setter
   , Settable
   , Identity(..)
   -- * Deprecated
+  , lifted
   , mapOf
   ) where
 
@@ -88,6 +90,7 @@ import Control.Monad (liftM)
 import Control.Monad.Reader.Class as Reader
 import Control.Monad.State.Class  as State
 import Control.Monad.Writer.Class as Writer
+import Data.Bifunctor (Bifunctor, bimap)
 
 -- $setup
 -- >>> import Control.Lens
@@ -187,24 +190,50 @@ mapped = sets fmap
 
 -- | This 'setter' can be used to modify all of the values in a 'Monad'.
 --
--- You sometimes have to use this rather than 'mapped' -- due to
--- temporary insanity 'Functor' was not a superclass of 'Monad' until
--- GHC 7.10.
---
 -- @
 -- 'liftM' ≡ 'over' 'lifted'
 -- @
 --
--- >>> over lifted f [a,b,c]
+-- Use 'mapped' in place of 'lifted':
+--
+-- >>> over mapped f [a,b,c]
 -- [f a,f b,f c]
 --
--- >>> set lifted b (Just a)
+-- >>> set mapped b (Just a)
 -- Just b
 --
--- If you want an 'IndexPreservingSetter' use @'setting' 'liftM'@.
+-- If you want an 'IndexPreservingSetter' use @'setting' 'fmap'@.
 lifted :: Monad m => Setter (m a) (m b) a b
 lifted = sets liftM
 {-# INLINE lifted #-}
+{-# DEPRECATED lifted "Use `mapped` instead; since GHC 7.10 `Functor` is a superclass of `Monad`, so `mapped` subsumes `lifted`." #-}
+
+-- | This 'Setter' can be used to map over both parameters of a 'Bifunctor'
+-- with the same function.
+--
+-- Unlike 'Control.Lens.Traversal.both', this requires only a 'Bifunctor'
+-- rather than a 'Data.Bitraversable.Bitraversable', so it works for
+-- bifunctors whose parameters sit in positions that cannot be traversed.
+--
+-- @
+-- 'bimap' f f ≡ 'over' 'bimapped' f
+-- @
+--
+-- >>> over bimapped (+1) (1,2)
+-- (2,3)
+--
+-- >>> over bimapped negate (Left 3 :: Either Int Int)
+-- Left (-3)
+--
+-- @
+-- 'bimapped' :: 'Setter' (a, a)       (b, b)       a b
+-- 'bimapped' :: 'Setter' ('Either' a a) ('Either' b b) a b
+-- @
+--
+-- If you want an 'IndexPreservingSetter' use @'setting' (\\f -> 'bimap' f f)@.
+bimapped :: Bifunctor p => Setter (p a a) (p b b) a b
+bimapped = sets (\f -> bimap f f)
+{-# INLINE bimapped #-}
 
 -- | This 'Setter' can be used to map over all of the inputs to a 'Contravariant'.
 --
@@ -373,7 +402,8 @@ over = coerce
 -- 'set' :: 'Traversal' s t a b -> b -> s -> t
 -- @
 set :: ASetter s t a b -> b -> s -> t
-set l b = runIdentity #. l (\_ -> Identity b)
+-- See: NOTE: [Inlining and arity] in Control.Lens.Fold
+set l = \b -> runIdentity #. l (\_ -> Identity b)
 {-# INLINE set #-}
 
 -- | Replace the target of a 'Lens' or all of the targets of a 'Setter''
@@ -400,7 +430,8 @@ set l b = runIdentity #. l (\_ -> Identity b)
 -- 'set'' :: 'Traversal'' s a -> a -> s -> s
 -- @
 set' :: ASetter' s a -> a -> s -> s
-set' l b = runIdentity #. l (\_ -> Identity b)
+-- See: NOTE: [Inlining and arity] in Control.Lens.Fold
+set' l = \b -> runIdentity #. l (\_ -> Identity b)
 {-# INLINE set' #-}
 
 -- | Modifies the target of a 'Lens' or all of the targets of a 'Setter' or
@@ -1192,6 +1223,15 @@ ilocally l f = Reader.local (iover l f)
 -- 'iover' :: 'IndexedLens' i s t a b      -> (i -> a -> b) -> s -> t
 -- 'iover' :: 'IndexedTraversal' i s t a b -> (i -> a -> b) -> s -> t
 -- @
+--
+-- An 'IndexedSetter' such as 'imapped' supplies the index: for a list it is the
+-- @Int@ position, for a 'Data.Map.Map' it is the key.
+--
+-- >>> iover imapped (\i a -> a ++ show i) ["x","y","z"]
+-- ["x0","y1","z2"]
+--
+-- >>> iover imapped (\k v -> show k ++ v) (Map.fromList [(1,"a"),(2,"b")])
+-- fromList [(1,"1a"),(2,"2b")]
 iover :: AnIndexedSetter i s t a b -> (i -> a -> b) -> s -> t
 iover = coerce
 {-# INLINE iover #-}
@@ -1209,6 +1249,9 @@ iover = coerce
 -- 'iset' :: 'IndexedLens' i s t a b      -> (i -> b) -> s -> t
 -- 'iset' :: 'IndexedTraversal' i s t a b -> (i -> b) -> s -> t
 -- @
+--
+-- >>> iset imapped show ["x","y","z"]
+-- ["0","1","2"]
 iset :: AnIndexedSetter i s t a b -> (i -> b) -> s -> t
 iset l = iover l . (const .)
 {-# INLINE iset #-}
@@ -1231,6 +1274,9 @@ iset l = iover l . (const .)
 --
 -- Another way to view 'isets' is that it takes a \"semantic editor combinator\"
 -- which has been modified to carry an index and transforms it into a 'IndexedSetter'.
+--
+-- >>> iover (isets (\f xs -> zipWith f [0..] xs)) (\i a -> a ++ show i) ["x","y","z"]
+-- ["x0","y1","z2"]
 isets :: ((i -> a -> b) -> s -> t) -> IndexedSetter i s t a b
 isets f = sets (f . indexed)
 {-# INLINE isets #-}
@@ -1253,6 +1299,9 @@ isets f = sets (f . indexed)
 -- ('%@~') :: 'IndexedLens' i s t a b      -> (i -> a -> b) -> s -> t
 -- ('%@~') :: 'IndexedTraversal' i s t a b -> (i -> a -> b) -> s -> t
 -- @
+--
+-- >>> ["x","y","z"] & imapped %@~ \i a -> a ++ show i
+-- ["x0","y1","z2"]
 (%@~) :: AnIndexedSetter i s t a b -> (i -> a -> b) -> s -> t
 (%@~) = iover
 {-# INLINE (%@~) #-}
@@ -1275,6 +1324,9 @@ isets f = sets (f . indexed)
 -- ('.@~') :: 'IndexedLens' i s t a b      -> (i -> b) -> s -> t
 -- ('.@~') :: 'IndexedTraversal' i s t a b -> (i -> b) -> s -> t
 -- @
+--
+-- >>> ["x","y","z"] & imapped .@~ show
+-- ["0","1","2"]
 (.@~) :: AnIndexedSetter i s t a b -> (i -> b) -> s -> t
 l .@~ f = runIdentity #. l (Identity #. Indexed (const . f))
 {-# INLINE (.@~) #-}
@@ -1293,11 +1345,17 @@ l .@~ f = runIdentity #. l (Identity #. Indexed (const . f))
 -- ('%@=') :: 'MonadState' s m => 'IndexedLens' i s s a b      -> (i -> a -> b) -> m ()
 -- ('%@=') :: 'MonadState' s m => 'IndexedTraversal' i s t a b -> (i -> a -> b) -> m ()
 -- @
+--
+-- >>> execState (imapped %@= \i a -> a ++ show i) ["x","y","z"]
+-- ["x0","y1","z2"]
 (%@=) :: MonadState s m => AnIndexedSetter i s s a b -> (i -> a -> b) -> m ()
 l %@= f = State.modify (l %@~ f)
 {-# INLINE (%@=) #-}
 
 -- | This is an alias for ('%@=').
+--
+-- >>> execState (imodifying imapped (\i a -> a ++ show i)) ["x","y","z"]
+-- ["x0","y1","z2"]
 imodifying :: MonadState s m => AnIndexedSetter i s s a b -> (i -> a -> b) -> m ()
 imodifying l f = State.modify (iover l f)
 {-# INLINE imodifying #-}
@@ -1316,6 +1374,9 @@ imodifying l f = State.modify (iover l f)
 -- ('.@=') :: 'MonadState' s m => 'IndexedLens' i s s a b      -> (i -> b) -> m ()
 -- ('.@=') :: 'MonadState' s m => 'IndexedTraversal' i s t a b -> (i -> b) -> m ()
 -- @
+--
+-- >>> execState (imapped .@= show) ["x","y","z"]
+-- ["0","1","2"]
 (.@=) :: MonadState s m => AnIndexedSetter i s s a b -> (i -> b) -> m ()
 l .@= f = State.modify (l .@~ f)
 {-# INLINE (.@=) #-}

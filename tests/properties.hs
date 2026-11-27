@@ -34,6 +34,18 @@ import GHC.Exts (Constraint)
 import Numeric (showHex, showOct, showSigned)
 import Numeric.Lens
 import Control.Lens.Properties (isIso, isLens, isPrism, isSetter, isTraversal)
+import Control.Lens.Unsound (setterUnion)
+import Data.Sequence (Seq)
+import Test.QuickCheck.Instances ()
+#if MIN_VERSION_quickcheck_instances(0,3,32)
+import Data.Vector (Vector)
+import qualified Data.Vector.Primitive as Prim
+import qualified Data.Vector.Storable as Storable
+import qualified Data.Vector.Unboxed as Unbox
+#if MIN_VERSION_vector(0,13,2) && MIN_VERSION_quickcheck_instances(0,3,33)
+import qualified Data.Vector.Strict as VectorStrict
+#endif
+#endif
 
 #include "lens-common.h"
 
@@ -66,6 +78,8 @@ prop_2_2                             = isLens (_2._2 :: Lens' (Int,(Int,Bool),Do
 -- Control.Lens.Setter
 prop_mapped                          = isSetter (mapped :: Setter' [Int] Int)
 prop_mapped_mapped                   = isSetter (mapped.mapped :: Setter' [Maybe Int] Int)
+prop_bimapped_pair                   = isSetter (bimapped :: Setter' (Int,Int) Int)
+prop_bimapped_either                 = isSetter (bimapped :: Setter' (Either Int Int) Int)
 
 prop_both                            = isTraversal (both           :: Traversal' (Int,Int) Int)
 prop_traverseLeft                    = isTraversal (_Left          :: Traversal' (Either Int Bool) Int)
@@ -78,8 +92,36 @@ prop__Left                           = isPrism (_Left :: Prism' (Either Int Bool
 prop__Right                          = isPrism (_Right :: Prism' (Either Int Bool) Bool)
 prop__Just                           = isPrism (_Just :: Prism' (Maybe Int) Int)
 
+-- Control.Lens.Unsound
+-- setterUnion is only lawful on disjoint setters; the overlapping case is
+-- documented as broken in its Haddock and is deliberately not asserted here.
+prop_setterUnion_disjoint            = isSetter (setterUnion _1 _2 :: Setter' (Int,Int) Int)
+
 -- Data.List.Lens
 prop_prefixed s                      = isPrism (prefixed s :: Prism' String String)
+prop_suffixed s                      = isPrism (suffixed s :: Prism' String String)
+
+-- Control.Lens.Prism: Prefixed/Suffixed for other sequences.
+-- Seq's Arbitrary/CoArbitrary/Function come from QuickCheck itself; the Vector
+-- instances come from quickcheck-instances (primitive added in 0.3.32, strict
+-- in 0.3.33), so the Vector properties are gated on its version.
+prop_prefixed_seq (s :: Seq Int)     = isPrism (prefixed s :: Prism' (Seq Int) (Seq Int))
+prop_suffixed_seq (s :: Seq Int)     = isPrism (suffixed s :: Prism' (Seq Int) (Seq Int))
+
+#if MIN_VERSION_quickcheck_instances(0,3,32)
+prop_prefixed_vector (s :: Vector Int)            = isPrism (prefixed s :: Prism' (Vector Int) (Vector Int))
+prop_suffixed_vector (s :: Vector Int)            = isPrism (suffixed s :: Prism' (Vector Int) (Vector Int))
+prop_prefixed_uvector (s :: Unbox.Vector Int)     = isPrism (prefixed s :: Prism' (Unbox.Vector Int) (Unbox.Vector Int))
+prop_suffixed_uvector (s :: Unbox.Vector Int)     = isPrism (suffixed s :: Prism' (Unbox.Vector Int) (Unbox.Vector Int))
+prop_prefixed_svector (s :: Storable.Vector Int)  = isPrism (prefixed s :: Prism' (Storable.Vector Int) (Storable.Vector Int))
+prop_suffixed_svector (s :: Storable.Vector Int)  = isPrism (suffixed s :: Prism' (Storable.Vector Int) (Storable.Vector Int))
+prop_prefixed_pvector (s :: Prim.Vector Int)      = isPrism (prefixed s :: Prism' (Prim.Vector Int) (Prim.Vector Int))
+prop_suffixed_pvector (s :: Prim.Vector Int)      = isPrism (suffixed s :: Prism' (Prim.Vector Int) (Prim.Vector Int))
+#if MIN_VERSION_vector(0,13,2) && MIN_VERSION_quickcheck_instances(0,3,33)
+prop_prefixed_strictvector (s :: VectorStrict.Vector Int) = isPrism (prefixed s :: Prism' (VectorStrict.Vector Int) (VectorStrict.Vector Int))
+prop_suffixed_strictvector (s :: VectorStrict.Vector Int) = isPrism (suffixed s :: Prism' (VectorStrict.Vector Int) (VectorStrict.Vector Int))
+#endif
+#endif
 
 -- Data.Text.Lens
 prop_text s                          = s^.Text.packed.from Text.packed == s
@@ -144,6 +186,8 @@ main = defaultMain $
   , testProperty "2 2" prop_2_2
   , testProperty "mapped" prop_mapped
   , testProperty "mapped mapped" prop_mapped_mapped
+  , testProperty "bimapped pair" prop_bimapped_pair
+  , testProperty "bimapped either" prop_bimapped_either
   , testProperty "both" prop_both
   , testProperty "traverseLeft" prop_traverseLeft
   , testProperty "traverseRight" prop_traverseRight
@@ -151,7 +195,25 @@ main = defaultMain $
   , testProperty " Left" prop__Left
   , testProperty " Right" prop__Right
   , testProperty " Just" prop__Just
+  , testProperty "setterUnion disjoint" prop_setterUnion_disjoint
   , testProperty "prefixed" prop_prefixed
+  , testProperty "suffixed" prop_suffixed
+  , testProperty "prefixed seq" prop_prefixed_seq
+  , testProperty "suffixed seq" prop_suffixed_seq
+#if MIN_VERSION_quickcheck_instances(0,3,32)
+  , testProperty "prefixed vector" prop_prefixed_vector
+  , testProperty "suffixed vector" prop_suffixed_vector
+  , testProperty "prefixed unboxed vector" prop_prefixed_uvector
+  , testProperty "suffixed unboxed vector" prop_suffixed_uvector
+  , testProperty "prefixed storable vector" prop_prefixed_svector
+  , testProperty "suffixed storable vector" prop_suffixed_svector
+  , testProperty "prefixed primitive vector" prop_prefixed_pvector
+  , testProperty "suffixed primitive vector" prop_suffixed_pvector
+#if MIN_VERSION_vector(0,13,2) && MIN_VERSION_quickcheck_instances(0,3,33)
+  , testProperty "prefixed strict vector" prop_prefixed_strictvector
+  , testProperty "suffixed strict vector" prop_suffixed_strictvector
+#endif
+#endif
   , testProperty "text" prop_text
   , testProperty "base show" prop_base_show
   , testProperty "base read" prop_base_read

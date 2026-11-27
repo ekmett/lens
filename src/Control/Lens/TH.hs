@@ -32,8 +32,12 @@ module Control.Lens.TH
   -- ** Prisms
   , makePrisms
   , makeClassyPrisms
+  , makeConstructors
   -- ** Wrapped
   , makeWrapped
+  -- * Constructing a Single Optic as an Expression
+  , makeLens
+  , makePrism
   -- * Constructing Lenses Given a Declaration Quote
   -- ** Lenses for data fields
   , declareLenses, declareLensesFor
@@ -81,6 +85,20 @@ module Control.Lens.TH
   , underscoreNamer
   , abbreviatedNamer
   , classIdNamer
+  -- ** Avoiding keywords
+  , avoidKeywordsNamer
+  , avoidKeywordsClassyNamer
+  , avoidNamesNamer
+  , avoidNamesClassyNamer
+  -- *** Reserved-identifier lists
+  , haskellKeywords
+  , ghcExtensionKeywords
+  , forallKeywords
+  , recursiveDoKeywords
+  , arrowsKeywords
+  , patternSynonymsKeywords
+  , transformListCompKeywords
+  , staticPointersKeywords
   ) where
 
 import Prelude ()
@@ -99,6 +117,7 @@ import Control.Lens.Internal.FieldTH
 import Control.Lens.Internal.PrismTH
 import Control.Lens.Wrapped () -- haddocks
 import Control.Lens.Type () -- haddocks
+import Data.Bifunctor (second)
 import Data.Char (toLower, toUpper, isUpper)
 import Data.Foldable hiding (concat, any)
 import qualified Data.List as List
@@ -122,7 +141,8 @@ simpleLenses f r = fmap (\x -> r { _simpleLenses = x}) (f (_simpleLenses r))
 -- lenses.
 --
 -- Disabling this can be useful if you want to provide a more restricted type
--- signature or if you want to supply hand-written haddocks.
+-- signature or if you want to supply hand-written haddocks for individual
+-- optics.
 generateSignatures :: Lens' LensRules Bool
 generateSignatures f r =
   fmap (\x -> r { _generateSigs = x}) (f (_generateSigs r))
@@ -281,11 +301,52 @@ classyRules_
 -- y _ c\@(Bar _) = pure c
 -- @
 --
+-- On GHC 9.2 and later, when compiled with @-haddock@, each generated
+-- optic inherits the Haddock documentation of the record field it focuses.
+-- Existing documentation (e.g. handwritten signatures, with
+-- 'generateSignatures' turned off) is never overwritten, undocumented
+-- fields gain none, and definitions merging several fields (e.g. via
+-- 'makeLensesFor') inherit nothing.
+--
+-- See 'makeLens' to build the optic of a single field as an expression.
+--
 -- @
 -- 'makeLenses' = 'makeLensesWith' 'lensRules'
 -- @
 makeLenses :: Name -> DecsQ
 makeLenses = makeFieldOptics lensRules
+
+-- | Build the optic for a single record field, as an /expression/, given that
+-- field's selector name. This is the one-off counterpart to 'makeLenses':
+-- rather than declaring an optic for every field of a type, it splices in just
+-- the one for the named field, with its type inferred at the use site.
+--
+-- The kind of optic produced matches what 'makeLenses' would declare for that
+-- field: a 'Lens' in the usual case, a 'Traversal' for a field that is absent
+-- from some constructors, and an 'Iso' for a type's sole single-field
+-- constructor.
+--
+-- /e.g./ given
+--
+-- @
+-- data Foo = Foo { _bar :: 'Int', _baz :: 'Char' }
+-- @
+--
+-- the splice @$('makeLens' '_bar)@ is a @'Lens'' Foo 'Int'@ and can be used
+-- directly:
+--
+-- @
+-- 'Control.Lens.Setter.over' $('makeLens' '_bar) (+1) (Foo 1 \'x\') == Foo 2 \'x\'
+-- @
+--
+-- The argument must name a record field (not a positional one), since that is
+-- how the focused field is identified.
+--
+-- The type must be in an earlier declaration group than the splice: declare
+-- it in another module, or put a top-level splice such as @$(pure [])@
+-- between the type and the splice.
+makeLens :: Name {- ^ Record field selector name -} -> ExpQ
+makeLens = makeFieldOpticExp lensRules
 
 -- | Make lenses and traversals for a type, and create a class when the
 -- type has no arguments.
@@ -309,6 +370,9 @@ makeLenses = makeFieldOptics lensRules
 -- instance HasFoo Foo where
 --   foo = id
 -- @
+--
+-- The class methods inherit their field's Haddock documentation, as with
+-- 'makeLenses'.
 --
 -- @
 -- 'makeClassy' = 'makeLensesWith' 'classyRules'
@@ -352,6 +416,10 @@ makeClassyFor clsName funName fields = makeFieldOptics $
   classyRulesFor (const (Just (clsName, funName))) fields
 
 -- | Build lenses with a custom configuration.
+--
+-- Only 'TopName' definitions from the 'lensField' rule inherit Haddock
+-- documentation (see 'makeLenses'); 'MethodName' (field-class) definitions
+-- never do.
 makeLensesWith :: LensRules -> Name -> DecsQ
 makeLensesWith = makeFieldOptics
 
@@ -375,13 +443,16 @@ makeLensesWith = makeFieldOptics
 -- data Foo = Foo 'Int' 'Int' deriving 'Show'
 -- fooX, fooY :: 'Lens'' Foo Int
 -- @
+--
+-- Cannot inherit field documentation; 'declareLensesWith' explains why.
 declareLenses :: DecsQ -> DecsQ
 declareLenses
   = declareLensesWith
   $ lensRules
   & lensField .~ \_ _ n -> [TopName n]
 
--- | Similar to 'makeLensesFor', but takes a declaration quote.
+-- | Similar to 'makeLensesFor', but takes a declaration quote. Cannot
+-- inherit field documentation; 'declareLensesWith' explains why.
 declareLensesFor :: [(String, String)] -> DecsQ -> DecsQ
 declareLensesFor fields
   = declareLensesWith
@@ -410,13 +481,16 @@ declareLensesFor fields
 -- instance HasFoo Foo where foo = 'id'
 -- fooX, fooY :: HasFoo t => 'Lens'' t 'Int'
 -- @
+--
+-- Cannot inherit field documentation; 'declareLensesWith' explains why.
 declareClassy :: DecsQ -> DecsQ
 declareClassy
   = declareLensesWith
   $ classyRules
   & lensField .~ \_ _ n -> [TopName n]
 
--- | Similar to 'makeClassyFor', but takes a declaration quote.
+-- | Similar to 'makeClassyFor', but takes a declaration quote. Cannot
+-- inherit field documentation; 'declareLensesWith' explains why.
 declareClassyFor ::
   [(String, (String, String))] -> [(String, String)] -> DecsQ -> DecsQ
 declareClassyFor classes fields
@@ -442,6 +516,8 @@ declareClassyFor classes fields
 -- _Var :: 'Prism'' Exp String
 -- _Lambda :: 'Prism'' Exp (String, Exp)
 -- @
+--
+-- Cannot inherit constructor documentation; 'declareLensesWith' explains why.
 declarePrisms :: DecsQ -> DecsQ
 declarePrisms = declareWith $ \dec -> do
   emit =<< liftDeclare (makeDecPrisms True dec)
@@ -457,12 +533,18 @@ declareWrapped = declareWith $ \dec -> do
   return dec
 
 -- | @ declareFields = 'declareLensesWith' 'defaultFieldRules' @
+--
+-- Cannot inherit field documentation; 'declareLensesWith' explains why.
 declareFields :: DecsQ -> DecsQ
 declareFields = declareLensesWith defaultFieldRules
 
 -- | Declare lenses for each records in the given declarations, using the
 -- specified 'LensRules'. Any record syntax in the input will be stripped
 -- off.
+--
+-- Optics declared by the quote-based @declare@* variants cannot inherit
+-- Haddock documentation, because GHC does not retain documentation
+-- comments inside declaration quotes.
 declareLensesWith :: LensRules -> DecsQ -> DecsQ
 declareLensesWith rules = declareWith $ \dec -> do
   emit =<< lift (makeFieldOpticsForDec' rules dec)
@@ -625,6 +707,12 @@ camelCaseNamer tyName fields field = maybeToList $ do
 -- @classUnderscoreNoPrefixFields@ the field names are not expected to
 -- be prefixed with the type name. This might be the desired behaviour
 -- when the @DuplicateRecordFields@ extension is enabled.
+--
+-- Because the field name is used verbatim (matching can only strip its
+-- underscore), a field like @_type@ would generate a method named @type@,
+-- which is a Haskell keyword; this fails with an error naming the offending
+-- field. Wrap the namer with 'avoidKeywordsNamer' to append an underscore
+-- to such names instead.
 classUnderscoreNoPrefixFields :: LensRules
 classUnderscoreNoPrefixFields =
   defaultFieldRules & lensField .~ classUnderscoreNoPrefixNamer
@@ -649,6 +737,84 @@ classIdNamer _ _ field = [MethodName (mkName className) (mkName fieldName)]
   where
   fieldName = nameBase field
   className = "Has" ++ overHead toUpper fieldName
+
+-- | Modify a 'FieldNamer' so that any generated name belonging to the given
+-- set of reserved identifiers gets an underscore appended to it. All other
+-- names are left untouched. Class names are not affected.
+--
+-- 'avoidKeywordsNamer' is @avoidNamesNamer 'haskellKeywords'@. Pass
+-- 'haskellKeywords' '<>' 'ghcExtensionKeywords' to also avoid identifiers
+-- reserved by GHC language extensions, or combine only the specific extension
+-- lists you need.
+--
+-- @
+-- 'makeLensesWith' (rules & 'lensField' '%~' avoidNamesNamer ('haskellKeywords' '<>' 'ghcExtensionKeywords')) ''Foo
+-- @
+avoidNamesNamer :: Set String -> FieldNamer -> FieldNamer
+avoidNamesNamer names namer tyName fields field =
+  map avoidDefName (namer tyName fields field)
+  where
+  avoidDefName (TopName n)      = TopName (avoidName names n)
+  avoidDefName (MethodName c n) = MethodName c (avoidName names n)
+
+-- | Modify a 'FieldNamer' so that generated names that would be Haskell
+-- keywords, such as @type@ or @data@, get an underscore appended to them.
+-- All other names are left untouched. Class names are not affected, as they
+-- can never be keywords.
+--
+-- For example, with a field named @_connectionType@, 'makeFields' would
+-- attempt to generate a class method named @type@ and fail. Instead:
+--
+-- @
+-- data Connection = Connection { _connectionType :: 'Int' }
+-- 'makeLensesWith' ('camelCaseFields' & 'lensField' '%~' 'avoidKeywordsNamer') ''Connection
+-- @
+--
+-- will create
+--
+-- @
+-- class HasType s a | s -> a where
+--   type_ :: Lens' s a
+-- instance HasType Connection 'Int' where
+--   type_ = ...
+-- @
+avoidKeywordsNamer :: FieldNamer -> FieldNamer
+avoidKeywordsNamer = avoidNamesNamer haskellKeywords
+
+-- | Modify a 'ClassyNamer' so that a generated method name belonging to the
+-- given set of reserved identifiers gets an underscore appended to it. The
+-- class name is not affected.
+--
+-- 'avoidKeywordsClassyNamer' is @avoidNamesClassyNamer 'haskellKeywords'@.
+-- Pass 'haskellKeywords' '<>' 'ghcExtensionKeywords' to also avoid identifiers
+-- reserved by GHC language extensions.
+avoidNamesClassyNamer :: Set String -> ClassyNamer -> ClassyNamer
+avoidNamesClassyNamer names namer tyName = second (avoidName names) <$> namer tyName
+
+-- | Modify a 'ClassyNamer' so that a generated method name that would be a
+-- Haskell keyword gets an underscore appended to it. The class name is not
+-- affected, as it can never be a keyword.
+--
+-- For example, @'makeClassy' ''Where@ would attempt to generate a class
+-- method named @where@ and fail. Instead:
+--
+-- @
+-- data Where = Where { _whereX :: 'Int' }
+-- 'makeLensesWith' ('classyRules' & 'lensClass' '%~' 'avoidKeywordsClassyNamer') ''Where
+-- @
+--
+-- will create
+--
+-- @
+-- class HasWhere c where
+--   where_ :: Lens' c Where
+--   whereX :: Lens' c 'Int'
+-- instance HasWhere Where where
+--   where_ = id
+--   ...
+-- @
+avoidKeywordsClassyNamer :: ClassyNamer -> ClassyNamer
+avoidKeywordsClassyNamer = avoidNamesClassyNamer haskellKeywords
 
 -- | Field rules fields in the form @ prefixFieldname or _prefixFieldname @
 -- If you want all fields to be lensed, then there is no reason to use an @_@ before the prefix.
@@ -695,22 +861,29 @@ abbreviatedNamer _ fields field = maybeToList $ do
 -- will create
 --
 -- @
--- _fooXLens :: Lens' (Foo a) Int
--- _fooYLens :: Lens (Foo a) (Foo b) a b
 -- class HasX s a | s -> a where
 --   x :: Lens' s a
 -- instance HasX (Foo a) Int where
---   x = _fooXLens
+--   x = ...
 -- class HasY s a | s -> a where
 --   y :: Lens' s a
 -- instance HasY (Foo a) a where
---   y = _fooYLens
--- _barXLens :: Iso' Bar Char
+--   y = ...
 -- instance HasX Bar Char where
---   x = _barXLens
+--   x = ...
 -- @
 --
 -- For details, see 'camelCaseFields'.
+--
+-- Note that a field like @_fooType@ would generate a class method named
+-- @type@, which is a Haskell keyword; this fails with an error naming the
+-- offending field. Wrap the namer with 'avoidKeywordsNamer'
+-- (e.g. @'makeLensesWith' ('camelCaseFields' & 'lensField' '%~'
+-- 'avoidKeywordsNamer')@) to append an underscore to such names instead.
+--
+-- The @Has@* class methods do /not/ inherit field documentation: the class
+-- can be shared by many types. This holds for every field-class rule; see
+-- 'makeLensesWith'.
 --
 -- @
 -- makeFields = 'makeLensesWith' 'defaultFieldRules'
@@ -754,6 +927,14 @@ makeFields = makeFieldOptics camelCaseFields
 --
 -- For details, see 'classUnderscoreNoPrefixFields'.
 --
+-- Note that a field like @_type@ would generate a class method named
+-- @type@, which is a Haskell keyword; this fails with an error naming the
+-- offending field. Wrap the namer with 'avoidKeywordsNamer'
+-- (e.g. @'makeLensesWith' ('classUnderscoreNoPrefixFields' & 'lensField' '%~'
+-- 'avoidKeywordsNamer')@) to append an underscore to such names instead.
+--
+-- The class methods do not inherit field documentation; see 'makeFields'.
+--
 -- @
 -- makeFieldsNoPrefix = 'makeLensesWith' 'classUnderscoreNoPrefixFields'
 -- @
@@ -789,6 +970,8 @@ makeFieldsNoPrefix = makeFieldOptics classUnderscoreNoPrefixFields
 -- instance HasY (Foo a) a where
 -- instance HasX Bar Char where
 -- @
+--
+-- The class methods do not inherit field documentation; see 'makeFields'.
 --
 -- @
 -- makeFieldsId = 'makeLensesWith' 'classIdFields'

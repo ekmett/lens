@@ -64,12 +64,26 @@ import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.List as List
 import Data.Profunctor.Rep
+import           Data.Sequence (Seq)
+import qualified Data.Sequence as Seq
 import qualified Data.Text as TS
 import qualified Data.Text.Lazy as TL
+import           Data.Vector (Vector)
+import qualified Data.Vector as Vector
+import           Data.Vector.Primitive (Prim)
+import qualified Data.Vector.Primitive as Prim
+import           Data.Vector.Storable (Storable)
+import qualified Data.Vector.Storable as Storable
+import           Data.Vector.Unboxed (Unbox)
+import qualified Data.Vector.Unboxed as Unbox
+#if MIN_VERSION_vector(0,13,2)
+import qualified Data.Vector.Strict as VectorStrict
+#endif
 
 -- $setup
 -- >>> :set -XNoOverloadedStrings
 -- >>> import Control.Lens
+-- >>> import qualified Data.Sequence as Seq
 -- >>> import Numeric.Natural
 -- >>> import Debug.SimpleReflect.Expr
 -- >>> import Debug.SimpleReflect.Vars as Vars hiding (f,g)
@@ -122,6 +136,9 @@ prism' bs sma = prism bs (\s -> maybe (Left s) Right (sma s))
 {-# INLINE prism' #-}
 
 -- | Use a 'Prism' as a kind of first-class pattern.
+--
+-- The general type below generalises @(->)@ to any 'Representable' profunctor @p@.
+-- Specialised to functions (@p ~ (->)@) it reads
 --
 -- @'outside' :: 'Prism' s t a b -> 'Lens' (t -> r) (s -> r) (b -> r) (a -> r)@
 
@@ -385,6 +402,31 @@ _Show = prism show $ \s -> case reads s of
   _ -> Left s
 {-# INLINE _Show #-}
 
+-- | Strip a prefix from a sequence that provides O(1) 'length' and a slicing
+-- @splitAt@ (e.g. 'Seq' and the various 'Vector's), for use where there is no
+-- native @stripPrefix@. When the prefix is longer than the sequence, @splitAt@
+-- yields the whole sequence on the left, whose length then differs from the
+-- prefix, so the equality test fails and we correctly return 'Nothing'.
+splitPrefixed :: Eq s => (s -> Int) -> (Int -> s -> (s, s)) -> s -> s -> Maybe s
+splitPrefixed len splitAt_ p s = case splitAt_ (len p) s of
+  (h, t)
+    | h == p    -> Just t
+    | otherwise -> Nothing
+{-# INLINE splitPrefixed #-}
+
+-- | Strip a suffix from a sequence with O(1) 'length' and a slicing @splitAt@.
+-- The @n < 0@ guard handles a suffix longer than the sequence without relying
+-- on @splitAt@'s behaviour for out-of-range indices.
+splitSuffixed :: Eq s => (s -> Int) -> (Int -> s -> (s, s)) -> s -> s -> Maybe s
+splitSuffixed len splitAt_ q s
+  | n < 0     = Nothing
+  | otherwise = case splitAt_ n s of
+      (h, t)
+        | t == q    -> Just h
+        | otherwise -> Nothing
+  where n = len s - len q
+{-# INLINE splitSuffixed #-}
+
 class Prefixed t where
   -- | A 'Prism' stripping a prefix from a sequence when used as a 'Traversal',
   -- or prepending that prefix when run backwards:
@@ -397,6 +439,11 @@ class Prefixed t where
   --
   -- >>> prefixed "pre" # "amble"
   -- "preamble"
+  --
+  -- It is not limited to lists; for example it also works on a 'Seq':
+  --
+  -- >>> Seq.fromList [1,2,3,4] ^? prefixed (Seq.fromList [1,2])
+  -- Just (fromList [3,4])
   prefixed :: t -> Prism' t t
 
 instance Eq a => Prefixed [a] where
@@ -419,6 +466,37 @@ instance Prefixed BL.ByteString where
   prefixed p = prism' (p <>) (BL.stripPrefix p)
   {-# INLINE prefixed #-}
 
+instance Eq a => Prefixed (ZipList a) where
+  prefixed (ZipList ps) =
+    prism' (ZipList . (ps ++) . getZipList) (fmap ZipList . List.stripPrefix ps . getZipList)
+  {-# INLINE prefixed #-}
+
+instance Eq a => Prefixed (Seq a) where
+  prefixed p = prism' (p <>) (splitPrefixed Seq.length Seq.splitAt p)
+  {-# INLINE prefixed #-}
+
+instance Eq a => Prefixed (Vector a) where
+  prefixed p = prism' (p <>) (splitPrefixed Vector.length Vector.splitAt p)
+  {-# INLINE prefixed #-}
+
+instance (Prim a, Eq a) => Prefixed (Prim.Vector a) where
+  prefixed p = prism' (p <>) (splitPrefixed Prim.length Prim.splitAt p)
+  {-# INLINE prefixed #-}
+
+instance (Storable a, Eq a) => Prefixed (Storable.Vector a) where
+  prefixed p = prism' (p <>) (splitPrefixed Storable.length Storable.splitAt p)
+  {-# INLINE prefixed #-}
+
+instance (Unbox a, Eq a) => Prefixed (Unbox.Vector a) where
+  prefixed p = prism' (p <>) (splitPrefixed Unbox.length Unbox.splitAt p)
+  {-# INLINE prefixed #-}
+
+#if MIN_VERSION_vector(0,13,2)
+instance Eq a => Prefixed (VectorStrict.Vector a) where
+  prefixed p = prism' (p <>) (splitPrefixed VectorStrict.length VectorStrict.splitAt p)
+  {-# INLINE prefixed #-}
+#endif
+
 class Suffixed t where
   -- | A 'Prism' stripping a suffix from a sequence when used as a 'Traversal',
   -- or appending that suffix when run backwards:
@@ -431,6 +509,11 @@ class Suffixed t where
   --
   -- >>> suffixed ".o" # "hello"
   -- "hello.o"
+  --
+  -- It is not limited to lists; for example it also works on a 'Seq':
+  --
+  -- >>> Seq.fromList [1,2,3,4] ^? suffixed (Seq.fromList [3,4])
+  -- Just (fromList [1,2])
   suffixed :: t -> Prism' t t
 
 instance Eq a => Suffixed [a] where
@@ -452,3 +535,34 @@ instance Suffixed BS.ByteString where
 instance Suffixed BL.ByteString where
   suffixed qs = prism' (<> qs) (BL.stripSuffix qs)
   {-# INLINE suffixed #-}
+
+instance Eq a => Suffixed (ZipList a) where
+  suffixed (ZipList qs) =
+    prism' (ZipList . (++ qs) . getZipList) (fmap ZipList . List.stripSuffix qs . getZipList)
+  {-# INLINE suffixed #-}
+
+instance Eq a => Suffixed (Seq a) where
+  suffixed q = prism' (<> q) (splitSuffixed Seq.length Seq.splitAt q)
+  {-# INLINE suffixed #-}
+
+instance Eq a => Suffixed (Vector a) where
+  suffixed q = prism' (<> q) (splitSuffixed Vector.length Vector.splitAt q)
+  {-# INLINE suffixed #-}
+
+instance (Prim a, Eq a) => Suffixed (Prim.Vector a) where
+  suffixed q = prism' (<> q) (splitSuffixed Prim.length Prim.splitAt q)
+  {-# INLINE suffixed #-}
+
+instance (Storable a, Eq a) => Suffixed (Storable.Vector a) where
+  suffixed q = prism' (<> q) (splitSuffixed Storable.length Storable.splitAt q)
+  {-# INLINE suffixed #-}
+
+instance (Unbox a, Eq a) => Suffixed (Unbox.Vector a) where
+  suffixed q = prism' (<> q) (splitSuffixed Unbox.length Unbox.splitAt q)
+  {-# INLINE suffixed #-}
+
+#if MIN_VERSION_vector(0,13,2)
+instance Eq a => Suffixed (VectorStrict.Vector a) where
+  suffixed q = prism' (<> q) (splitSuffixed VectorStrict.length VectorStrict.splitAt q)
+  {-# INLINE suffixed #-}
+#endif

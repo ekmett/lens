@@ -9,6 +9,19 @@
 -- Stability   :  experimental
 -- Portability :  non-portable
 --
+-- This module provides lenses, traversals, and isomorphisms for
+-- working with 'Seq'.
+--
+-- 'Seq' is an instance of 'Control.Lens.Cons.Cons' and
+-- 'Control.Lens.Cons.Snoc', so the prisms '_Cons' and '_Snoc', along
+-- with the other facilities in "Control.Lens.Cons", work on sequences.
+--
+-- >>> Seq.fromList [a,b,c] ^? _Cons
+-- Just (a,fromList [b,c])
+--
+-- >>> Seq.fromList [a,b,c] ^? _Snoc
+-- Just (fromList [a,b],c)
+--
 ----------------------------------------------------------------------------
 module Data.Sequence.Lens
   ( viewL, viewR
