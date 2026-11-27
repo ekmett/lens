@@ -137,6 +137,9 @@ prism' bs sma = prism bs (\s -> maybe (Left s) Right (sma s))
 
 -- | Use a 'Prism' as a kind of first-class pattern.
 --
+-- The general type below generalises @(->)@ to any 'Representable' profunctor @p@.
+-- Specialised to functions (@p ~ (->)@) it reads
+--
 -- @'outside' :: 'Prism' s t a b -> 'Lens' (t -> r) (s -> r) (b -> r) (a -> r)@
 
 -- TODO: can we make this work with merely Strong?

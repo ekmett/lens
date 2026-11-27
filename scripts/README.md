@@ -50,3 +50,20 @@
 * Generate a list of operators defined under `src/Control/Lens/`, for
   pasting into the `hiding` clause of `Control.Lens.Combinators` and the
   export section of `Control.Lens.Operators`.
+
+## Class-hierarchy diagram
+
+```console
+% brew install graphviz   # provides `dot`
+% scripts/hierarchy        # regenerates images/Hierarchy.png from images/Hierarchy.dot
+```
+
+* The diagram's source of truth is `images/Hierarchy.dot` (Graphviz). Each optic
+  is one box, and each combinator is one `<TR>` row in that box's HTML-label
+  table, so correcting or adding a signature is a one-line edit. Re-run
+  `scripts/hierarchy` and commit the regenerated `images/Hierarchy.png` together
+  with the `.dot` change.
+* Release note: `description:` in `lens.cabal` embeds this PNG from the release
+  tarball on Hackage (`.../package/lens-5.4/src/images/Hierarchy.png`), since
+  Hackage can't render a repo-relative image there. Change the version in that
+  URL together with `version:`, so each release's page shows its own diagram.
