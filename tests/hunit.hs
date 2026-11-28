@@ -522,6 +522,24 @@ case_ioverA_type_changing =
   ioverA (ilens id (\(k, _) v' -> (k, v'))) (\(k, v) -> show (k + v)) ((3, 10) :: (Int, Int))
     @?= (3 :: Int, "13")
 
+case_same_eq = same [1,1,1::Int] @?= True
+
+case_same_differ = same [1,2,1::Int] @?= False
+
+case_same_empty = same ([]::[Int]) @?= True
+
+case_sameOf_pair_eq = sameOf both ('a','a') @?= True
+
+case_sameOf_pair_neq = sameOf both ('a','b') @?= False
+
+case_sameOf_nest =
+  sameOf (folded.folded.both.folded)
+    [Just ("aaaa","aa"), Nothing, Just ("a","")] @?= True
+
+-- laziness: the single un-compared target must not be forced
+case_sameOf_lazy =
+  sameOf both (Left (error "boom") :: Either Int Int) @?= True
+
 main :: IO ()
 main = defaultMain $
   testGroup "Main"
@@ -616,4 +634,11 @@ main = defaultMain $
   , testCase "ioverA with function arrow" case_ioverA_function_arrow
   , testCase "ioverA with Kleisli arrow" case_ioverA_kleisli_arrow
   , testCase "ioverA type-changing" case_ioverA_type_changing
+  , testCase "same equal list" case_same_eq
+  , testCase "same differing list" case_same_differ
+  , testCase "same empty list" case_same_empty
+  , testCase "sameOf equal pair" case_sameOf_pair_eq
+  , testCase "sameOf unequal pair" case_sameOf_pair_neq
+  , testCase "sameOf nested fold" case_sameOf_nest
+  , testCase "sameOf lazy in unexamined target" case_sameOf_lazy
   ]
