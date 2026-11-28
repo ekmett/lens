@@ -451,13 +451,31 @@ declareLenses
   $ lensRules
   & lensField .~ \_ _ n -> [TopName n]
 
--- | Similar to 'makeLensesFor', but takes a declaration quote. Cannot
--- inherit field documentation; 'declareLensesWith' explains why.
+-- | Similar to 'makeLensesFor', but takes a declaration quote. All record
+-- syntax in the input will be stripped off.
+--
+-- As with 'makeLensesFor', only the fields named in the mapping get lenses.
+-- Because the record syntax is stripped, a field that is not in the mapping
+-- gets neither a lens nor a record selector.
+--
+-- /e.g./
+--
+-- @
+-- declareLensesFor [(\"_fooX\", \"fooX\")] [d|
+--   data Foo = Foo { _fooX, _fooY :: 'Int' }
+--   |]
+-- @
+--
+-- will create
+--
+-- @
+-- data Foo = Foo 'Int' 'Int'
+-- fooX :: 'Lens'' Foo 'Int'
+-- @
+--
+-- Cannot inherit field documentation; 'declareLensesWith' explains why.
 declareLensesFor :: [(String, String)] -> DecsQ -> DecsQ
-declareLensesFor fields
-  = declareLensesWith
-  $ lensRulesFor fields
-  & lensField .~ \_ _ n -> [TopName n]
+declareLensesFor fields = declareLensesWith (lensRulesFor fields)
 
 -- | For each record in the declaration quote, make lenses and traversals for
 -- it, and create a class when the type has no arguments. All record syntax
@@ -489,14 +507,39 @@ declareClassy
   $ classyRules
   & lensField .~ \_ _ n -> [TopName n]
 
--- | Similar to 'makeClassyFor', but takes a declaration quote. Cannot
--- inherit field documentation; 'declareLensesWith' explains why.
+-- | Similar to 'makeClassyFor', but takes a declaration quote. The first
+-- argument maps each type name to the name of its class and of the class
+-- method; the second maps field names to lens names. All record syntax in
+-- the input will be stripped off.
+--
+-- As with 'makeClassyFor', only the fields named in the mapping get lenses.
+-- Because the record syntax is stripped, a field that is not in the mapping
+-- gets neither a lens nor a record selector.
+--
+-- /e.g./
+--
+-- @
+-- declareClassyFor [(\"Foo\", (\"HasFoo\", \"foo\"))] [(\"_fooX\", \"fooX\")] [d|
+--   data Foo = Foo { _fooX, _fooY :: 'Int' }
+--   |]
+-- @
+--
+-- will create
+--
+-- @
+-- data Foo = Foo 'Int' 'Int'
+-- class HasFoo t where
+--   foo :: 'Lens'' t Foo
+-- instance HasFoo Foo where foo = 'id'
+-- fooX :: HasFoo t => 'Lens'' t 'Int'
+-- @
+--
+-- Cannot inherit field documentation; 'declareLensesWith' explains why.
 declareClassyFor ::
   [(String, (String, String))] -> [(String, String)] -> DecsQ -> DecsQ
 declareClassyFor classes fields
   = declareLensesWith
   $ classyRulesFor (`Prelude.lookup`classes) fields
-  & lensField .~ \_ _ n -> [TopName n]
 
 -- | Generate a 'Control.Lens.Type.Prism' for each constructor of each data type.
 --
