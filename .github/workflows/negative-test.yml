@@ -1,0 +1,26 @@
+# Asserts lens-build's compile-time guarantees: invalid uses (an incomplete
+# `build`, and makeBuild on unsupported types) must FAIL to compile with our
+# custom messages. Kept separate from the generated haskell-ci.yml so
+# `haskell-ci regenerate` can't clobber it. One GHC is enough — the messages
+# are GHC-version-independent.
+name: Negative test (lens-build)
+on:
+  - push
+  - pull_request
+jobs:
+  negative:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up GHC
+        uses: haskell-actions/setup@v2
+        with:
+          ghc-version: '9.8'    # any >= 8.8
+
+      - name: Update package index
+        run: cabal update
+
+      - name: lens-build must reject invalid uses at compile time
+        run: sh lens-build/tests/negative/run.sh

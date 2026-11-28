@@ -2,3 +2,4 @@ packages: .
           ./examples
           ./lens-properties
           ./lens-partial-iso
+          ./lens-build
